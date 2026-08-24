@@ -1,0 +1,390 @@
+/* =========================================================
+   PÁGINA PROFESIONALES
+   ========================================================= */
+
+.profesionales-page {
+    padding: 30px;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.profesionales-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.profesionales-header h1 {
+    margin: 0;
+
+    color: #BC4F4F;
+    font-size: 30px;
+}
+
+.profesionales-header p {
+    margin-top: 6px;
+    color: #777;
+}
+
+
+/* =========================================================
+   BOTÓN NUEVO
+   ========================================================= */
+
+.btn-nuevo {
+    background-color: #BC4F4F;
+    color: white;
+    border: none;
+    padding: 11px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-nuevo:hover {
+    background-color: #1d4ed8;
+}
+
+
+/* =========================================================
+   TABLA
+   ========================================================= */
+
+.ssee-table-container {
+    background: white;
+    border-radius: 12px;
+    overflow-x: auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.ssee-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ssee-table thead {
+    background-color: #f8fafc;
+}
+
+.ssee-table th {
+    text-align: left;
+    padding: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.ssee-table td {
+    padding: 15px;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+.ssee-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+
+/* =========================================================
+   ESTADOS
+   ========================================================= */
+
+.estado {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.estado.activo {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.estado.inactivo {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+
+/* =========================================================
+   ACCIONES
+   ========================================================= */
+
+.acciones {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-editar,
+.btn-desactivar,
+.btn-activar {
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: 0.2s;
+}
+
+.btn-editar {
+    background-color: #e0f2fe;
+}
+
+.btn-editar:hover {
+    background-color: #bae6fd;
+}
+
+.btn-desactivar {
+    background-color: #fee2e2;
+}
+
+.btn-desactivar:hover {
+    background-color: #fecaca;
+}
+
+.btn-activar {
+    background-color: #dcfce7;
+}
+
+.btn-activar:hover {
+    background-color: #bbf7d0;
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+
+    background-color: rgba(0, 0, 0, 0.45);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 1000;
+}
+
+
+/* =========================================================
+   CONTENEDOR MODAL
+   ========================================================= */
+
+.profesional-modal {
+    width: 500px;
+    max-width: 90%;
+
+    background: white;
+    border-radius: 14px;
+
+    padding: 25px;
+
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+
+    animation: aparecerModal 0.2s ease;
+}
+
+@keyframes aparecerModal {
+
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================================================
+   HEADER DEL MODAL
+   ========================================================= */
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    margin-bottom: 25px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.modal-header p {
+    margin-top: 6px;
+    color: #777;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   BOTÓN CERRAR
+   ========================================================= */
+
+.modal-close {
+    border: none;
+    background: transparent;
+
+    font-size: 20px;
+
+    cursor: pointer;
+
+    color: #64748b;
+}
+
+.modal-close:hover {
+    color: #111827;
+}
+
+
+/* =========================================================
+   FORMULARIO
+   ========================================================= */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 7px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: #374151;
+}
+
+.form-group input,
+.form-group select {
+    padding: 11px 12px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 7px;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition: 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #2563eb;
+
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+
+/* =========================================================
+   BOTONES DEL FORMULARIO
+   ========================================================= */
+
+.form-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 25px;
+}
+
+.btn-cancelar {
+    padding: 10px 16px;
+
+    border: 1px solid #d1d5db;
+
+    background-color: white;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    color: #374151;
+}
+
+.btn-cancelar:hover {
+    background-color: #f3f4f6;
+}
+
+.btn-guardar {
+    padding: 10px 18px;
+
+    border: none;
+
+    background-color: #2563eb;
+
+    color: white;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    font-weight: 600;
+}
+
+.btn-guardar:hover {
+    background-color: #1d4ed8;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .profesionales-page {
+        padding: 20px;
+    }
+
+    .profesionales-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .profesionales-header .btn-nuevo {
+        width: 100%;
+    }
+
+    .profesional-modal {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .ssee-table th,
+    .ssee-table td {
+        padding: 10px;
+    }
+
+}

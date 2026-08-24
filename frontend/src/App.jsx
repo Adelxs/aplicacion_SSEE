@@ -1,38 +1,86 @@
-import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Layout from "./components/Layout";
+import { AuthProvider } from "./auth/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+import Dashboard from "./pages/Dashboard";
+import Hogares from "./pages/Hogares";
+import Profesionales from "./pages/Profesionales";
+import Intervenciones from "./pages/Intervenciones";
+import ListaEspera from "./pages/ListaEspera";
+import Asistente from "./pages/Asistente";
+import Login from "./pages/Login";
+
+import "./App.css";
+
 
 function App() {
 
-  const [hogares, setHogares] = useState([]);
+    return (
 
-  useEffect(() => {
+        <BrowserRouter>
 
-    fetch("http://127.0.0.1:8000/hogares")
-      .then(response => response.json())
-      .then(data => {
-        setHogares(data);
-      });
+            <AuthProvider>
 
-  }, []);
+                <Routes>
 
-  return (
-    <div>
+                    {/* LOGIN */}
 
-      <h1>Sistema SSEE</h1>
+                    <Route
+                        path="/"
+                        element={<Login />}
+                    />
 
-      <h2>Hogares</h2>
 
-      <ul>
-        {hogares.map(hogar => (
-          <li key={hogar.id}>
-            {hogar.cuidador_principal} -
-            {hogar.psdf} -
-            {hogar.unidad_vecinal}
-          </li>
-        ))}
-      </ul>
+                    {/* RUTAS PROTEGIDAS */}
 
-    </div>
-  );
+                    <Route element={<ProtectedRoute />}>
+
+                        {/* LAYOUT ADMINISTRATIVO */}
+
+                        <Route element={<Layout />}>
+
+                            <Route
+                                path="/dashboard"
+                                element={<Dashboard />}
+                            />
+
+                            <Route
+                                path="/hogares"
+                                element={<Hogares />}
+                            />
+
+                            <Route
+                                path="/profesionales"
+                                element={<Profesionales />}
+                            />
+
+                            <Route
+                                path="/intervenciones"
+                                element={<Intervenciones />}
+                            />
+
+                            <Route
+                                path="/lista-espera"
+                                element={<ListaEspera />}
+                            />
+
+                            <Route
+                                path="/asistente"
+                                element={<Asistente />}
+                            />
+
+                        </Route>
+
+                    </Route>
+
+                </Routes>
+
+            </AuthProvider>
+
+        </BrowserRouter>
+    );
 }
 
 export default App;

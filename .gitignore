@@ -1,20 +1,52 @@
-# Python
-backend/venv/
-backend/__pycache__/
-*.pyc
+# =========================
+# VARIABLES DE ENTORNO
+# =========================
 
-# Node
-frontend/node_modules/
-frontend/dist/
-
-# Environment variables
 .env
-*.env
+.env.*
+!.env.example
 
+
+# =========================
+# PYTHON
+# =========================
+
+__pycache__/
+*.py[cod]
+*.pyo
+
+.venv/
+venv/
+env/
+
+
+# =========================
+# NODE / REACT
+# =========================
+
+node_modules/
+dist/
+build/
+
+
+# =========================
 # IDE
+# =========================
+
 .vscode/
 .idea/
 
-# OS
-Thumbs.db
+
+# =========================
+# SISTEMA OPERATIVO
+# =========================
+
 .DS_Store
+Thumbs.db
+
+
+# =========================
+# LOGS
+# =========================
+
+*.log

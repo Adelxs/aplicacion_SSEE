@@ -1,0 +1,241 @@
+.dashboard {
+    width: 100%;
+    min-height: 100vh;
+
+    background: #F3CD97;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.dashboard-header {
+    margin-bottom: 30px;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+
+    font-size: 32px;
+    font-weight: 700;
+
+    color: #BC4F4F;
+}
+
+.dashboard-header p {
+    margin: 8px 0 0;
+
+    font-size: 15px;
+
+    color: #6b4f4f;
+}
+
+
+/* =========================
+   ESTADÍSTICAS
+========================= */
+
+.stats-grid {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 20px;
+}
+
+
+/* TARJETA */
+
+.stat-card {
+    background: #fffaf0;
+
+    padding: 22px;
+
+    border-radius: 14px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 16px;
+
+    border: 1px solid rgba(188, 79, 79, 0.12);
+
+    box-shadow:
+        0 4px 12px rgba(188, 79, 79, 0.10);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+/* EFECTO HOVER */
+
+.stat-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 8px 18px rgba(188, 79, 79, 0.16);
+}
+
+
+/* ICONO */
+
+.stat-icon {
+    width: 58px;
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    background: #E98B50;
+
+    border-radius: 12px;
+
+    font-size: 28px;
+}
+
+
+/* TEXTO */
+
+.stat-card p {
+    margin: 0;
+
+    font-size: 14px;
+
+    color: #795548;
+}
+
+.stat-card h2 {
+    margin: 5px 0 0;
+
+    font-size: 30px;
+
+    color: #BC4F4F;
+}
+
+
+/* =========================
+   SECCIÓN ACTIVIDAD
+========================= */
+
+.dashboard-section {
+    margin-top: 30px;
+
+    background: #fffaf0;
+
+    padding: 25px;
+
+    border-radius: 14px;
+
+    border: 1px solid rgba(188, 79, 79, 0.12);
+
+    box-shadow:
+        0 4px 12px rgba(188, 79, 79, 0.08);
+}
+
+
+/* TITULO */
+
+.section-header h2 {
+    margin: 0 0 20px;
+
+    font-size: 20px;
+
+    color: #BC4F4F;
+}
+
+
+/* LISTA */
+
+.activity-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+
+/* ACTIVIDAD */
+
+.activity-item {
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    background: #FEF2A0;
+
+    border-left: 4px solid #E98B50;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.activity-item:hover {
+    transform: translateX(3px);
+
+    background: #fbe9a6;
+}
+
+
+/* ICONO ACTIVIDAD */
+
+.activity-item > span {
+    font-size: 25px;
+
+    width: 40px;
+
+    text-align: center;
+}
+
+
+/* TEXTO */
+
+.activity-item strong {
+    color: #BC4F4F;
+
+    font-size: 15px;
+}
+
+.activity-item p {
+    margin: 4px 0 0;
+
+    color: #795548;
+
+    font-size: 14px;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1100px) {
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
