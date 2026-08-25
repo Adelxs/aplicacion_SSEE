@@ -27,7 +27,13 @@ function Login() {
             );
 
             if (usuario.rol === "administrador") {
+
                 navigate("/dashboard");
+
+            } else if (usuario.rol === "profesional") {
+
+                navigate("/profesional");
+
             }
 
             console.log(

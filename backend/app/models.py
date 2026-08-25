@@ -5,47 +5,87 @@ from sqlalchemy.orm import relationship
 class Hogar(Base):
     __tablename__ = "hogares"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    id_hogar = Column(Integer, unique=True, nullable=False)
-    cuidador_principal = Column(String(150), nullable=False)
-    psdf = Column(String(150), nullable=False)
-    direccion = Column(String(250), nullable=False)
-    telefono = Column(String(50))
-    unidad_vecinal = Column(String(100))
-    estado = Column(String(50), nullable=False, default="Activo")
-    
-    ##Relacion con la tabla intervencion
-    intervenciones = relationship("Intervencion", back_populates="hogar")
-    
-    ##Relacion con la tabla lista_espera
-    lista_espera = relationship(
-    "ListaEspera",
-    back_populates="hogar"
-)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+        autoincrement=True
+    )
+
+    id_hogar = Column(
+        Integer,
+        unique=True,
+        nullable=False
+    )
+
+    cuidador_principal = Column(
+        String(150),
+        nullable=False
+    )
+
+    psdf = Column(
+        String(150),
+        nullable=False
+    )
+
+    direccion = Column(
+        String(250),
+        nullable=False
+    )
+
+    telefono = Column(
+        String(50)
+    )
+
+    unidad_vecinal = Column(
+        String(100)
+    )
+
+    estado = Column(
+        String(50),
+        nullable=False,
+        default="Activo"
+    )
+
+    intervenciones = relationship(
+        "Intervencion",
+        back_populates="hogar"
+    )
     
 class Profesional(Base):
     __tablename__ = "profesionales"
 
-    id = Column(Integer, primary_key=True)
-    nombre = Column(String(150), nullable=False)
-    disciplina = Column(String(100), nullable=False)
-    activo = Column(Boolean, nullable=False, default=True)
-    
-    ##Relacion con la tabla intervencion
-    intervenciones = relationship("Intervencion", back_populates="profesional")
-    
-    ##Relacion con la tabla lista_espera
-    lista_espera = relationship(
-    "ListaEspera",
-    back_populates="profesional"
+    id = Column(
+        Integer,
+        primary_key=True
     )
-    
-    ##Relacion con la tabla usuarios
+
+    nombre = Column(
+        String(150),
+        nullable=False
+    )
+
+    disciplina = Column(
+        String(100),
+        nullable=False
+    )
+
+    activo = Column(
+        Boolean,
+        nullable=False,
+        default=True
+    )
+
+    intervenciones = relationship(
+        "Intervencion",
+        back_populates="profesional"
+    )
+
     usuario = relationship(
-    "Usuario",
-    back_populates="profesional",
-    uselist=False
-)
+        "Usuario",
+        back_populates="profesional",
+        uselist=False
+    )
     
 class Intervencion(Base):
     __tablename__ = "intervenciones"
@@ -72,24 +112,39 @@ class ListaEspera(Base):
 
     id = Column(Integer, primary_key=True)
 
-    hogar_id = Column(
-        Integer,
-        ForeignKey("hogares.id"),
+    id_hogar = Column(Integer, nullable=False)
+
+    cuidador_principal = Column(
+        String(150),
         nullable=False
     )
 
-    profesional_id = Column(
-        Integer,
-        ForeignKey("profesionales.id"),
+    psdf = Column(
+        String(150),
+        nullable=False
+    )
+
+    direccion = Column(
+        String(250),
+        nullable=False
+    )
+
+    unidad_vecinal = Column(
+        String(100),
         nullable=True
     )
 
-    disciplina_requerida = Column(
-        String(100),
-        nullable=False
+    telefono = Column(
+        String(50),
+        nullable=True
     )
 
-    dia_preferente = Column(
+    profesional_nombre = Column(
+        String(150),
+        nullable=True
+    )
+
+    dia = Column(
         String(20),
         nullable=True
     )
@@ -108,16 +163,6 @@ class ListaEspera(Base):
     observaciones = Column(
         String(500),
         nullable=True
-    )
-
-    hogar = relationship(
-        "Hogar",
-        back_populates="lista_espera"
-    )
-
-    profesional = relationship(
-        "Profesional",
-        back_populates="lista_espera"
     )
     
 class Usuario(Base):

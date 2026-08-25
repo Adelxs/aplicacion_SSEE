@@ -30,15 +30,6 @@ class ProfesionalUpdate(BaseModel):
     disciplina: str
     activo: bool
     
-class IntervencionCreate(BaseModel):
-    hogar_id: int
-    profesional_id: int
-    tipo: str
-    numero_intervencion: int | None = None
-    fecha_programada: date | None = None
-    fecha_realizada: date | None = None
-    estado: str
-    observaciones: str | None = None
     
 class IntervencionCreate(BaseModel):
     hogar_id: int
@@ -66,8 +57,12 @@ class IntervencionResponse(BaseModel):
         
 class HogarResumen(BaseModel):
     id: int
+    id_hogar: int
     cuidador_principal: str
     psdf: str
+    direccion: str
+    unidad_vecinal: str | None = None
+    telefono: str | None = None
 
     class Config:
         from_attributes = True
@@ -103,47 +98,84 @@ class IntervencionUpdate(BaseModel):
     observaciones: str | None = None
     
 class ListaEsperaCreate(BaseModel):
-    hogar_id: int
-    profesional_id: int | None = None
-    disciplina_requerida: str
-    dia_preferente: str | None = None
+
+    id_hogar: int
+
+    cuidador_principal: str
+
+    psdf: str
+
+    direccion: str
+
+    unidad_vecinal: str | None = None
+
+    telefono: str | None = None
+
+    profesional_nombre: str | None = None
+
+    dia: str | None = None
+
     estado: str = "Pendiente"
+
     fecha_solicitud: date
+
+    observaciones: str | None = None
+
+
+class ListaEsperaResponse(BaseModel):
+
+    id: int
+
+    id_hogar: int
+
+    cuidador_principal: str
+
+    psdf: str
+
+    direccion: str
+
+    unidad_vecinal: str | None
+
+    telefono: str | None
+
+    profesional_nombre: str | None
+
+    dia: str | None
+
+    estado: str
+
+    fecha_solicitud: date
+
+    observaciones: str | None
+
+    class Config:
+        from_attributes = True
+
+
+class ListaEsperaUpdate(BaseModel):
+
+    cuidador_principal: str | None = None
+
+    psdf: str | None = None
+
+    direccion: str | None = None
+
+    unidad_vecinal: str | None = None
+
+    telefono: str | None = None
+
+    profesional_nombre: str | None = None
+
+    dia: str | None = None
+
+    estado: str | None = None
+
+    fecha_solicitud: date | None = None
+
     observaciones: str | None = None
     
-class ListaEsperaResponse(BaseModel):
-    id: int
-    hogar_id: int
-    profesional_id: int | None
-    disciplina_requerida: str
-    dia_preferente: str | None
-    estado: str
-    fecha_solicitud: date
-    observaciones: str | None
-
-    class Config:
-        from_attributes = True
-        
-class ListaEsperaDetalle(BaseModel):
-    id: int
-    hogar: HogarResumen
-    profesional: ProfesionalResponse | None = None
-    disciplina_requerida: str
-    dia_preferente: str | None
-    estado: str
-    fecha_solicitud: date
-    observaciones: str | None
-
-    class Config:
-        from_attributes = True
-        
-class ListaEsperaUpdate(BaseModel):
-    profesional_id: int | None = None
-    disciplina_requerida: str | None = None
-    dia_preferente: str | None = None
-    estado: str | None = None
-    fecha_solicitud: date | None = None
-    observaciones: str | None = None
+class ListaEsperaDetalle(ListaEsperaResponse):
+    pass
     
 class UsuarioCreate(BaseModel):
     username: str

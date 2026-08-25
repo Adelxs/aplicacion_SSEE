@@ -8,6 +8,7 @@ from app.security import SECRET_KEY, ALGORITHM
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt, JWTError
+from sqlalchemy.orm import Session, joinedload
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="login"
@@ -414,10 +415,11 @@ def eliminar_intervencion(
     
 ################################################################# Lista de espera ############################################################
     
-@app.post("/lista-espera", response_model=list[schemas.ListaEsperaDetalle])
+@app.post("/lista-espera")
 def crear_lista_espera(
     datos: schemas.ListaEsperaCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    usuario = Depends(requiere_admin)
 ):
     nueva_entrada = models.ListaEspera(**datos.model_dump())
 
@@ -427,24 +429,33 @@ def crear_lista_espera(
 
     return nueva_entrada
 
-@app.get("/lista-espera", response_model=list[schemas.ListaEsperaResponse])
-def obtener_lista_espera(db: Session = Depends(get_db)):
+@app.get("/lista-espera")
+def obtener_lista_espera(
+    db: Session = Depends(get_db),
+    usuario = Depends(obtener_usuario_actual)
+):
 
     lista = db.query(models.ListaEspera).all()
 
     return lista
 
-@app.get("/lista-espera/{id}",response_model=schemas.ListaEsperaDetalle)
+@app.get(
+    "/lista-espera/{id}",
+    response_model=schemas.ListaEsperaResponse
+)
 def obtener_lista_espera_por_id(
     id: int,
     db: Session = Depends(get_db)
 ):
 
-    entrada = db.query(models.ListaEspera).filter(
+    entrada = db.query(
+        models.ListaEspera
+    ).filter(
         models.ListaEspera.id == id
     ).first()
 
     if entrada is None:
+
         raise HTTPException(
             status_code=404,
             detail="Entrada de lista de espera no encontrada"
@@ -459,17 +470,50 @@ def obtener_lista_espera_por_id(
 def actualizar_lista_espera(
     id: int,
     datos: schemas.ListaEsperaUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    usuario = Depends(obtener_usuario_actual)
 ):
 
-    entrada = db.query(models.ListaEspera).filter(
+    entrada = db.query(
+        models.ListaEspera
+    ).filter(
         models.ListaEspera.id == id
     ).first()
 
     if entrada is None:
+
         raise HTTPException(
             status_code=404,
             detail="Entrada de lista de espera no encontrada"
+        )
+
+    # ADMINISTRADOR
+    if usuario.rol == "administrador":
+        pass
+
+    # PROFESIONAL
+    elif usuario.rol == "profesional":
+
+        if usuario.profesional_id is None:
+
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="El usuario no tiene un profesional asociado"
+            )
+
+        if entrada.profesional_id != usuario.profesional_id:
+
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No puedes modificar una entrada que no te pertenece"
+            )
+
+    # OTRO ROL
+    else:
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permisos para modificar esta entrada"
         )
 
     datos_actualizados = datos.model_dump(
@@ -477,7 +521,12 @@ def actualizar_lista_espera(
     )
 
     for campo, valor in datos_actualizados.items():
-        setattr(entrada, campo, valor)
+
+        setattr(
+            entrada,
+            campo,
+            valor
+        )
 
     db.commit()
     db.refresh(entrada)
@@ -487,10 +536,13 @@ def actualizar_lista_espera(
 @app.delete("/lista-espera/{id}")
 def eliminar_lista_espera(
     id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    usuario = Depends(requiere_admin)
 ):
 
-    entrada = db.query(models.ListaEspera).filter(
+    entrada = db.query(
+        models.ListaEspera
+    ).filter(
         models.ListaEspera.id == id
     ).first()
 

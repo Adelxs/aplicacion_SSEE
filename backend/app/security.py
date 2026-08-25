@@ -3,9 +3,14 @@ from jose import jwt
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
+
 
 password_hash = PasswordHash.recommended()
 
@@ -27,6 +32,7 @@ def verificar_password(password: str, password_hash_guardado: str):
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 ALGORITHM = "HS256"
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
