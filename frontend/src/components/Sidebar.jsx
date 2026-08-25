@@ -171,7 +171,7 @@ function Sidebar() {
                     onClick={manejarLogout}
                 >
 
-                    <span>🚪</span>
+                    
 
                     Cerrar sesión
 
