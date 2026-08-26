@@ -1,8 +1,9 @@
+
 import axios from "axios";
 
 
 const api = axios.create({
-    baseURL: "http://127.0.0.1:8000"
+    baseURL: "https://ssee-backend.onrender.com"
 });
 
 
@@ -57,17 +58,17 @@ api.interceptors.response.use(
             error.response?.data
         );
 
-        if (
-            error.response?.status === 401
-        ) {
+     //   if (
+        //    error.response?.status === 401
+       // ) {
 
-            localStorage.removeItem(
-                "access_token"
-            );
+          //  localStorage.removeItem(
+             //   "access_token"
+           // );
 
-            window.location.href = "/";
+           // window.location.href = "/";
 
-        }
+       // }
 
         return Promise.reject(error);
     }
@@ -75,3 +76,4 @@ api.interceptors.response.use(
 
 
 export default api;
+
