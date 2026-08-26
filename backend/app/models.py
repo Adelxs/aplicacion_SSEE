@@ -139,9 +139,14 @@ class ListaEspera(Base):
         nullable=True
     )
 
-    profesional_nombre = Column(
-        String(150),
+    profesional_id = Column(
+        Integer,
+        ForeignKey("profesionales.id"),
         nullable=True
+    )
+
+    profesional = relationship(
+        "Profesional"
     )
 
     dia = Column(
@@ -195,7 +200,8 @@ class Usuario(Base):
         profesional_id = Column(
             Integer,
             ForeignKey("profesionales.id"),
-            nullable=True
+            nullable=True,
+            unique=True
         )
 
         profesional = relationship(

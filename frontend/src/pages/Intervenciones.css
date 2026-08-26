@@ -1,0 +1,564 @@
+/* =========================
+   CONTENEDOR PRINCIPAL
+========================= */
+
+.intervenciones {
+    width: 100%;
+    min-height: 100vh;
+    background: #F3CD97;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.intervenciones-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.intervenciones-header h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 700;
+    color: #BC4F4F;
+}
+
+.intervenciones-header p {
+    margin: 8px 0 0;
+    font-size: 15px;
+    color: #6b4f4f;
+}
+
+
+/* =========================
+   BOTÓN NUEVA INTERVENCIÓN
+========================= */
+
+.btn-nueva-intervencion {
+    background: #BC4F4F;
+    color: white;
+    border: none;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+    margin-bottom: 20px;
+}
+
+.btn-nueva-intervencion:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 5px 12px rgba(188, 79, 79, 0.18);
+}
+
+
+/* =========================
+   TABLA
+========================= */
+
+.ssee-table-container {
+    background: #fffaf0;
+    
+    border-radius: 14px;
+
+    border: 1px solid rgba(188, 79, 79, 0.12);
+
+    box-shadow:
+        0 4px 12px rgba(188, 79, 79, 0.08);
+
+    overflow-x: auto;
+}
+
+.ssee-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ssee-table th {
+    text-align: left;
+    padding: 14px;
+
+    color: #BC4F4F;
+
+    font-size: 14px;
+
+    border-bottom:
+        2px solid #E98B50;
+}
+
+.ssee-table td {
+    padding: 14px;
+
+    color: #795548;
+
+    font-size: 14px;
+
+    border-bottom:
+        1px solid rgba(188, 79, 79, 0.10);
+}
+
+.ssee-table tbody tr {
+    transition:
+        background 0.2s ease;
+}
+
+.ssee-table tbody tr:hover {
+    background: #FEF2A0;
+}
+
+
+/* =========================
+   BOTONES TABLA
+========================= */
+
+.btn-editar,
+.btn-eliminar {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    margin-right: 6px;
+}
+
+.btn-editar {
+    background: #FEF2A0;
+    color: #BC4F4F;
+}
+
+.btn-eliminar {
+    background: #BC4F4F;
+    color: white;
+}
+
+
+/* =========================
+   MODAL OVERLAY
+========================= */
+
+.modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(107, 79, 79, 0.45);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    z-index: 1000;
+
+    padding: 20px;
+}
+
+
+/* =========================
+   CAJA MODAL
+========================= */
+
+.modal-intervencion {
+    width: 100%;
+    max-width: 650px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: #fffaf0;
+
+    border-radius: 14px;
+
+    border:
+        1px solid rgba(188, 79, 79, 0.12);
+
+    box-shadow:
+        0 15px 40px rgba(107, 79, 79, 0.25);
+}
+
+
+/* =========================
+   HEADER MODAL
+========================= */
+
+.modal-header {
+    display: flex;
+
+    align-items: flex-start;
+    justify-content: space-between;
+
+    padding: 24px 25px;
+
+    border-bottom:
+        1px solid rgba(188, 79, 79, 0.12);
+}
+
+.modal-header h2 {
+    margin: 0;
+
+    color: #BC4F4F;
+
+    font-size: 22px;
+}
+
+.modal-header p {
+    margin: 6px 0 0;
+
+    color: #795548;
+
+    font-size: 14px;
+}
+
+
+/* =========================
+   BOTÓN CERRAR
+========================= */
+
+.modal-close {
+    width: 36px;
+    height: 36px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #FEF2A0;
+
+    color: #BC4F4F;
+
+    font-size: 24px;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.modal-close:hover {
+    background: #fbe9a6;
+
+    transform: scale(1.05);
+}
+
+
+/* =========================
+   FORMULARIO
+========================= */
+
+.modal-intervencion form {
+    padding: 25px;
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 18px;
+}
+
+
+/* =========================
+   LABEL
+========================= */
+
+.modal-intervencion label {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+    color: #795548;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+
+/* =========================
+   INPUTS
+========================= */
+
+.modal-intervencion input,
+.modal-intervencion select,
+.modal-intervencion textarea {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 11px 12px;
+
+    border:
+        1px solid rgba(188, 79, 79, 0.20);
+
+    border-radius: 10px;
+
+    background: white;
+
+    color: #6b4f4f;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+/* =========================
+   FOCUS
+========================= */
+
+.modal-intervencion input:focus,
+.modal-intervencion select:focus,
+.modal-intervencion textarea:focus {
+
+    border-color: #E98B50;
+
+    box-shadow:
+        0 0 0 3px rgba(233, 139, 80, 0.15);
+}
+
+
+/* =========================
+   OBSERVACIONES
+========================= */
+
+.campo-completo {
+    grid-column: 1 / -1;
+}
+
+.modal-intervencion textarea {
+
+    min-height: 100px;
+
+    resize: vertical;
+}
+
+
+/* =========================
+   BOTONES FORMULARIO
+========================= */
+
+.form-actions {
+
+    grid-column: 1 / -1;
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding-top: 5px;
+}
+
+
+/* CANCELAR */
+
+.form-actions button[type="button"] {
+
+    background: #FEF2A0;
+
+    color: #BC4F4F;
+
+    border: none;
+
+    padding: 11px 18px;
+
+    border-radius: 10px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+/* GUARDAR */
+
+.form-actions button[type="submit"] {
+
+    background: #BC4F4F;
+
+    color: white;
+
+    border: none;
+
+    padding: 11px 18px;
+
+    border-radius: 10px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.form-actions button[type="submit"]:hover {
+
+    box-shadow:
+        0 5px 12px rgba(188, 79, 79, 0.20);
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 650px) {
+
+    .modal-intervencion form {
+
+        grid-template-columns: 1fr;
+    }
+
+    .campo-completo {
+
+        grid-column: auto;
+    }
+
+    .modal-intervencion {
+
+        max-height: 95vh;
+    }
+
+    .form-actions {
+
+        flex-direction: column;
+    }
+
+    .form-actions button {
+
+        width: 100%;
+    }
+}
+
+@media (max-width: 650px) {
+
+    .intervenciones-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.intervenciones-header {
+    margin-bottom: 30px;
+}
+
+.intervenciones-header h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 700;
+    color: #BC4F4F;
+}
+
+
+/* =========================
+   SUBHEADER
+========================= */
+
+.intervenciones-subheader {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.intervenciones-subheader p {
+    margin: 0;
+    padding: 0;
+    text-align: left;
+}
+
+.btn-nueva-intervencion {
+    margin-left: auto;
+}
+
+/* =========================
+   ACCIONES
+========================= */
+
+.acciones-intervencion {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+
+/* =========================
+   BOTONES
+========================= */
+
+.btn-editar,
+.btn-eliminar {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+/* =========================
+   EDITAR
+========================= */
+
+.btn-editar {
+    background: #FEF2A0;
+    color: #BC4F4F;
+}
+
+.btn-editar:hover {
+    background: #fbe9a6;
+}
+
+
+/* =========================
+   ELIMINAR
+========================= */
+
+.btn-eliminar {
+    background: #BC4F4F;
+    color: white;
+}
+
+.btn-eliminar:hover {
+    background: #a94343;
+}

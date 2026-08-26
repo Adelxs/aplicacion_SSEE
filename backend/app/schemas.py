@@ -31,6 +31,28 @@ class ProfesionalUpdate(BaseModel):
     activo: bool
     
     
+
+        
+class HogarResumen(BaseModel):
+    id: int
+    id_hogar: int
+    cuidador_principal: str
+    psdf: str
+    direccion: str
+    unidad_vecinal: str | None = None
+    telefono: str | None = None
+
+    class Config:
+        from_attributes = True
+        
+class ProfesionalResumen(BaseModel):
+    id: int
+    nombre: str
+    disciplina: str
+
+    class Config:
+        from_attributes = True
+        
 class IntervencionCreate(BaseModel):
     hogar_id: int
     profesional_id: int
@@ -55,26 +77,6 @@ class IntervencionResponse(BaseModel):
     class Config:
         from_attributes = True
         
-class HogarResumen(BaseModel):
-    id: int
-    id_hogar: int
-    cuidador_principal: str
-    psdf: str
-    direccion: str
-    unidad_vecinal: str | None = None
-    telefono: str | None = None
-
-    class Config:
-        from_attributes = True
-        
-class ProfesionalResumen(BaseModel):
-    id: int
-    nombre: str
-    disciplina: str
-
-    class Config:
-        from_attributes = True
-        
 class IntervencionDetalle(BaseModel):
     id: int
     hogar: HogarResumen
@@ -90,6 +92,8 @@ class IntervencionDetalle(BaseModel):
         from_attributes = True
         
 class IntervencionUpdate(BaseModel):
+    hogar_id: int | None = None
+    profesional_id: int | None = None
     tipo: str | None = None
     numero_intervencion: int | None = None
     fecha_programada: date | None = None
@@ -111,7 +115,7 @@ class ListaEsperaCreate(BaseModel):
 
     telefono: str | None = None
 
-    profesional_nombre: str | None = None
+    profesional_id: int | None = None
 
     dia: str | None = None
 
@@ -138,7 +142,7 @@ class ListaEsperaResponse(BaseModel):
 
     telefono: str | None
 
-    profesional_nombre: str | None
+    profesional_id: int | None
 
     dia: str | None
 
@@ -164,8 +168,6 @@ class ListaEsperaUpdate(BaseModel):
 
     telefono: str | None = None
 
-    profesional_nombre: str | None = None
-
     dia: str | None = None
 
     estado: str | None = None
@@ -173,7 +175,8 @@ class ListaEsperaUpdate(BaseModel):
     fecha_solicitud: date | None = None
 
     observaciones: str | None = None
-    
+
+
 class ListaEsperaDetalle(ListaEsperaResponse):
     pass
     
@@ -202,3 +205,8 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+    
+class UsuarioProfesionalCreate(BaseModel):
+    username: str
+    password: str
+    activo: bool = True

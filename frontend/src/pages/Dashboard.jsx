@@ -1,119 +1,275 @@
 import { useEffect, useState } from "react";
+import api from "../services/api";
 import "./Dashboard.css";
 
 function Dashboard() {
 
-    
-
     const [cantidadHogares, setCantidadHogares] = useState(0);
     const [cantidadProfesionales, setCantidadProfesionales] = useState(0);
+    const [cantidadIntervenciones, setCantidadIntervenciones] = useState(0);
+    const [cantidadListaEspera, setCantidadListaEspera] = useState(0);
+
+
+    // =========================
+    // OBTENER DATOS DEL DASHBOARD
+    // =========================
 
     useEffect(() => {
 
-        fetch("http://127.0.0.1:8000/hogares")
-            .then(response => response.json())
-            .then(data => {
-                setCantidadHogares(data.length);
-            })
-            .catch(error => {
-                console.error("Error obteniendo hogares:", error);
-            });
+        const obtenerDatos = async () => {
 
-        fetch("http://127.0.0.1:8000/profesionales")
-        .then(response => response.json())
-        .then(data => {
-            setCantidadProfesionales(data.length);
-        })
-        .catch(error => {
-            console.error("Error obteniendo profesionales:", error);
-        });
+            try {
+
+                const [
+                    hogares,
+                    profesionales,
+                    intervenciones,
+                    listaEspera
+                ] = await Promise.all([
+
+                    api.get("/hogares"),
+                    api.get("/profesionales"),
+                    api.get("/intervenciones"),
+                    api.get("/lista-espera")
+
+                ]);
+
+
+                // =========================
+                // ACTUALIZAR CANTIDADES
+                // =========================
+
+                setCantidadHogares(
+                    hogares.data.length
+                );
+
+                setCantidadProfesionales(
+                    profesionales.data.length
+                );
+
+                setCantidadIntervenciones(
+                    intervenciones.data.length
+                );
+
+                setCantidadListaEspera(
+                    listaEspera.data.length
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Error obteniendo datos del dashboard:",
+                    error
+                );
+
+            }
+
+        };
+
+
+        obtenerDatos();
 
     }, []);
 
 
-
     return (
+
         <div className="dashboard">
 
+
+            {/* ========================= */}
+            {/* HEADER */}
+            {/* ========================= */}
+
             <div className="dashboard-header">
+
                 <div>
-                    <h1>SSEE Sistema de Seguimiento</h1>
-                    <p>Resumen general</p>
+
+                    <h1>
+                        SSEE Sistema de Seguimiento
+                    </h1>
+
+                    <p>
+                        Resumen general
+                    </p>
+
                 </div>
+
             </div>
+
+
+            {/* ========================= */}
+            {/* ESTADÍSTICAS */}
+            {/* ========================= */}
 
             <div className="stats-grid">
 
-                <div className="stat-card">
-                    <div className="stat-icon">🏠</div>
 
-                    <div>
-                        <p>Hogares registrados</p>
-                        <h2>{cantidadHogares}</h2>
-                    </div>
-                </div>
+                {/* HOGARES */}
 
                 <div className="stat-card">
-                    <div className="stat-icon">👨‍⚕️</div>
+
+                    <div className="stat-icon">
+                        🏠
+                    </div>
 
                     <div>
-                        <p>Profesionales</p>
-                        <h2>{cantidadProfesionales}</h2>
+
+                        <p>
+                            Hogares registrados
+                        </p>
+
+                        <h2>
+                            {cantidadHogares}
+                        </h2>
+
                     </div>
+
                 </div>
+
+
+                {/* PROFESIONALES */}
 
                 <div className="stat-card">
-                    <div className="stat-icon">📋</div>
+
+                    <div className="stat-icon">
+                        👨‍⚕️
+                    </div>
 
                     <div>
-                        <p>Intervenciones</p>
-                        <h2>0</h2>
+
+                        <p>
+                            Profesionales
+                        </p>
+
+                        <h2>
+                            {cantidadProfesionales}
+                        </h2>
+
                     </div>
+
                 </div>
+
+
+                {/* INTERVENCIONES */}
 
                 <div className="stat-card">
-                    <div className="stat-icon">⏳</div>
+
+                    <div className="stat-icon">
+                        📋
+                    </div>
 
                     <div>
-                        <p>Lista de espera</p>
-                        <h2>0</h2>
+
+                        <p>
+                            Intervenciones
+                        </p>
+
+                        <h2>
+                            {cantidadIntervenciones}
+                        </h2>
+
                     </div>
+
                 </div>
+
+
+                {/* LISTA DE ESPERA */}
+
+                <div className="stat-card">
+
+                    <div className="stat-icon">
+                        ⏳
+                    </div>
+
+                    <div>
+
+                        <p>
+                            Lista de espera
+                        </p>
+
+                        <h2>
+                            {cantidadListaEspera}
+                        </h2>
+
+                    </div>
+
+                </div>
+
 
             </div>
+
+
+            {/* ========================= */}
+            {/* ACTIVIDAD RECIENTE */}
+            {/* ========================= */}
 
             <div className="dashboard-section">
 
                 <div className="section-header">
-                    <h2>Actividad reciente</h2>
+
+                    <h2>
+                        Actividad reciente
+                    </h2>
+
                 </div>
+
 
                 <div className="activity-list">
 
-                    <div className="activity-item">
-                        <span>🏠</span>
-
-                        <div>
-                            <strong>Hogar registrado</strong>
-                            <p>Psje Embajador Carlos Basallo #626</p>
-                        </div>
-                    </div>
 
                     <div className="activity-item">
-                        <span>👨‍⚕️</span>
+
+                        <span>
+                            🏠
+                        </span>
 
                         <div>
-                            <strong>Profesional registrado</strong>
-                            <p>Kinesiología - Karina V.</p>
+
+                            <strong>
+                                Hogar registrado
+                            </strong>
+
+                            <p>
+                                Psje Embajador Carlos Basallo #626
+                            </p>
+
                         </div>
+
                     </div>
+
+
+                    <div className="activity-item">
+
+                        <span>
+                            👨‍⚕️
+                        </span>
+
+                        <div>
+
+                            <strong>
+                                Profesional registrado
+                            </strong>
+
+                            <p>
+                                Kinesiología - Karina V.
+                            </p>
+
+                        </div>
+
+                    </div>
+
 
                 </div>
 
             </div>
 
+
         </div>
+
     );
+
 }
 
 export default Dashboard;

@@ -82,12 +82,12 @@ function Sidebar() {
                         </NavLink>
 
 
-                        <NavLink
+                        {/*<NavLink
                             to="/asistente"
                             className="sidebar-link"
                         >
                             Asistente
-                        </NavLink>
+                        </NavLink>*/}
 
                     </>
                 )}
@@ -121,14 +121,14 @@ function Sidebar() {
                             Intervenciones
                         </NavLink>
 
-
+                        {/*
                         <NavLink
                             to="/asistente"
                             className="sidebar-link"
                         >
                             Asistente
                         </NavLink> 
-
+                        */}
                     </>
                 )}
 

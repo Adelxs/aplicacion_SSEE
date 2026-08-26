@@ -203,7 +203,54 @@ def eliminar_hogar(
     return {
         "mensaje": "Hogar eliminado correctamente"
     }
+
+################################################################ Dashboard intervenciones ##################################################
     
+@app.get("/profesionales/me/intervenciones")
+def obtener_mis_intervenciones(
+    usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db)
+):
+
+    if usuario.profesional_id is None:
+        raise HTTPException(
+            status_code=403,
+            detail="El usuario no está asociado a un profesional"
+        )
+
+    intervenciones = db.query(
+        models.Intervencion
+    ).filter(
+        models.Intervencion.profesional_id == usuario.profesional_id
+    ).all()
+
+    return intervenciones
+
+@app.get("/profesionales/me")
+def obtener_mi_profesional(
+    usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db)
+):
+
+    if usuario.profesional_id is None:
+        raise HTTPException(
+            status_code=403,
+            detail="El usuario no está asociado a un profesional"
+        )
+
+    profesional = db.query(
+        models.Profesional
+    ).filter(
+        models.Profesional.id == usuario.profesional_id
+    ).first()
+
+    if profesional is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Profesional no encontrado"
+        )
+
+    return profesional
     
 ################################################################ Profesionales ################################################################    
     
@@ -317,78 +364,280 @@ def cambiar_estado_profesional(
 
     return profesional
 
+
+
 ######################################################################## Intervenciones ############################################################
 
-@app.post("/intervenciones", response_model=schemas.IntervencionResponse)
+@app.post(
+    "/intervenciones",
+    response_model=schemas.IntervencionResponse
+)
 def crear_intervencion(
     intervencion: schemas.IntervencionCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    usuario = Depends(obtener_usuario_actual)
 ):
+
+    # ==========================================
+    # ADMINISTRADOR
+    # ==========================================
+
+    if usuario.rol == "administrador":
+
+        profesional_id = intervencion.profesional_id
+
+    # ==========================================
+    # PROFESIONAL
+    # ==========================================
+
+    elif usuario.rol == "profesional":
+
+        if usuario.profesional_id is None:
+
+            raise HTTPException(
+                status_code=403,
+                detail="El usuario no tiene un profesional asociado"
+            )
+
+        # El profesional siempre será él mismo
+        profesional_id = usuario.profesional_id
+
+    # ==========================================
+    # OTRO ROL
+    # ==========================================
+
+    else:
+
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permisos para crear intervenciones"
+        )
+
+    # ==========================================
+    # VERIFICAR HOGAR
+    # ==========================================
+
+    hogar = db.query(
+        models.Hogar
+    ).filter(
+        models.Hogar.id == intervencion.hogar_id
+    ).first()
+
+    if hogar is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail="El hogar no existe"
+        )
+
+    # ==========================================
+    # VERIFICAR PROFESIONAL
+    # ==========================================
+
+    profesional = db.query(
+        models.Profesional
+    ).filter(
+        models.Profesional.id == profesional_id
+    ).first()
+
+    if profesional is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail="El profesional no existe"
+        )
+
+    # ==========================================
+    # CREAR INTERVENCIÓN
+    # ==========================================
+
     nueva_intervencion = models.Intervencion(
+
         hogar_id=intervencion.hogar_id,
-        profesional_id=intervencion.profesional_id,
+
+        profesional_id=profesional_id,
+
         tipo=intervencion.tipo,
+
         numero_intervencion=intervencion.numero_intervencion,
+
         fecha_programada=intervencion.fecha_programada,
+
         fecha_realizada=intervencion.fecha_realizada,
+
         estado=intervencion.estado,
+
         observaciones=intervencion.observaciones
     )
 
     db.add(nueva_intervencion)
+
     db.commit()
+
     db.refresh(nueva_intervencion)
 
     return nueva_intervencion
 
-@app.get("/intervenciones",response_model=list[schemas.IntervencionDetalle])
-def obtener_intervenciones(db: Session = Depends(get_db)):
+@app.get(
+    "/intervenciones",
+    response_model=list[schemas.IntervencionDetalle]
+)
+def obtener_intervenciones(
+    db: Session = Depends(get_db),
+    usuario = Depends(obtener_usuario_actual)
+):
 
-    intervenciones = db.query(models.Intervencion).all()
+    if usuario.rol == "administrador":
+
+        intervenciones = db.query(
+            models.Intervencion
+        ).all()
+
+    else:
+
+        intervenciones = db.query(
+            models.Intervencion
+        ).filter(
+            models.Intervencion.profesional_id
+            == usuario.profesional_id
+        ).all()
 
     return intervenciones
 
-@app.get("/intervenciones/{id}", response_model=schemas.IntervencionDetalle)
-def obtener_intervencion(id: int, db: Session = Depends(get_db)):
+@app.get(
+    "/intervenciones/{id}",
+    response_model=schemas.IntervencionDetalle
+)
+def obtener_intervencion(
+    id: int,
+    db: Session = Depends(get_db),
+    usuario = Depends(obtener_usuario_actual)
+):
 
-    intervencion = db.query(models.Intervencion).filter(
+    intervencion = db.query(
+        models.Intervencion
+    ).filter(
         models.Intervencion.id == id
     ).first()
 
     if intervencion is None:
+
         raise HTTPException(
             status_code=404,
             detail="Intervención no encontrada"
         )
 
+    if usuario.rol != "administrador":
+
+        if intervencion.profesional_id != usuario.profesional_id:
+
+            raise HTTPException(
+                status_code=403,
+                detail="No tienes permisos para acceder a esta intervención"
+            )
+
     return intervencion
 
-@app.put("/intervenciones/{id}", response_model=schemas.IntervencionDetalle)
+@app.put(
+    "/intervenciones/{id}",
+    response_model=schemas.IntervencionDetalle
+)
 def actualizar_intervencion(
     id: int,
     datos: schemas.IntervencionUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    usuario = Depends(obtener_usuario_actual)
 ):
 
-    intervencion = db.query(models.Intervencion).filter(
+    intervencion = db.query(
+        models.Intervencion
+    ).filter(
         models.Intervencion.id == id
     ).first()
 
     if intervencion is None:
+
         raise HTTPException(
             status_code=404,
             detail="Intervención no encontrada"
         )
 
-    datos_actualizados = datos.model_dump(exclude_unset=True)
+    # ==========================================
+    # VERIFICAR PERMISOS
+    # ==========================================
+
+    if usuario.rol == "administrador":
+
+        pass
+
+    elif usuario.rol == "profesional":
+
+        if usuario.profesional_id is None:
+
+            raise HTTPException(
+                status_code=403,
+                detail="El usuario no tiene un profesional asociado"
+            )
+
+        if intervencion.profesional_id != usuario.profesional_id:
+
+            raise HTTPException(
+                status_code=403,
+                detail="No puedes modificar una intervención que no te pertenece"
+            )
+
+    else:
+
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permisos para modificar esta intervención"
+        )
+
+    # ==========================================
+    # ACTUALIZAR CAMPOS
+    # ==========================================
+
+    datos_actualizados = datos.model_dump(
+        exclude_unset=True
+    )
+
+    # Un profesional NO puede cambiar
+    # el profesional de la intervención
+
+    if usuario.rol == "profesional":
+
+        datos_actualizados.pop(
+            "profesional_id",
+            None
+        )
+
+    # ==========================================
+    # EVITAR MODIFICAR EL ID
+    # ==========================================
+
+    datos_actualizados.pop(
+        "id",
+        None
+    )
+
+    # ==========================================
+    # APLICAR CAMBIOS
+    # ==========================================
 
     for campo, valor in datos_actualizados.items():
-        setattr(intervencion, campo, valor)
+
+        setattr(
+            intervencion,
+            campo,
+            valor
+        )
 
     db.commit()
+
     db.refresh(intervencion)
 
     return intervencion
+
 
 @app.delete("/intervenciones/{id}")
 def eliminar_intervencion(
@@ -415,16 +664,103 @@ def eliminar_intervencion(
     
 ################################################################# Lista de espera ############################################################
     
-@app.post("/lista-espera")
+@app.post(
+    "/lista-espera",
+    response_model=schemas.ListaEsperaResponse
+)
 def crear_lista_espera(
     datos: schemas.ListaEsperaCreate,
     db: Session = Depends(get_db),
-    usuario = Depends(requiere_admin)
+    usuario = Depends(obtener_usuario_actual)
 ):
-    nueva_entrada = models.ListaEspera(**datos.model_dump())
+
+    # ==========================================
+    # ADMINISTRADOR
+    # ==========================================
+
+    if usuario.rol == "administrador":
+
+        profesional_id = datos.profesional_id
+
+    # ==========================================
+    # PROFESIONAL
+    # ==========================================
+
+    elif usuario.rol == "profesional":
+
+        if usuario.profesional_id is None:
+
+            raise HTTPException(
+                status_code=403,
+                detail="El usuario no tiene un profesional asociado"
+            )
+
+        # Se asigna automáticamente al profesional
+        profesional_id = usuario.profesional_id
+
+    # ==========================================
+    # OTRO ROL
+    # ==========================================
+
+    else:
+
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permisos para crear una entrada"
+        )
+
+    # ==========================================
+    # VERIFICAR PROFESIONAL
+    # ==========================================
+
+    if profesional_id is not None:
+
+        profesional = db.query(
+            models.Profesional
+        ).filter(
+            models.Profesional.id == profesional_id
+        ).first()
+
+        if profesional is None:
+
+            raise HTTPException(
+                status_code=404,
+                detail="El profesional no existe"
+            )
+
+    # ==========================================
+    # CREAR ENTRADA
+    # ==========================================
+
+    nueva_entrada = models.ListaEspera(
+
+        id_hogar=datos.id_hogar,
+
+        cuidador_principal=datos.cuidador_principal,
+
+        psdf=datos.psdf,
+
+        direccion=datos.direccion,
+
+        unidad_vecinal=datos.unidad_vecinal,
+
+        telefono=datos.telefono,
+
+        profesional_id=profesional_id,
+
+        dia=datos.dia,
+
+        estado=datos.estado,
+
+        fecha_solicitud=datos.fecha_solicitud,
+
+        observaciones=datos.observaciones
+    )
 
     db.add(nueva_entrada)
+
     db.commit()
+
     db.refresh(nueva_entrada)
 
     return nueva_entrada
@@ -487,38 +823,62 @@ def actualizar_lista_espera(
             detail="Entrada de lista de espera no encontrada"
         )
 
+    # ==========================================
     # ADMINISTRADOR
+    # ==========================================
+
     if usuario.rol == "administrador":
+
         pass
 
+    # ==========================================
     # PROFESIONAL
+    # ==========================================
+
     elif usuario.rol == "profesional":
 
         if usuario.profesional_id is None:
 
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
+                status_code=403,
                 detail="El usuario no tiene un profesional asociado"
             )
 
         if entrada.profesional_id != usuario.profesional_id:
 
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
+                status_code=403,
                 detail="No puedes modificar una entrada que no te pertenece"
             )
 
+    # ==========================================
     # OTRO ROL
+    # ==========================================
+
     else:
 
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=403,
             detail="No tienes permisos para modificar esta entrada"
         )
+
+    # ==========================================
+    # ACTUALIZAR
+    # ==========================================
 
     datos_actualizados = datos.model_dump(
         exclude_unset=True
     )
+
+    # El profesional no puede modificar
+    # la asignación del profesional
+
+    if usuario.rol == "profesional":
+
+        datos_actualizados.pop(
+            "profesional_id",
+            None
+        )
 
     for campo, valor in datos_actualizados.items():
 
@@ -529,6 +889,7 @@ def actualizar_lista_espera(
         )
 
     db.commit()
+
     db.refresh(entrada)
 
     return entrada
@@ -537,7 +898,7 @@ def actualizar_lista_espera(
 def eliminar_lista_espera(
     id: int,
     db: Session = Depends(get_db),
-    usuario = Depends(requiere_admin)
+    usuario = Depends(obtener_usuario_actual)
 ):
 
     entrada = db.query(
@@ -547,18 +908,62 @@ def eliminar_lista_espera(
     ).first()
 
     if entrada is None:
+
         raise HTTPException(
             status_code=404,
             detail="Entrada de lista de espera no encontrada"
         )
 
+    # ==========================================
+    # ADMINISTRADOR
+    # ==========================================
+
+    if usuario.rol == "administrador":
+
+        pass
+
+    # ==========================================
+    # PROFESIONAL
+    # ==========================================
+
+    elif usuario.rol == "profesional":
+
+        if usuario.profesional_id is None:
+
+            raise HTTPException(
+                status_code=403,
+                detail="El usuario no tiene un profesional asociado"
+            )
+
+        if entrada.profesional_id != usuario.profesional_id:
+
+            raise HTTPException(
+                status_code=403,
+                detail="No puedes eliminar una entrada que no te pertenece"
+            )
+
+    # ==========================================
+    # OTRO ROL
+    # ==========================================
+
+    else:
+
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permisos para eliminar esta entrada"
+        )
+
+    # ==========================================
+    # ELIMINAR
+    # ==========================================
+
     db.delete(entrada)
+
     db.commit()
 
     return {
         "mensaje": "Entrada de lista de espera eliminada correctamente"
     }
-    
 
 ################################################################ Dashboard ##################################################
     
@@ -608,23 +1013,55 @@ def crear_usuario(
     db: Session = Depends(get_db)
 ):
 
-    password_hash = security.crear_password_hash(
-                usuario.password
+    if usuario.profesional_id is not None:
+
+        profesional = db.query(models.Profesional).filter(
+            models.Profesional.id == usuario.profesional_id
+        ).first()
+
+        if profesional is None:
+            raise HTTPException(
+                status_code=404,
+                detail="El profesional no existe"
             )
 
-    nuevo_usuario = models.Usuario(
-                username=usuario.username,
-                password_hash=password_hash,
-                rol=usuario.rol,
-                profesional_id=usuario.profesional_id,
-                activo=usuario.activo
+        usuario_existente = db.query(models.Usuario).filter(
+            models.Usuario.profesional_id == usuario.profesional_id
+        ).first()
+
+        if usuario_existente:
+            raise HTTPException(
+                status_code=400,
+                detail="Este profesional ya tiene un usuario"
             )
+
+    usuario_existente = db.query(models.Usuario).filter(
+        models.Usuario.username == usuario.username
+    ).first()
+
+    if usuario_existente:
+        raise HTTPException(
+            status_code=400,
+            detail="El nombre de usuario ya existe"
+        )
+
+    password_hash = security.crear_password_hash(
+        usuario.password
+    )
+
+    nuevo_usuario = models.Usuario(
+        username=usuario.username,
+        password_hash=password_hash,
+        rol=usuario.rol,
+        profesional_id=usuario.profesional_id,
+        activo=usuario.activo
+    )
 
     db.add(nuevo_usuario)
     db.commit()
     db.refresh(nuevo_usuario)
 
-    return nuevo_usuario        
+    return nuevo_usuario      
 
 @app.get("/usuarios/me")
 def obtener_mi_usuario(
@@ -679,3 +1116,6 @@ def login(
         "access_token": token,
         "token_type": "bearer"
     }
+    
+################################################################ Dashboard intervenciones ##################################################
+
