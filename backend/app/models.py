@@ -52,6 +52,17 @@ class Hogar(Base):
         back_populates="hogar"
     )
     
+    profesional_id = Column(
+    Integer,
+    ForeignKey("profesionales.id"),
+    nullable=True
+    )
+    
+    profesional = relationship(
+    "Profesional"
+    )
+    
+    
 class Profesional(Base):
     __tablename__ = "profesionales"
 

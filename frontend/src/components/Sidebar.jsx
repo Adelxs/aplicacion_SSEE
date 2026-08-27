@@ -95,42 +95,44 @@ function Sidebar() {
 
                 {/* PROFESIONAL */}
 
-                {usuario?.rol === "profesional" && (
-                    <>
+                {/* PROFESIONAL */}
 
-                        <NavLink
-                            to="/profesional"
-                            className="sidebar-link"
-                        >
-                            Dashboard
-                        </NavLink>
+{usuario?.rol === "profesional" && (
+    <>
 
-
-                        <NavLink
-                            to="/lista-espera"
-                            className="sidebar-link"
-                        >
-                            Lista de espera
-                        </NavLink>
+        <NavLink
+            to="/profesional"
+            className="sidebar-link"
+        >
+            Dashboard
+        </NavLink>
 
 
-                        <NavLink
-                            to="/intervenciones"
-                            className="sidebar-link"
-                        >
-                            Intervenciones
-                        </NavLink>
+        <NavLink
+            to="/hogares"
+            className="sidebar-link"
+        >
+            Hogares
+        </NavLink>
 
-                        {/*
-                        <NavLink
-                            to="/asistente"
-                            className="sidebar-link"
-                        >
-                            Asistente
-                        </NavLink> 
-                        */}
-                    </>
-                )}
+
+        <NavLink
+            to="/lista-espera"
+            className="sidebar-link"
+        >
+            Lista de espera
+        </NavLink>
+
+
+        <NavLink
+            to="/intervenciones"
+            className="sidebar-link"
+        >
+            Intervenciones
+        </NavLink>
+
+    </>
+)}
 
             </nav>
 

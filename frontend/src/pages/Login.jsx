@@ -77,15 +77,10 @@ function Login() {
 
                 <div className="login-header">
 
+                    <img className="logo-login" src="prlac.png" alt="" />
+
                     <h1>SSEE</h1>
 
-                    <h2>
-                        Iniciar sesión
-                    </h2>
-
-                    <p className="login-description">
-                        Sistema de Seguimiento
-                    </p>
 
                 </div>
 

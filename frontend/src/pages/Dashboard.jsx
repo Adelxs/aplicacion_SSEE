@@ -9,6 +9,9 @@ function Dashboard() {
     const [cantidadIntervenciones, setCantidadIntervenciones] = useState(0);
     const [cantidadListaEspera, setCantidadListaEspera] = useState(0);
 
+    const [hogares, setHogares] = useState([]);
+    const [profesionales, setProfesionales] = useState([]);
+
 
     // =========================
     // OBTENER DATOS DEL DASHBOARD
@@ -21,10 +24,10 @@ function Dashboard() {
             try {
 
                 const [
-                    hogares,
-                    profesionales,
-                    intervenciones,
-                    listaEspera
+                    hogaresResponse,
+                    profesionalesResponse,
+                    intervencionesResponse,
+                    listaEsperaResponse
                 ] = await Promise.all([
 
                     api.get("/hogares"),
@@ -36,23 +39,34 @@ function Dashboard() {
 
 
                 // =========================
+                // GUARDAR DATOS
+                // =========================
+
+                setHogares(hogaresResponse.data);
+
+                setProfesionales(
+                    profesionalesResponse.data
+                );
+
+
+                // =========================
                 // ACTUALIZAR CANTIDADES
                 // =========================
 
                 setCantidadHogares(
-                    hogares.data.length
+                    hogaresResponse.data.length
                 );
 
                 setCantidadProfesionales(
-                    profesionales.data.length
+                    profesionalesResponse.data.length
                 );
 
                 setCantidadIntervenciones(
-                    intervenciones.data.length
+                    intervencionesResponse.data.length
                 );
 
                 setCantidadListaEspera(
-                    listaEspera.data.length
+                    listaEsperaResponse.data.length
                 );
 
 
@@ -71,6 +85,21 @@ function Dashboard() {
         obtenerDatos();
 
     }, []);
+
+
+    // =========================
+    // ACTIVIDADES RECIENTES
+    // =========================
+
+    const hogarReciente =
+        hogares.length > 0
+            ? hogares[hogares.length - 1]
+            : null;
+
+    const profesionalReciente =
+        profesionales.length > 0
+            ? profesionales[profesionales.length - 1]
+            : null;
 
 
     return (
@@ -219,47 +248,80 @@ function Dashboard() {
                 <div className="activity-list">
 
 
-                    <div className="activity-item">
+                    {/* ========================= */}
+                    {/* HOGAR RECIENTE */}
+                    {/* ========================= */}
 
-                        <span>
-                            🏠
-                        </span>
+                    {hogarReciente && (
 
-                        <div>
+                        <div className="activity-item">
 
-                            <strong>
-                                Hogar registrado
-                            </strong>
+                            <span>
+                                🏠
+                            </span>
 
-                            <p>
-                                Psje Embajador Carlos Basallo #626
-                            </p>
+                            <div>
 
-                        </div>
+                                <strong>
+                                    Hogar registrado
+                                </strong>
 
-                    </div>
+                                <p>
+                                    Hogar #{hogarReciente.id_hogar}
+                                    {" - "}
+                                    {hogarReciente.cuidador_principal}
+                                </p>
 
-
-                    <div className="activity-item">
-
-                        <span>
-                            👨‍⚕️
-                        </span>
-
-                        <div>
-
-                            <strong>
-                                Profesional registrado
-                            </strong>
-
-                            <p>
-                                Kinesiología - Karina V.
-                            </p>
+                            </div>
 
                         </div>
 
-                    </div>
+                    )}
 
+
+                    {/* ========================= */}
+                    {/* PROFESIONAL RECIENTE */}
+                    {/* ========================= */}
+
+                    {profesionalReciente && (
+
+                        <div className="activity-item">
+
+                            <span>
+                                👨‍⚕️
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    Profesional registrado
+                                </strong>
+
+                                <p>
+                                    {profesionalReciente.disciplina}
+                                    {" - "}
+                                    {profesionalReciente.nombre}
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    )}
+
+
+                    {/* ========================= */}
+                    {/* SIN ACTIVIDADES */}
+                    {/* ========================= */}
+
+                    {!hogarReciente &&
+                        !profesionalReciente && (
+
+                            <p>
+                                No hay actividades recientes.
+                            </p>
+
+                        )}
 
                 </div>
 

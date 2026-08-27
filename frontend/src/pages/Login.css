@@ -194,3 +194,9 @@
 .login-field + .login-field {
     margin-top: 8px;
 }
+
+.logo-login {
+    width: 300px;
+    height: 120px;
+    margin-bottom: 10px;
+}

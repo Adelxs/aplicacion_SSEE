@@ -56,7 +56,7 @@ function App() {
                                 path="/hogares"
                                 element={
                                     <ProtectedRoute
-                                        roles={["administrador"]}
+                                        roles={["administrador", "profesional"]}
                                     >
                                         <Hogares />
                                     </ProtectedRoute>

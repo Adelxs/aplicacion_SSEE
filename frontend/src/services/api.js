@@ -3,7 +3,7 @@ import axios from "axios";
 
 
 const api = axios.create({
-    baseURL: "https://ssee-backend.onrender.com"
+    baseURL: "https://ssee-backend.onrender.com/"
 });
 
 

@@ -36,7 +36,6 @@ function Intervenciones() {
         try {
 
             const response = await api.get("/intervenciones");
-            
 
             setIntervenciones(response.data);
 
@@ -85,7 +84,10 @@ function Intervenciones() {
 
         } catch (error) {
 
-            console.error("Error al cargar profesionales:", error);
+            console.error(
+                "Error al cargar profesionales:",
+                error
+            );
 
         }
 
@@ -179,11 +181,16 @@ function Intervenciones() {
             hogar_id: intervencion.hogar?.id || "",
             profesional_id: intervencion.profesional?.id || "",
             tipo: intervencion.tipo || "",
-            numero_intervencion: intervencion.numero_intervencion || "",
-            fecha_programada: intervencion.fecha_programada || "",
-            fecha_realizada: intervencion.fecha_realizada || "",
-            estado: intervencion.estado || "pendiente",
-            observaciones: intervencion.observaciones || ""
+            numero_intervencion:
+                intervencion.numero_intervencion || "",
+            fecha_programada:
+                intervencion.fecha_programada || "",
+            fecha_realizada:
+                intervencion.fecha_realizada || "",
+            estado:
+                intervencion.estado || "pendiente",
+            observaciones:
+                intervencion.observaciones || ""
         });
 
         setMostrarFormulario(true);
@@ -197,7 +204,6 @@ function Intervenciones() {
 
     const guardarIntervencion = async (e) => {
 
-
         e.preventDefault();
 
         setGuardando(true);
@@ -205,18 +211,32 @@ function Intervenciones() {
         try {
 
             const datos = {
-                hogar_id: Number(formulario.hogar_id),
-                profesional_id: Number(formulario.profesional_id),
-                tipo: formulario.tipo,
+
+                hogar_id:
+                    Number(formulario.hogar_id),
+
+                profesional_id:
+                    Number(formulario.profesional_id),
+
+                tipo:
+                    formulario.tipo,
+
                 numero_intervencion:
                     formulario.numero_intervencion
-                        ? Number(formulario.numero_intervencion)
+                        ? Number(
+                            formulario.numero_intervencion
+                        )
                         : null,
+
                 fecha_programada:
                     formulario.fecha_programada || null,
+
                 fecha_realizada:
                     formulario.fecha_realizada || null,
-                estado: formulario.estado,
+
+                estado:
+                    formulario.estado,
+
                 observaciones:
                     formulario.observaciones || null
             };
@@ -229,7 +249,10 @@ function Intervenciones() {
                     datos
                 );
 
-                console.log("DATOS ENVIADOS:", datos);
+                console.log(
+                    "DATOS ENVIADOS:",
+                    datos
+                );
 
             } else {
 
@@ -243,16 +266,24 @@ function Intervenciones() {
 
             await obtenerIntervenciones();
 
-            console.log("INTERVENCIONES ACTUALIZADAS:", intervenciones);
+            console.log(
+                "INTERVENCIONES ACTUALIZADAS:",
+                intervenciones
+            );
 
             setMostrarFormulario(false);
             setIntervencionEditar(null);
 
         } catch (error) {
 
-            console.error("Error al guardar intervención:", error);
+            console.error(
+                "Error al guardar intervención:",
+                error
+            );
 
-            alert("No se pudo guardar la intervención");
+            alert(
+                "No se pudo guardar la intervención"
+            );
 
         } finally {
 
@@ -279,15 +310,22 @@ function Intervenciones() {
 
         try {
 
-            await api.delete(`/intervenciones/${id}`);
+            await api.delete(
+                `/intervenciones/${id}`
+            );
 
             await obtenerIntervenciones();
 
         } catch (error) {
 
-            console.error("Error al eliminar intervención:", error);
+            console.error(
+                "Error al eliminar intervención:",
+                error
+            );
 
-            alert("No se pudo eliminar la intervención");
+            alert(
+                "No se pudo eliminar la intervención"
+            );
 
         }
 
@@ -299,12 +337,24 @@ function Intervenciones() {
     // =========================
 
     if (cargando) {
-        return <h2>Cargando intervenciones...</h2>;
+
+        return (
+            <h2>
+                Cargando intervenciones...
+            </h2>
+        );
+
     }
 
 
     if (error) {
-        return <h2>{error}</h2>;
+
+        return (
+            <h2>
+                {error}
+            </h2>
+        );
+
     }
 
 
@@ -314,28 +364,37 @@ function Intervenciones() {
 
     return (
 
-       <div className="intervenciones">
+        <div className="intervenciones">
 
-    <div className="intervenciones-header">
 
-        <div>
+            {/* ========================= */}
+            {/* HEADER */}
+            {/* ========================= */}
 
-            <h1>Intervenciones</h1>
+            <div className="intervenciones-header">
 
-            <p>
-                Intervenciones registradas en el sistema
-            </p>
+                <div>
 
-        </div>
+                    <h1>
+                        Intervenciones
+                    </h1>
 
-        <button
-            className="btn-nueva-intervencion"
-            onClick={nuevaIntervencion}
-        >
-            + Nueva intervención
-        </button>
+                    <p>
+                        Intervenciones registradas
+                        en el sistema
+                    </p>
 
-    </div>
+                </div>
+
+
+                <button
+                    className="btn-nueva-intervencion"
+                    onClick={nuevaIntervencion}
+                >
+                    + Nueva intervención
+                </button>
+
+            </div>
 
 
             {/* ========================= */}
@@ -348,22 +407,27 @@ function Intervenciones() {
 
                     <div className="modal-intervencion">
 
+
                         <div className="modal-header">
 
                             <div>
 
                                 <h2>
+
                                     {intervencionEditar
                                         ? "Editar intervención"
                                         : "Nueva intervención"
                                     }
+
                                 </h2>
 
                                 <p>
+
                                     {intervencionEditar
                                         ? "Modifica los datos de la intervención"
                                         : "Registra una nueva intervención"
                                     }
+
                                 </p>
 
                             </div>
@@ -373,8 +437,10 @@ function Intervenciones() {
                                 type="button"
                                 className="modal-close"
                                 onClick={() => {
+
                                     setMostrarFormulario(false);
                                     setIntervencionEditar(null);
+
                                 }}
                             >
                                 ×
@@ -383,15 +449,25 @@ function Intervenciones() {
                         </div>
 
 
-                        <form onSubmit={guardarIntervencion}>
+                        <form
+                            onSubmit={guardarIntervencion}
+                        >
+
+
+                            {/* HOGAR */}
 
                             <label>
+
                                 Hogar
 
                                 <select
                                     name="hogar_id"
-                                    value={formulario.hogar_id}
-                                    onChange={manejarCambio}
+                                    value={
+                                        formulario.hogar_id
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
                                     required
                                 >
 
@@ -399,15 +475,14 @@ function Intervenciones() {
                                         Seleccionar hogar
                                     </option>
 
-                                    {hogares.map((hogar) => (
 
+                                    {hogares.map((hogar) => (
                                         <option
                                             key={hogar.id}
                                             value={hogar.id}
                                         >
-                                            {hogar.cuidador_principal}
+                                          {hogar.id_hogar}
                                         </option>
-
                                     ))}
 
                                 </select>
@@ -415,13 +490,20 @@ function Intervenciones() {
                             </label>
 
 
+                            {/* PROFESIONAL */}
+
                             <label>
+
                                 Profesional
 
                                 <select
                                     name="profesional_id"
-                                    value={formulario.profesional_id}
-                                    onChange={manejarCambio}
+                                    value={
+                                        formulario.profesional_id
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
                                     required
                                 >
 
@@ -429,30 +511,48 @@ function Intervenciones() {
                                         Seleccionar profesional
                                     </option>
 
-                                    {profesionales.map((profesional) => (
 
-                                        <option
-                                            key={profesional.id}
-                                            value={profesional.id}
-                                        >
-                                            {profesional.nombre}
-                                        </option>
+                                    {profesionales.map(
+                                        (profesional) => (
 
-                                    ))}
+                                            <option
+                                                key={
+                                                    profesional.id
+                                                }
+                                                value={
+                                                    profesional.id
+                                                }
+                                            >
+
+                                                {
+                                                    profesional.nombre
+                                                }
+
+                                            </option>
+
+                                        )
+                                    )}
 
                                 </select>
 
                             </label>
 
 
+                            {/* TIPO */}
+
                             <label>
+
                                 Tipo de intervención
 
                                 <input
                                     type="text"
                                     name="tipo"
-                                    value={formulario.tipo}
-                                    onChange={manejarCambio}
+                                    value={
+                                        formulario.tipo
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
                                     placeholder="Ej: Visita domiciliaria"
                                     required
                                 />
@@ -460,14 +560,21 @@ function Intervenciones() {
                             </label>
 
 
+                            {/* NÚMERO */}
+
                             <label>
+
                                 Número de intervención
 
                                 <input
                                     type="number"
                                     name="numero_intervencion"
-                                    value={formulario.numero_intervencion}
-                                    onChange={manejarCambio}
+                                    value={
+                                        formulario.numero_intervencion
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
                                     min="1"
                                     placeholder="Ej: 1"
                                 />
@@ -475,40 +582,61 @@ function Intervenciones() {
                             </label>
 
 
+                            {/* FECHA PROGRAMADA */}
+
                             <label>
+
                                 Fecha programada
 
                                 <input
                                     type="date"
                                     name="fecha_programada"
-                                    value={formulario.fecha_programada}
-                                    onChange={manejarCambio}
+                                    value={
+                                        formulario.fecha_programada
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
                                     required
                                 />
 
                             </label>
 
 
+                            {/* FECHA REALIZADA */}
+
                             <label>
+
                                 Fecha realizada
 
                                 <input
                                     type="date"
                                     name="fecha_realizada"
-                                    value={formulario.fecha_realizada}
-                                    onChange={manejarCambio}
+                                    value={
+                                        formulario.fecha_realizada
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
                                 />
 
                             </label>
 
 
+                            {/* ESTADO */}
+
                             <label>
+
                                 Estado
 
                                 <select
                                     name="estado"
-                                    value={formulario.estado}
-                                    onChange={manejarCambio}
+                                    value={
+                                        formulario.estado
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
                                     required
                                 >
 
@@ -529,26 +657,37 @@ function Intervenciones() {
                             </label>
 
 
+                            {/* OBSERVACIONES */}
+
                             <label className="campo-completo">
+
                                 Observaciones
 
                                 <textarea
                                     name="observaciones"
-                                    value={formulario.observaciones}
-                                    onChange={manejarCambio}
+                                    value={
+                                        formulario.observaciones
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
                                     placeholder="Observaciones de la intervención..."
                                 />
 
                             </label>
 
 
+                            {/* ACCIONES */}
+
                             <div className="form-actions">
 
                                 <button
                                     type="button"
                                     onClick={() => {
+
                                         setMostrarFormulario(false);
                                         setIntervencionEditar(null);
+
                                     }}
                                 >
                                     Cancelar
@@ -559,12 +698,14 @@ function Intervenciones() {
                                     type="submit"
                                     disabled={guardando}
                                 >
+
                                     {guardando
                                         ? "Guardando..."
                                         : intervencionEditar
                                             ? "Guardar cambios"
                                             : "Registrar intervención"
                                     }
+
                                 </button>
 
                             </div>
@@ -586,17 +727,27 @@ function Intervenciones() {
 
                 <table className="ssee-table">
 
+
                     <thead>
 
                         <tr>
 
                             <th>ID</th>
-                            <th>Hogar</th>
+
+                            {/* CAMBIO: AHORA MUESTRA ID HOGAR */}
+
+                            <th>ID Hogar</th>
+
                             <th>Profesional</th>
+
                             <th>Tipo</th>
+
                             <th>Fecha programada</th>
+
                             <th>Fecha realizada</th>
+
                             <th>Estado</th>
+
                             <th>Acciones</th>
 
                         </tr>
@@ -606,63 +757,110 @@ function Intervenciones() {
 
                     <tbody>
 
-                        {intervenciones.map((intervencion) => (
+                        {intervenciones.map(
+                            (intervencion) => (
 
-                            <tr key={intervencion.id}>
+                                <tr
+                                    key={
+                                        intervencion.id
+                                    }
+                                >
 
-                                <td>
-                                    {intervencion.id}
-                                </td>
+                                    <td>
+                                        {
+                                            intervencion.id
+                                        }
+                                    </td>
 
-                                <td>
-                                    {intervencion.hogar?.cuidador_principal}
-                                </td>
 
-                                <td>
-                                    {intervencion.profesional?.nombre}
-                                </td>
+                                    {/* CAMBIO IMPORTANTE */}
 
-                                <td>
-                                    {intervencion.tipo}
-                                </td>
+                                    <td>
+                                        {
+                                            intervencion
+                                                .hogar
+                                                ?.id_hogar
+                                        }
+                                    </td>
 
-                                <td>
-                                    {intervencion.fecha_programada}
-                                </td>
 
-                                <td>
-                                    {intervencion.fecha_realizada ?? "Pendiente"}
-                                </td>
+                                    <td>
+                                        {
+                                            intervencion
+                                                .profesional
+                                                ?.nombre
+                                        }
+                                    </td>
 
-                                <td>
-                                    {intervencion.estado}
-                                </td>
 
-                                <td>
-                                    <div className="acciones-intervencion">
+                                    <td>
+                                        {
+                                            intervencion.tipo
+                                        }
+                                    </td>
 
-                                        <button
-                                            className="btn-editar"
-                                            onClick={() => editarIntervencion(intervencion)}
-                                        >
-                                            ✏️
-                                        </button>
 
-                                        <button
-                                            className="btn-eliminar"
-                                            onClick={() =>
-                                                eliminarIntervencion(intervencion.id)
-                                            }
-                                        >
-                                            🗑️
-                                        </button>
+                                    <td>
+                                        {
+                                            intervencion
+                                                .fecha_programada
+                                        }
+                                    </td>
 
-                                    </div>
-                                </td>
 
-                            </tr>
+                                    <td>
+                                        {
+                                            intervencion
+                                                .fecha_realizada
+                                                ?? "Pendiente"
+                                        }
+                                    </td>
 
-                        ))}
+
+                                    <td>
+                                        {
+                                            intervencion.estado
+                                        }
+                                    </td>
+
+
+                                    <td>
+
+                                        <div className="acciones-intervencion">
+
+
+                                            <button
+                                                className="btn-editar"
+                                                onClick={() =>
+                                                    editarIntervencion(
+                                                        intervencion
+                                                    )
+                                                }
+                                            >
+                                                ✏️
+                                            </button>
+
+
+                                            <button
+                                                className="btn-eliminar"
+                                                onClick={() =>
+                                                    eliminarIntervencion(
+                                                        intervencion.id
+                                                    )
+                                                }
+                                            >
+                                                🗑️
+                                            </button>
+
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            )
+                        )}
 
                     </tbody>
 

@@ -6,6 +6,7 @@ function DashboardProfesional() {
 
     const [profesional, setProfesional] = useState(null);
     const [intervenciones, setIntervenciones] = useState([]);
+    const [hogares, setHogares] = useState([]);
 
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
@@ -17,12 +18,24 @@ function DashboardProfesional() {
 
             try {
 
-                const [profesionalResponse, intervencionesResponse] =
-                    await Promise.all([
-                        api.get("/profesionales/me"),
-                        api.get("/profesionales/me/intervenciones")
-                    ]);
+                const [
+                    profesionalResponse,
+                    intervencionesResponse,
+                    hogaresResponse
+                ] = await Promise.all([
 
+                    api.get("/profesionales/me"),
+
+                    api.get(
+                        "/profesionales/me/intervenciones"
+                    ),
+
+                    api.get(
+                        "/profesionales/me/hogares"
+                    )
+
+                ]);
+                
 
                 setProfesional(
                     profesionalResponse.data
@@ -30,6 +43,10 @@ function DashboardProfesional() {
 
                 setIntervenciones(
                     intervencionesResponse.data
+                );
+
+                setHogares(
+                    hogaresResponse.data
                 );
 
 
@@ -102,6 +119,10 @@ function DashboardProfesional() {
         ).length;
 
 
+    const totalHogares =
+        hogares.length;
+
+
     return (
 
         <div className="dashboard-profesional">
@@ -140,6 +161,23 @@ function DashboardProfesional() {
             {/* ========================= */}
 
             <div className="profesional-cards">
+
+
+                <div className="profesional-card">
+
+                    <h3>
+                        Hogares
+                    </h3>
+
+                    <span>
+                        {totalHogares}
+                    </span>
+
+                    <p>
+                        Hogares asignados
+                    </p>
+
+                </div>
 
 
                 <div className="profesional-card">
@@ -192,6 +230,127 @@ function DashboardProfesional() {
 
                 </div>
 
+
+            </div>
+
+
+            {/* ========================= */}
+            {/* MIS HOGARES */}
+            {/* ========================= */}
+
+            <div className="profesional-section">
+
+                <h2>
+                    Mis hogares
+                </h2>
+
+
+                {hogares.length === 0 ? (
+
+                    <p>
+                        No tienes hogares asignados.
+                    </p>
+
+                ) : (
+
+                    <div className="ssee-table-container">
+
+                        <table className="ssee-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        ID Hogar
+                                    </th>
+
+                                    <th>
+                                        Cuidador principal
+                                    </th>
+
+                                    <th>
+                                        PSDF
+                                    </th>
+
+                                    <th>
+                                        Dirección
+                                    </th>
+
+                                    <th>
+                                        Unidad vecinal
+                                    </th>
+
+                                    <th>
+                                        Teléfono
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {hogares.map(
+                                    (hogar) => (
+
+                                        <tr
+                                            key={
+                                                hogar.id
+                                            }
+                                        >
+
+                                            <td>
+                                                {
+                                                    hogar.id_hogar
+                                                }
+                                            </td>
+
+                                            <td>
+                                                {
+                                                    hogar.cuidador_principal
+                                                }
+                                            </td>
+
+                                            <td>
+                                                {
+                                                    hogar.psdf
+                                                }
+                                            </td>
+
+                                            <td>
+                                                {
+                                                    hogar.direccion
+                                                }
+                                            </td>
+
+                                            <td>
+                                                {
+                                                    hogar.unidad_vecinal
+                                                    || "No registrada"
+                                                }
+                                            </td>
+
+                                            <td>
+                                                {
+                                                    hogar.telefono
+                                                    || "No registrado"
+                                                }
+                                            </td>
+
+                                        </tr>
+
+                                    )
+                                )}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                )}
 
             </div>
 
@@ -273,13 +432,12 @@ function DashboardProfesional() {
                                                 {
                                                     intervencion
                                                         .fecha_programada
-                                            }
+                                                }
                                             </td>
 
                                             <td>
                                                 {
-                                                    intervencion
-                                                        .estado
+                                                    intervencion.estado
                                                 }
                                             </td>
 
