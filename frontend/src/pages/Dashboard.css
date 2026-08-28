@@ -1,10 +1,15 @@
+
 .dashboard {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
     min-height: 100vh;
+
+    box-sizing: border-box;
 
     background: #F3CD97;
 }
-
 
 /* =========================
    HEADER
@@ -16,21 +21,16 @@
 
 .dashboard-header h1 {
     margin: 0;
-
     font-size: 32px;
     font-weight: 700;
-
     color: #BC4F4F;
 }
 
 .dashboard-header p {
     margin: 8px 0 0;
-
     font-size: 15px;
-
     color: #6b4f4f;
 }
-
 
 /* =========================
    ESTADÍSTICAS
@@ -38,25 +38,21 @@
 
 .stats-grid {
     display: grid;
-
-    grid-template-columns: repeat(4, 1fr);
-
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 20px;
 }
 
-
-/* TARJETA */
+/* =========================
+   TARJETA
+========================= */
 
 .stat-card {
     background: #fffaf0;
-
     padding: 22px;
-
     border-radius: 14px;
 
     display: flex;
     align-items: center;
-
     gap: 16px;
 
     border: 1px solid rgba(188, 79, 79, 0.12);
@@ -67,10 +63,15 @@
     transition:
         transform 0.2s ease,
         box-shadow 0.2s ease;
+
+    /* Evita que el contenido fuerce el ancho */
+    min-width: 0;
+    box-sizing: border-box;
 }
 
-
-/* EFECTO HOVER */
+/* =========================
+   HOVER
+========================= */
 
 .stat-card:hover {
     transform: translateY(-3px);
@@ -79,8 +80,9 @@
         0 8px 18px rgba(188, 79, 79, 0.16);
 }
 
-
-/* ICONO */
+/* =========================
+   ICONO
+========================= */
 
 .stat-icon {
     width: 58px;
@@ -93,31 +95,26 @@
     flex-shrink: 0;
 
     background: #E98B50;
-
     border-radius: 12px;
 
     font-size: 28px;
 }
 
-
-/* TEXTO */
+/* =========================
+   TEXTO
+========================= */
 
 .stat-card p {
     margin: 0;
-
     font-size: 14px;
-
     color: #795548;
 }
 
 .stat-card h2 {
     margin: 5px 0 0;
-
     font-size: 30px;
-
     color: #BC4F4F;
 }
-
 
 /* =========================
    SECCIÓN ACTIVIDAD
@@ -136,10 +133,13 @@
 
     box-shadow:
         0 4px 12px rgba(188, 79, 79, 0.08);
+
+    box-sizing: border-box;
 }
 
-
-/* TITULO */
+/* =========================
+   TITULO
+========================= */
 
 .section-header h2 {
     margin: 0 0 20px;
@@ -149,23 +149,22 @@
     color: #BC4F4F;
 }
 
-
-/* LISTA */
+/* =========================
+   LISTA
+========================= */
 
 .activity-list {
     display: flex;
-
     flex-direction: column;
-
     gap: 12px;
 }
 
-
-/* ACTIVIDAD */
+/* =========================
+   ACTIVIDAD
+========================= */
 
 .activity-item {
     display: flex;
-
     align-items: center;
 
     gap: 15px;
@@ -181,17 +180,18 @@
     transition:
         transform 0.2s ease,
         background 0.2s ease;
-}
 
+    box-sizing: border-box;
+}
 
 .activity-item:hover {
     transform: translateX(3px);
-
     background: #fbe9a6;
 }
 
-
-/* ICONO ACTIVIDAD */
+/* =========================
+   ICONO ACTIVIDAD
+========================= */
 
 .activity-item > span {
     font-size: 25px;
@@ -199,14 +199,16 @@
     width: 40px;
 
     text-align: center;
+
+    flex-shrink: 0;
 }
 
-
-/* TEXTO */
+/* =========================
+   TEXTO
+========================= */
 
 .activity-item strong {
     color: #BC4F4F;
-
     font-size: 15px;
 }
 
@@ -216,26 +218,360 @@
     color: #795548;
 
     font-size: 14px;
+
+    overflow-wrap: anywhere;
 }
 
-
-/* =========================
-   RESPONSIVE
-========================= */
+/* ==================================================
+   TABLET / PANTALLAS MEDIANAS
+================================================== */
 
 @media (max-width: 1100px) {
 
     .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+/* ==================================================
+   TABLET PEQUEÑA
+================================================== */
+
+@media (max-width: 800px) {
+
+    .dashboard {
+        padding: 20px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 28px;
+    }
+
+}
+
+/* ==================================================
+   CELULAR
+================================================== */
+
+@media (max-width: 650px) {
+
+    .dashboard {
+        padding: 15px;
+    }
+
+    .dashboard-header {
+        margin-bottom: 20px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 24px;
+        line-height: 1.25;
+    }
+
+    .dashboard-header p {
+        font-size: 14px;
+    }
+
+    /* Una tarjeta por fila */
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .stat-card {
+        padding: 18px;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+
+    .stat-card p {
+        font-size: 13px;
+    }
+
+    .stat-card h2 {
+        font-size: 26px;
+    }
+
+    /* Actividad */
+
+    .dashboard-section {
+        margin-top: 20px;
+        padding: 18px;
+    }
+
+    .section-header h2 {
+        font-size: 18px;
+    }
+
+    .activity-item {
+        padding: 13px;
+        gap: 10px;
+    }
+
+    .activity-item > span {
+        width: 32px;
+        font-size: 22px;
+    }
+
+    .activity-item strong {
+        font-size: 14px;
+    }
+
+    .activity-item p {
+        font-size: 13px;
+    }
+
+}
+
+/* ==================================================
+   CELULARES MUY PEQUEÑOS
+================================================== */
+
+@media (max-width: 400px) {
+
+    .dashboard {
+        padding: 10px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 21px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 21px;
+    }
+
+    .stat-card h2 {
+        font-size: 24px;
+    }
+
+    .dashboard-section {
+        padding: 15px;
+    }
+
+}
+
+/* ==================================================
+   RESPONSIVE - PANTALLAS PEQUEÑAS
+================================================== */
+
+@media (max-width: 500px) {
+
+    .dashboard {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+
+    /* HEADER */
+
+    .dashboard-header {
+        margin-bottom: 20px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 24px;
+        line-height: 1.2;
+        overflow-wrap: break-word;
+    }
+
+    .dashboard-header p {
+        font-size: 14px;
+    }
+
+
+    /* ESTADÍSTICAS */
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+
+    /* TARJETAS */
+
+    .stat-card {
+        width: 100%;
+        min-width: 0;
+
+        padding: 16px;
+
+        gap: 12px;
+
+        box-sizing: border-box;
+    }
+
+
+    /* ICONOS */
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+
+        min-width: 48px;
+
+        font-size: 23px;
+    }
+
+
+    /* TEXTO DE LA TARJETA */
+
+    .stat-card > div:last-child {
+        min-width: 0;
+    }
+
+    .stat-card p {
+        font-size: 13px;
+
+        overflow-wrap: break-word;
+    }
+
+    .stat-card h2 {
+        font-size: 26px;
+    }
+
+
+    /* ACTIVIDAD */
+
+    .dashboard-section {
+        margin-top: 20px;
+
+        padding: 16px;
+
+        width: 100%;
+
+        box-sizing: border-box;
+    }
+
+
+    .section-header h2 {
+        font-size: 18px;
+
+        margin-bottom: 15px;
+    }
+
+
+    /* ACTIVIDAD */
+
+    .activity-item {
+        padding: 12px;
+
+        gap: 10px;
+
+        align-items: flex-start;
+
+        box-sizing: border-box;
+    }
+
+
+    .activity-item > span {
+        width: 32px;
+
+        min-width: 32px;
+
+        font-size: 21px;
+    }
+
+
+    .activity-item > div {
+        min-width: 0;
+    }
+
+
+    .activity-item strong {
+        font-size: 14px;
+    }
+
+
+    .activity-item p {
+        font-size: 13px;
+
+        overflow-wrap: anywhere;
+
+        word-break: break-word;
     }
 
 }
 
 
-@media (max-width: 650px) {
+/* ==================================================
+   TELÉFONOS MUY PEQUEÑOS
+================================================== */
+
+@media (max-width: 380px) {
+
+    .dashboard-header h1 {
+        font-size: 21px;
+    }
+
+
+    .stat-card {
+        padding: 13px;
+
+        gap: 10px;
+    }
+
+
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+
+        min-width: 44px;
+
+        font-size: 21px;
+    }
+
+
+    .stat-card p {
+        font-size: 12px;
+    }
+
+
+    .stat-card h2 {
+        font-size: 24px;
+    }
+
+
+    .dashboard-section {
+        padding: 13px;
+    }
+
+}
+
+@media (max-width: 768px) {
 
     .stats-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
 
+}
+
+@media (max-width: 500px) {
+    .dashboard {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: hidden; /* Evita el scroll horizontal */
+    }
+
+    .dashboard-header h1 {
+        font-size: 22px;
+        line-height: 1.2;
+        overflow-wrap: break-word;
+        word-break: break-word; /* Fuerza al texto largo a saltar de línea */
+    }
 }

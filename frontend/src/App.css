@@ -38,12 +38,12 @@
 
 
 
-.main-content {
+/*.main-content {
     margin-left: 250px;
     min-height: 100vh;
     padding: 30px;
     box-sizing: border-box;
-}
+}*/
 
 /* =========================
    TABLAS SSEE
@@ -51,12 +51,11 @@
 
 .ssee-table-container {
     width: 100%;
-
     background: #fffaf0;
-
     border-radius: 14px;
 
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
 
     border: 1px solid rgba(188, 79, 79, 0.15);
 
@@ -69,7 +68,7 @@
 
 .ssee-table {
     width: 100%;
-
+    min-width: 1000px;
     border-collapse: collapse;
 }
 
@@ -133,3 +132,4 @@
 .ssee-table tbody tr:last-child td {
     border-bottom: none;
 }
+

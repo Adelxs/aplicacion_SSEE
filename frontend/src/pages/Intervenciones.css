@@ -562,3 +562,20 @@
 .btn-eliminar:hover {
     background: #a94343;
 }
+
+@media (max-width: 650px) {
+
+    .intervenciones-header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: left;
+        gap: 15px;
+    }
+
+    .btn-nueva-intervencion {
+        width: 100%;
+        margin-left: 0;
+        box-sizing: border-box;
+    }
+
+}

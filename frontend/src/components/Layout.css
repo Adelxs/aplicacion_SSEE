@@ -1,7 +1,10 @@
 .main-content {
     margin-left: 250px;
+
     min-height: 100vh;
+
     padding: 30px;
+
     box-sizing: border-box;
 }
 
@@ -86,4 +89,17 @@
     background: rgba(255, 255, 255, 0.15);
 
     color: white;
+}
+
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 75px 15px 20px;
+        box-sizing: border-box;
+        overflow-x: hidden; /* Crucial para evitar que elementos internos desplacen la vista */
+    }
 }

@@ -115,3 +115,58 @@
 .profesional-section p {
     color: #64748b;
 }
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+
+    .dashboard-profesional {
+        padding: 20px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* HEADER */
+
+    .dashboard-profesional-header {
+        width: 100%;
+    }
+
+    .dashboard-profesional-header h1 {
+        font-size: 26px;
+    }
+
+
+    /* CARDS */
+
+    .profesional-cards {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .profesional-card {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+
+    /* SECCIONES */
+
+    .profesional-section {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 20px;
+        overflow: hidden;
+    }
+
+
+    /* TABLAS */
+
+    .profesional-section .ssee-table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+}
