@@ -200,9 +200,9 @@ class UsuarioResponse(BaseModel):
 class UsuarioUpdate(BaseModel):
     username: str
     rol: str
-    profesional_id: Optional[int] = None
+    profesional_id: int | None = None
     activo: bool = True
-    password: Optional[str] = None
+    password: str | None = None
 
         
 class LoginRequest(BaseModel):
