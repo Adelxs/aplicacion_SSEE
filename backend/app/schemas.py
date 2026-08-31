@@ -197,6 +197,14 @@ class UsuarioResponse(BaseModel):
     class Config:
         from_attributes = True
         
+class UsuarioUpdate(BaseModel):
+    username: str
+    rol: str
+    profesional_id: Optional[int] = None
+    activo: bool = True
+    password: Optional[str] = None
+
+        
 class LoginRequest(BaseModel):
     username: str
     password: str

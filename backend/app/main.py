@@ -1362,7 +1362,113 @@ def crear_usuario(
     db.commit()
     db.refresh(nuevo_usuario)
 
-    return nuevo_usuario      
+    return nuevo_usuario  
+
+@app.put("/usuarios/{usuario_id}", response_model=schemas.UsuarioResponse)
+def actualizar_usuario(
+    usuario_id: int,
+    usuario: schemas.UsuarioUpdate,
+    db: Session = Depends(get_db)
+):
+
+    # =========================================
+    # BUSCAR USUARIO
+    # =========================================
+
+    usuario_existente = db.query(models.Usuario).filter(
+        models.Usuario.id == usuario_id
+    ).first()
+
+    if usuario_existente is None:
+        raise HTTPException(
+            status_code=404,
+            detail="El usuario no existe"
+        )
+
+
+    # =========================================
+    # VALIDAR USERNAME
+    # =========================================
+
+    otro_usuario = db.query(models.Usuario).filter(
+        models.Usuario.username == usuario.username,
+        models.Usuario.id != usuario_id
+    ).first()
+
+    if otro_usuario:
+        raise HTTPException(
+            status_code=400,
+            detail="El nombre de usuario ya existe"
+        )
+
+
+    # =========================================
+    # VALIDAR PROFESIONAL
+    # =========================================
+
+    if usuario.profesional_id is not None:
+
+        profesional = db.query(models.Profesional).filter(
+            models.Profesional.id == usuario.profesional_id
+        ).first()
+
+        if profesional is None:
+            raise HTTPException(
+                status_code=404,
+                detail="El profesional no existe"
+            )
+
+
+        # Verificar que otro usuario no tenga ese profesional
+
+        otro_usuario_profesional = db.query(
+            models.Usuario
+        ).filter(
+            models.Usuario.profesional_id == usuario.profesional_id,
+            models.Usuario.id != usuario_id
+        ).first()
+
+        if otro_usuario_profesional:
+
+            raise HTTPException(
+                status_code=400,
+                detail="Este profesional ya tiene un usuario"
+            )
+
+
+    # =========================================
+    # ACTUALIZAR DATOS
+    # =========================================
+
+    usuario_existente.username = usuario.username
+    usuario_existente.rol = usuario.rol
+    usuario_existente.profesional_id = usuario.profesional_id
+    usuario_existente.activo = usuario.activo
+
+
+    # =========================================
+    # ACTUALIZAR CONTRASEÑA
+    # SOLO SI SE ENVÍA
+    # =========================================
+
+    if usuario.password:
+
+        usuario_existente.password_hash = (
+            security.crear_password_hash(
+                usuario.password
+            )
+        )
+
+
+    # =========================================
+    # GUARDAR
+    # =========================================
+
+    db.commit()
+    db.refresh(usuario_existente)
+
+    return usuario_existente
+    
 
 @app.get("/usuarios/me")
 def obtener_mi_usuario(
