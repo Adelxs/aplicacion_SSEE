@@ -20,6 +20,144 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+# ==========================================================
+# FUNCIONES AUXILIARES
+# ==========================================================
+
+def tabla_existe(nombre_tabla: str) -> bool:
+
+    bind = op.get_bind()
+
+    resultado = bind.execute(
+        sa.text(
+            """
+            SELECT EXISTS (
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_schema = current_schema()
+                AND table_name = :tabla
+            )
+            """
+        ),
+        {
+            "tabla": nombre_tabla
+        }
+    )
+
+    return resultado.scalar()
+
+
+def columna_existe(
+    nombre_tabla: str,
+    nombre_columna: str
+) -> bool:
+
+    bind = op.get_bind()
+
+    resultado = bind.execute(
+        sa.text(
+            """
+            SELECT EXISTS (
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                AND table_name = :tabla
+                AND column_name = :columna
+            )
+            """
+        ),
+        {
+            "tabla": nombre_tabla,
+            "columna": nombre_columna
+        }
+    )
+
+    return resultado.scalar()
+
+
+def eliminar_fk_por_columna(
+    tabla: str,
+    columna: str
+) -> None:
+
+    bind = op.get_bind()
+
+    # PostgreSQL
+    if bind.dialect.name == "postgresql":
+
+        resultado = bind.execute(
+            sa.text(
+                """
+                SELECT
+                    tc.constraint_name
+                FROM information_schema.table_constraints tc
+                INNER JOIN information_schema.key_column_usage kcu
+                    ON tc.constraint_name = kcu.constraint_name
+                    AND tc.table_schema = kcu.table_schema
+                WHERE tc.table_schema = current_schema()
+                AND tc.table_name = :tabla
+                AND kcu.column_name = :columna
+                AND tc.constraint_type = 'FOREIGN KEY'
+                """
+            ),
+            {
+                "tabla": tabla,
+                "columna": columna
+            }
+        )
+
+        constraints = [
+            row[0]
+            for row in resultado.fetchall()
+        ]
+
+        for constraint in constraints:
+
+            op.drop_constraint(
+                constraint,
+                tabla,
+                type_="foreignkey"
+            )
+
+    # MySQL
+    else:
+
+        resultado = bind.execute(
+            sa.text(
+                """
+                SELECT
+                    CONSTRAINT_NAME
+                FROM information_schema.KEY_COLUMN_USAGE
+                WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = :tabla
+                AND COLUMN_NAME = :columna
+                AND REFERENCED_TABLE_NAME IS NOT NULL
+                """
+            ),
+            {
+                "tabla": tabla,
+                "columna": columna
+            }
+        )
+
+        constraints = [
+            row[0]
+            for row in resultado.fetchall()
+        ]
+
+        for constraint in constraints:
+
+            op.drop_constraint(
+                constraint,
+                tabla,
+                type_="foreignkey"
+            )
+
+
+# ==========================================================
+# UPGRADE
+# ==========================================================
+
 def upgrade() -> None:
     """Actualiza la relación entre profesionales y hogares."""
 
@@ -27,134 +165,195 @@ def upgrade() -> None:
     # 1. CREAR TABLA PROFESIONAL_HOGAR
     # ==========================================================
 
-    op.create_table(
-        "profesional_hogar",
+    if not tabla_existe("profesional_hogar"):
 
-        sa.Column(
-            "id",
-            sa.Integer(),
-            primary_key=True
-        ),
+        op.create_table(
 
-        sa.Column(
-            "profesional_id",
-            sa.Integer(),
-            nullable=False
-        ),
+            "profesional_hogar",
 
-        sa.Column(
-            "hogar_id",
-            sa.Integer(),
-            nullable=False
-        ),
+            sa.Column(
+                "id",
+                sa.Integer(),
+                primary_key=True
+            ),
 
-        sa.ForeignKeyConstraint(
-            ["profesional_id"],
-            ["profesionales.id"],
-            name="fk_profesional_hogar_profesional"
-        ),
+            sa.Column(
+                "profesional_id",
+                sa.Integer(),
+                nullable=False
+            ),
 
-        sa.ForeignKeyConstraint(
-            ["hogar_id"],
-            ["hogares.id"],
-            name="fk_profesional_hogar_hogar"
-        ),
+            sa.Column(
+                "hogar_id",
+                sa.Integer(),
+                nullable=False
+            ),
 
-        sa.UniqueConstraint(
-            "profesional_id",
-            "hogar_id",
-            name="uq_profesional_hogar"
+            sa.ForeignKeyConstraint(
+                ["profesional_id"],
+                ["profesionales.id"],
+                name="fk_profesional_hogar_profesional"
+            ),
+
+            sa.ForeignKeyConstraint(
+                ["hogar_id"],
+                ["hogares.id"],
+                name="fk_profesional_hogar_hogar"
+            ),
+
+            sa.UniqueConstraint(
+                "profesional_id",
+                "hogar_id",
+                name="uq_profesional_hogar"
+            )
         )
-    )
 
 
     # ==========================================================
-    # 2. MIGRAR LOS VÍNCULOS EXISTENTES
+    # 2. MIGRAR VÍNCULOS EXISTENTES
     # ==========================================================
 
-    # Antes:
-    #
-    # hogares.profesional_id
-    #
-    # Ahora:
-    #
-    # profesional_hogar.profesional_id
-    # profesional_hogar.hogar_id
-    #
-    # Copiamos los vínculos existentes para no perderlos.
+    # Solo hacemos la migración si hogares todavía posee
+    # la antigua columna profesional_id.
 
-    op.execute(
-        """
-        INSERT INTO profesional_hogar (
-            profesional_id,
-            hogar_id
-        )
-        SELECT
-            profesional_id,
-            id
-        FROM hogares
-        WHERE profesional_id IS NOT NULL
-        """
-    )
-
-
-    # ==========================================================
-    # 3. ELIMINAR LA ANTIGUA RELACIÓN DE HOGARES
-    # ==========================================================
-
-    op.drop_constraint(
-        "fk_hogares_profesional",
-        "hogares",
-        type_="foreignkey"
-    )
-
-    op.drop_column(
+    if columna_existe(
         "hogares",
         "profesional_id"
-    )
+    ):
+
+        op.execute(
+            """
+            INSERT INTO profesional_hogar (
+                profesional_id,
+                hogar_id
+            )
+            SELECT
+                profesional_id,
+                id
+            FROM hogares
+            WHERE profesional_id IS NOT NULL
+            AND NOT EXISTS (
+                SELECT 1
+                FROM profesional_hogar ph
+                WHERE ph.profesional_id = hogares.profesional_id
+                AND ph.hogar_id = hogares.id
+            )
+            """
+        )
+
+
+    # ==========================================================
+    # 3. ELIMINAR FK ANTIGUA DE HOGARES
+    # ==========================================================
+
+    if columna_existe(
+        "hogares",
+        "profesional_id"
+    ):
+
+        eliminar_fk_por_columna(
+            "hogares",
+            "profesional_id"
+        )
+
+        op.drop_column(
+            "hogares",
+            "profesional_id"
+        )
 
 
     # ==========================================================
     # 4. LISTA DE ESPERA
     # ==========================================================
 
-    # El modelo actual utiliza id_hogar
-    # en lugar de hogar_id.
+    # La migración anterior utilizaba hogar_id.
+    # El modelo actual utiliza id_hogar.
 
-    op.drop_constraint(
-        "lista_espera_ibfk_1",
-        "lista_espera",
-        type_="foreignkey"
-    )
-
-    op.drop_column(
+    if columna_existe(
         "lista_espera",
         "hogar_id"
-    )
+    ):
+
+        # No dependemos del nombre de la FK.
+        eliminar_fk_por_columna(
+            "lista_espera",
+            "hogar_id"
+        )
+
+        op.drop_column(
+            "lista_espera",
+            "hogar_id"
+        )
 
 
-    # profesional_nombre también fue reemplazado
-    # por profesional_id.
+    # ==========================================================
+    # 5. ELIMINAR PROFESIONAL_NOMBRE
+    # ==========================================================
 
-    op.drop_column(
+    if columna_existe(
         "lista_espera",
         "profesional_nombre"
-    )
+    ):
+
+        op.drop_column(
+            "lista_espera",
+            "profesional_nombre"
+        )
 
 
     # ==========================================================
-    # 5. USUARIOS
+    # 6. RESTRICCIÓN ÚNICA EN USUARIOS
     # ==========================================================
 
-    # Un profesional solamente puede estar asociado
-    # a un usuario.
+    bind = op.get_bind()
 
-    op.create_unique_constraint(
-        "uq_usuarios_profesional_id",
-        "usuarios",
-        ["profesional_id"]
-    )
+    if bind.dialect.name == "postgresql":
 
+        resultado = bind.execute(
+            sa.text(
+                """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM information_schema.table_constraints
+                    WHERE table_schema = current_schema()
+                    AND table_name = 'usuarios'
+                    AND constraint_name = 'uq_usuarios_profesional_id'
+                )
+                """
+            )
+        )
+
+        existe_constraint = resultado.scalar()
+
+    else:
+
+        resultado = bind.execute(
+            sa.text(
+                """
+                SELECT COUNT(*)
+                FROM information_schema.table_constraints
+                WHERE table_schema = DATABASE()
+                AND table_name = 'usuarios'
+                AND constraint_name = 'uq_usuarios_profesional_id'
+                """
+            )
+        )
+
+        existe_constraint = resultado.scalar() > 0
+
+
+    if not existe_constraint:
+
+        op.create_unique_constraint(
+            "uq_usuarios_profesional_id",
+            "usuarios",
+            ["profesional_id"]
+        )
+
+
+# ==========================================================
+# DOWNGRADE
+# ==========================================================
 
 def downgrade() -> None:
     """Revierte la migración."""
@@ -163,24 +362,74 @@ def downgrade() -> None:
     # 1. USUARIOS
     # ==========================================================
 
-    op.drop_constraint(
-        "uq_usuarios_profesional_id",
-        "usuarios",
-        type_="unique"
-    )
+    bind = op.get_bind()
+
+    if bind.dialect.name == "postgresql":
+
+        resultado = bind.execute(
+            sa.text(
+                """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM information_schema.table_constraints
+                    WHERE table_schema = current_schema()
+                    AND table_name = 'usuarios'
+                    AND constraint_name = 'uq_usuarios_profesional_id'
+                )
+                """
+            )
+        )
+
+        existe_constraint = resultado.scalar()
+
+    else:
+
+        resultado = bind.execute(
+            sa.text(
+                """
+                SELECT COUNT(*)
+                FROM information_schema.table_constraints
+                WHERE table_schema = DATABASE()
+                AND table_name = 'usuarios'
+                AND constraint_name = 'uq_usuarios_profesional_id'
+                """
+            )
+        )
+
+        existe_constraint = resultado.scalar() > 0
+
+
+    if existe_constraint:
+
+        op.drop_constraint(
+            "uq_usuarios_profesional_id",
+            "usuarios",
+            type_="unique"
+        )
 
 
     # ==========================================================
     # 2. LISTA DE ESPERA
     # ==========================================================
 
-    op.add_column(
+    if not columna_existe(
         "lista_espera",
-        sa.Column(
-            "hogar_id",
-            sa.Integer(),
-            nullable=True
+        "hogar_id"
+    ):
+
+        op.add_column(
+            "lista_espera",
+            sa.Column(
+                "hogar_id",
+                sa.Integer(),
+                nullable=True
+            )
         )
+
+
+    eliminar_fk_por_columna(
+        "lista_espera",
+        "hogar_id"
     )
 
     op.create_foreign_key(
@@ -191,57 +440,72 @@ def downgrade() -> None:
         ["id"]
     )
 
-    op.add_column(
+
+    if not columna_existe(
         "lista_espera",
-        sa.Column(
-            "profesional_nombre",
-            sa.String(150),
-            nullable=True
+        "profesional_nombre"
+    ):
+
+        op.add_column(
+            "lista_espera",
+            sa.Column(
+                "profesional_nombre",
+                sa.String(150),
+                nullable=True
+            )
         )
-    )
 
 
     # ==========================================================
     # 3. HOGARES
     # ==========================================================
 
-    op.add_column(
+    if not columna_existe(
         "hogares",
-        sa.Column(
-            "profesional_id",
-            sa.Integer(),
-            nullable=True
-        )
-    )
+        "profesional_id"
+    ):
 
-    op.create_foreign_key(
-        "fk_hogares_profesional",
-        "hogares",
-        "profesionales",
-        ["profesional_id"],
-        ["id"]
-    )
+        op.add_column(
+            "hogares",
+            sa.Column(
+                "profesional_id",
+                sa.Integer(),
+                nullable=True
+            )
+        )
+
+        op.create_foreign_key(
+            "fk_hogares_profesional",
+            "hogares",
+            "profesionales",
+            ["profesional_id"],
+            ["id"]
+        )
 
 
     # ==========================================================
     # 4. RESTAURAR VÍNCULOS
     # ==========================================================
 
-    op.execute(
-        """
-        UPDATE hogares h
-        INNER JOIN profesional_hogar ph
-            ON ph.hogar_id = h.id
-        SET h.profesional_id = ph.profesional_id
-        """
-    )
+    if tabla_existe("profesional_hogar"):
+
+        op.execute(
+            """
+            UPDATE hogares h
+            SET profesional_id = ph.profesional_id
+            FROM profesional_hogar ph
+            WHERE ph.hogar_id = h.id
+            """
+        )
 
 
     # ==========================================================
     # 5. ELIMINAR TABLA PROFESIONAL_HOGAR
     # ==========================================================
 
-    op.drop_table(
-        "profesional_hogar"
-    )
+    if tabla_existe("profesional_hogar"):
+
+        op.drop_table(
+            "profesional_hogar"
+        )
 
