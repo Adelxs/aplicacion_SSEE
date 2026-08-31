@@ -575,6 +575,82 @@ def agregar_hogar_a_mis_hogares(
         "id_hogar": hogar.id_hogar
     }
 
+@app.delete("/profesionales/{profesional_id}")
+def eliminar_profesional(
+    profesional_id: int,
+    db: Session = Depends(get_db)
+):
+
+    # =========================================
+    # BUSCAR PROFESIONAL
+    # =========================================
+
+    profesional = db.query(models.Profesional).filter(
+        models.Profesional.id == profesional_id
+    ).first()
+
+    if profesional is None:
+        raise HTTPException(
+            status_code=404,
+            detail="El profesional no existe"
+        )
+
+
+    # =========================================
+    # VERIFICAR INTERVENCIONES
+    # =========================================
+
+    tiene_intervenciones = db.query(
+        models.Intervencion
+    ).filter(
+        models.Intervencion.profesional_id == profesional_id
+    ).first()
+
+    if tiene_intervenciones:
+        raise HTTPException(
+            status_code=400,
+            detail="No se puede eliminar el profesional porque tiene intervenciones asociadas"
+        )
+
+
+    # =========================================
+    # VERIFICAR HOGARES
+    # =========================================
+
+    if profesional.hogares:
+
+        raise HTTPException(
+            status_code=400,
+            detail="No se puede eliminar el profesional porque tiene hogares asociados"
+        )
+
+
+    # =========================================
+    # VERIFICAR USUARIO
+    # =========================================
+
+    if profesional.usuario:
+
+        raise HTTPException(
+            status_code=400,
+            detail="No se puede eliminar el profesional porque tiene un usuario asociado"
+        )
+
+
+    # =========================================
+    # ELIMINAR PROFESIONAL
+    # =========================================
+
+    db.delete(profesional)
+    db.commit()
+
+
+    return {
+        "mensaje": "Profesional eliminado correctamente",
+        "id": profesional_id
+    }
+
+
 @app.get(
     "/profesionales/me/hogares/disponibles",
     response_model=list[schemas.HogarResumen]
