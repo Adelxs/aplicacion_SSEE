@@ -1,10 +1,10 @@
 
-"""crear relacion profesional hogar
+"""
+crear relacion profesional hogar
 
 Revision ID: 81850119feae
 Revises: 8c06f1687dc8
 Create Date: 2026-08-31 11:41:51.263716
-
 """
 
 from typing import Sequence, Union
@@ -24,7 +24,52 @@ def upgrade() -> None:
     """Actualiza la relación entre profesionales y hogares."""
 
     # ==========================================================
-    # 1. MIGRAR LOS VÍNCULOS EXISTENTES
+    # 1. CREAR TABLA PROFESIONAL_HOGAR
+    # ==========================================================
+
+    op.create_table(
+        "profesional_hogar",
+
+        sa.Column(
+            "id",
+            sa.Integer(),
+            primary_key=True
+        ),
+
+        sa.Column(
+            "profesional_id",
+            sa.Integer(),
+            nullable=False
+        ),
+
+        sa.Column(
+            "hogar_id",
+            sa.Integer(),
+            nullable=False
+        ),
+
+        sa.ForeignKeyConstraint(
+            ["profesional_id"],
+            ["profesionales.id"],
+            name="fk_profesional_hogar_profesional"
+        ),
+
+        sa.ForeignKeyConstraint(
+            ["hogar_id"],
+            ["hogares.id"],
+            name="fk_profesional_hogar_hogar"
+        ),
+
+        sa.UniqueConstraint(
+            "profesional_id",
+            "hogar_id",
+            name="uq_profesional_hogar"
+        )
+    )
+
+
+    # ==========================================================
+    # 2. MIGRAR LOS VÍNCULOS EXISTENTES
     # ==========================================================
 
     # Antes:
@@ -36,7 +81,7 @@ def upgrade() -> None:
     # profesional_hogar.profesional_id
     # profesional_hogar.hogar_id
     #
-    # Copiamos primero los vínculos existentes para no perderlos.
+    # Copiamos los vínculos existentes para no perderlos.
 
     op.execute(
         """
@@ -54,7 +99,7 @@ def upgrade() -> None:
 
 
     # ==========================================================
-    # 2. ELIMINAR LA ANTIGUA RELACIÓN DE HOGARES
+    # 3. ELIMINAR LA ANTIGUA RELACIÓN DE HOGARES
     # ==========================================================
 
     op.drop_constraint(
@@ -70,10 +115,11 @@ def upgrade() -> None:
 
 
     # ==========================================================
-    # 3. LISTA DE ESPERA
+    # 4. LISTA DE ESPERA
     # ==========================================================
 
-    # El modelo actual utiliza id_hogar en lugar de hogar_id.
+    # El modelo actual utiliza id_hogar
+    # en lugar de hogar_id.
 
     op.drop_constraint(
         "lista_espera_ibfk_1",
@@ -97,7 +143,7 @@ def upgrade() -> None:
 
 
     # ==========================================================
-    # 4. USUARIOS
+    # 5. USUARIOS
     # ==========================================================
 
     # Un profesional solamente puede estar asociado
@@ -188,5 +234,14 @@ def downgrade() -> None:
             ON ph.hogar_id = h.id
         SET h.profesional_id = ph.profesional_id
         """
+    )
+
+
+    # ==========================================================
+    # 5. ELIMINAR TABLA PROFESIONAL_HOGAR
+    # ==========================================================
+
+    op.drop_table(
+        "profesional_hogar"
     )
 
