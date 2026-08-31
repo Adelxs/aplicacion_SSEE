@@ -110,60 +110,18 @@ def inicio():
 def crear_hogar(
     hogar: schemas.HogarCreate,
     db: Session = Depends(get_db),
-    usuario = Depends(obtener_usuario_actual)
+    usuario = Depends(requiere_admin)
 ):
 
-    # =========================
-    # ADMINISTRADOR
-    # =========================
-
-    if usuario.rol == "administrador":
-
-        nuevo_hogar = models.Hogar(
-            id_hogar=hogar.id_hogar,
-            cuidador_principal=hogar.cuidador_principal,
-            psdf=hogar.psdf,
-            direccion=hogar.direccion,
-            telefono=hogar.telefono,
-            unidad_vecinal=hogar.unidad_vecinal,
-            estado=hogar.estado,
-            profesional_id=None
-        )
-
-    # =========================
-    # PROFESIONAL
-    # =========================
-
-    elif usuario.rol == "profesional":
-
-        if usuario.profesional_id is None:
-
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="El usuario no tiene un profesional asociado"
-            )
-
-        nuevo_hogar = models.Hogar(
-            id_hogar=hogar.id_hogar,
-            cuidador_principal=hogar.cuidador_principal,
-            psdf=hogar.psdf,
-            direccion=hogar.direccion,
-            telefono=hogar.telefono,
-            unidad_vecinal=hogar.unidad_vecinal,
-            estado=hogar.estado,
-            profesional_id=usuario.profesional_id
-        )
-
-    # =========================
-    # OTRO ROL
-    # =========================
-
-    else:
-
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes permisos para crear hogares"
-        )
+    nuevo_hogar = models.Hogar(
+        id_hogar=hogar.id_hogar,
+        cuidador_principal=hogar.cuidador_principal,
+        psdf=hogar.psdf,
+        direccion=hogar.direccion,
+        telefono=hogar.telefono,
+        unidad_vecinal=hogar.unidad_vecinal,
+        estado=hogar.estado
+    )
 
     db.add(nuevo_hogar)
     db.commit()
@@ -178,55 +136,46 @@ def obtener_hogares(
     usuario = Depends(obtener_usuario_actual)
 ):
 
-    # =========================
-    # ADMINISTRADOR
-    # =========================
-
     if usuario.rol == "administrador":
 
         hogares = db.query(
             models.Hogar
         ).all()
 
-    # =========================
-    # PROFESIONAL
-    # =========================
+        return hogares
 
     elif usuario.rol == "profesional":
 
         if usuario.profesional_id is None:
-
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="El usuario no tiene un profesional asociado"
+                status_code=403,
+                detail="El usuario no está asociado a un profesional"
             )
 
-        hogares = db.query(
-            models.Hogar
-        ).filter(
-            models.Hogar.profesional_id
-            == usuario.profesional_id
-        ).all()
+        hogares = (
+            db.query(models.Hogar)
+            .join(models.Hogar.profesionales)
+            .filter(
+                models.Profesional.id == usuario.profesional_id
+            )
+            .all()
+        )
 
-    # =========================
-    # OTRO ROL
-    # =========================
+        return hogares
 
     else:
 
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=403,
             detail="No tienes permisos para consultar hogares"
         )
-
-    return hogares
 
 @app.put("/hogares/{id_hogar}")
 def actualizar_hogar(
     id_hogar: int,
     hogar: schemas.HogarCreate,
     db: Session = Depends(get_db),
-    usuario = Depends(obtener_usuario_actual)
+    usuario = Depends(requiere_admin)
 ):
 
     hogar_db = db.query(
@@ -236,54 +185,10 @@ def actualizar_hogar(
     ).first()
 
     if hogar_db is None:
-
         raise HTTPException(
             status_code=404,
             detail="Hogar no encontrado"
         )
-
-    # =========================
-    # ADMINISTRADOR
-    # =========================
-
-    if usuario.rol == "administrador":
-
-        pass
-
-    # =========================
-    # PROFESIONAL
-    # =========================
-
-    elif usuario.rol == "profesional":
-
-        if usuario.profesional_id is None:
-
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="El usuario no tiene un profesional asociado"
-            )
-
-        if hogar_db.profesional_id != usuario.profesional_id:
-
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No puedes modificar un hogar que no te pertenece"
-            )
-
-    # =========================
-    # OTRO ROL
-    # =========================
-
-    else:
-
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes permisos para modificar hogares"
-        )
-
-    # =========================
-    # ACTUALIZAR DATOS
-    # =========================
 
     hogar_db.cuidador_principal = hogar.cuidador_principal
     hogar_db.psdf = hogar.psdf
@@ -301,7 +206,7 @@ def actualizar_hogar(
 def eliminar_hogar(
     id_hogar: int,
     db: Session = Depends(get_db),
-    usuario = Depends(obtener_usuario_actual)
+    usuario = Depends(requiere_admin)
 ):
 
     hogar_db = db.query(
@@ -311,49 +216,9 @@ def eliminar_hogar(
     ).first()
 
     if hogar_db is None:
-
         raise HTTPException(
             status_code=404,
             detail="Hogar no encontrado"
-        )
-
-    # =========================
-    # ADMINISTRADOR
-    # =========================
-
-    if usuario.rol == "administrador":
-
-        pass
-
-    # =========================
-    # PROFESIONAL
-    # =========================
-
-    elif usuario.rol == "profesional":
-
-        if usuario.profesional_id is None:
-
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="El usuario no tiene un profesional asociado"
-            )
-
-        if hogar_db.profesional_id != usuario.profesional_id:
-
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No puedes eliminar un hogar que no te pertenece"
-            )
-
-    # =========================
-    # OTRO ROL
-    # =========================
-
-    else:
-
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes permisos para eliminar hogares"
         )
 
     db.delete(hogar_db)
@@ -377,46 +242,85 @@ def obtener_hogar(
     ).first()
 
     if hogar is None:
-
         raise HTTPException(
             status_code=404,
             detail="Hogar no encontrado"
         )
 
-    # =========================
-    # ADMINISTRADOR
-    # =========================
-
     if usuario.rol == "administrador":
-
         return hogar
-
-    # =========================
-    # PROFESIONAL
-    # =========================
 
     if usuario.rol == "profesional":
 
         if usuario.profesional_id is None:
-
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="El usuario no tiene un profesional asociado"
+                status_code=403,
+                detail="El usuario no está asociado a un profesional"
             )
 
-        if hogar.profesional_id != usuario.profesional_id:
+        asociado = any(
+            profesional.id == usuario.profesional_id
+            for profesional in hogar.profesionales
+        )
 
+        if not asociado:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
+                status_code=403,
                 detail="No tienes permisos para acceder a este hogar"
             )
 
         return hogar
 
     raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
+        status_code=403,
         detail="No tienes permisos para acceder a este hogar"
     )
+    
+@app.get(
+    "/profesionales/me/hogares/disponibles",
+    response_model=list[schemas.HogarResumen]
+)
+def obtener_hogares_disponibles(
+    usuario=Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db)
+):
+
+    if usuario.rol != "profesional":
+        raise HTTPException(
+            status_code=403,
+            detail="Solo los profesionales pueden acceder a los hogares disponibles"
+        )
+
+    if usuario.profesional_id is None:
+        raise HTTPException(
+            status_code=403,
+            detail="El usuario no está asociado a un profesional"
+        )
+
+    profesional = db.query(
+        models.Profesional
+    ).filter(
+        models.Profesional.id == usuario.profesional_id
+    ).first()
+
+    if profesional is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Profesional no encontrado"
+        )
+
+    hogares_asignados = {
+        hogar.id
+        for hogar in profesional.hogares
+    }
+
+    hogares_disponibles = db.query(
+        models.Hogar
+    ).filter(
+        ~models.Hogar.id.in_(hogares_asignados)
+    ).all()
+
+    return hogares_disponibles
 
 ################################################################ Dashboard intervenciones ##################################################
     
@@ -599,17 +503,168 @@ def obtener_mis_hogares(
             detail="El usuario no está asociado a un profesional"
         )
 
+    profesional = db.query(
+        models.Profesional
+    ).filter(
+        models.Profesional.id == usuario.profesional_id
+    ).first()
+
+    if profesional is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Profesional no encontrado"
+        )
+
+    return profesional.hogares
+
+@app.post("/profesionales/me/hogares/{id_hogar}")
+def agregar_hogar_a_mis_hogares(
+    id_hogar: int,
+    usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db)
+):
+
+    if usuario.rol != "profesional":
+        raise HTTPException(
+            status_code=403,
+            detail="Solo los profesionales pueden agregar hogares a su lista"
+        )
+
+    if usuario.profesional_id is None:
+        raise HTTPException(
+            status_code=403,
+            detail="El usuario no está asociado a un profesional"
+        )
+
+    hogar = db.query(
+        models.Hogar
+    ).filter(
+        models.Hogar.id_hogar == id_hogar
+    ).first()
+
+    if hogar is None:
+        raise HTTPException(
+            status_code=404,
+            detail="El hogar no existe"
+        )
+
+    profesional = db.query(
+        models.Profesional
+    ).filter(
+        models.Profesional.id == usuario.profesional_id
+    ).first()
+
+    if profesional is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Profesional no encontrado"
+        )
+
+    if hogar in profesional.hogares:
+        raise HTTPException(
+            status_code=400,
+            detail="Este hogar ya está agregado a tu lista"
+        )
+
+    profesional.hogares.append(hogar)
+
+    db.commit()
+
+    return {
+        "mensaje": "Hogar agregado correctamente",
+        "id_hogar": hogar.id_hogar
+    }
+
+@app.get(
+    "/profesionales/me/hogares/disponibles",
+    response_model=list[schemas.HogarResumen]
+)
+def obtener_hogares_disponibles(
+    usuario=Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db)
+):
+
+    if usuario.rol != "profesional":
+        raise HTTPException(
+            status_code=403,
+            detail="Solo los profesionales pueden consultar hogares disponibles"
+        )
+
+    if usuario.profesional_id is None:
+        raise HTTPException(
+            status_code=403,
+            detail="El usuario no está asociado a un profesional"
+        )
+
     hogares = (
         db.query(models.Hogar)
         .filter(
-            models.Hogar.profesional_id
-            == usuario.profesional_id
+            ~models.Hogar.profesionales.any(
+                models.Profesional.id == usuario.profesional_id
+            )
         )
         .all()
     )
 
     return hogares
 
+@app.delete("/profesionales/me/hogares/{id_hogar}")
+def eliminar_hogar_de_mis_hogares(
+    id_hogar: int,
+    usuario=Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db)
+):
+
+    if usuario.rol != "profesional":
+        raise HTTPException(
+            status_code=403,
+            detail="Solo los profesionales pueden eliminar hogares de su lista"
+        )
+
+    if usuario.profesional_id is None:
+        raise HTTPException(
+            status_code=403,
+            detail="El usuario no está asociado a un profesional"
+        )
+
+    profesional = db.query(
+        models.Profesional
+    ).filter(
+        models.Profesional.id == usuario.profesional_id
+    ).first()
+
+    if profesional is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Profesional no encontrado"
+        )
+
+    hogar = db.query(
+        models.Hogar
+    ).filter(
+        models.Hogar.id_hogar == id_hogar
+    ).first()
+
+    if hogar is None:
+        raise HTTPException(
+            status_code=404,
+            detail="El hogar no existe"
+        )
+
+    if hogar not in profesional.hogares:
+        raise HTTPException(
+            status_code=404,
+            detail="Este hogar no está agregado a tu lista"
+        )
+
+    profesional.hogares.remove(hogar)
+
+    db.commit()
+
+    return {
+        "mensaje": "Hogar eliminado de tu lista correctamente",
+        "id_hogar": hogar.id_hogar
+    }
 
 
 ######################################################################## Intervenciones ############################################################
@@ -1363,5 +1418,5 @@ def login(
         "token_type": "bearer"
     }
     
-
-
+################################################################## Profesional/Hogar ################################################################
+    

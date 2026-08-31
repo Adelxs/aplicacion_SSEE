@@ -1,6 +1,23 @@
-from sqlalchemy import Column, Integer, String, Date, Text, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Date, Text, ForeignKey, Boolean, Table
 from app.database import Base
 from sqlalchemy.orm import relationship
+
+profesional_hogar = Table(
+    "profesional_hogar",
+    Base.metadata,
+    Column(
+        "profesional_id",
+        Integer,
+        ForeignKey("profesionales.id"),
+        primary_key=True
+    ),
+    Column(
+        "hogar_id",
+        Integer,
+        ForeignKey("hogares.id"),
+        primary_key=True
+    )
+)
 
 class Hogar(Base):
     __tablename__ = "hogares"
@@ -52,16 +69,11 @@ class Hogar(Base):
         back_populates="hogar"
     )
     
-    profesional_id = Column(
-    Integer,
-    ForeignKey("profesionales.id"),
-    nullable=True
+    profesionales = relationship(
+    "Profesional",
+    secondary=profesional_hogar,
+    back_populates="hogares"
     )
-    
-    profesional = relationship(
-    "Profesional"
-    )
-    
     
 class Profesional(Base):
     __tablename__ = "profesionales"
@@ -96,6 +108,12 @@ class Profesional(Base):
         "Usuario",
         back_populates="profesional",
         uselist=False
+    )
+    
+    hogares = relationship(
+    "Hogar",
+    secondary=profesional_hogar,
+    back_populates="profesionales"
     )
     
 class Intervencion(Base):

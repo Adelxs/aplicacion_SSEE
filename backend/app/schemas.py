@@ -210,3 +210,11 @@ class UsuarioProfesionalCreate(BaseModel):
     username: str
     password: str
     activo: bool = True
+    
+class ProfesionalHogarCreate(BaseModel):
+    hogar_id: int
+
+
+class ProfesionalHogarResponse(BaseModel):
+    hogar_id: int
+    profesional_id: int
