@@ -56,7 +56,6 @@ class ProfesionalResumen(BaseModel):
         
 class IntervencionCreate(BaseModel):
     hogar_id: int
-    profesional_id: int
     tipo: str
     numero_intervencion: int | None = None
     fecha_programada: date | None = None
@@ -103,7 +102,7 @@ class IntervencionUpdate(BaseModel):
     observaciones: str | None = None
     
 class ListaEsperaCreate(BaseModel):
-
+    
     id_hogar: int
 
     cuidador_principal: str
@@ -116,7 +115,7 @@ class ListaEsperaCreate(BaseModel):
 
     telefono: str | None = None
 
-    profesional_id: int | None = None
+    profesional_id: int
 
     dia: str | None = None
 
@@ -125,7 +124,6 @@ class ListaEsperaCreate(BaseModel):
     fecha_solicitud: date
 
     observaciones: str | None = None
-
 
 class ListaEsperaResponse(BaseModel):
 

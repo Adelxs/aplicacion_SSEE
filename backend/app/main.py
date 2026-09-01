@@ -756,6 +756,23 @@ def crear_intervencion(
 ):
 
     # ==========================================
+    # VERIFICAR HOGAR
+    # ==========================================
+
+    hogar = db.query(
+        models.Hogar
+    ).filter(
+        models.Hogar.id_hogar == intervencion.hogar_id
+    ).first()
+
+    if hogar is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail="El hogar no existe"
+        )
+
+    # ==========================================
     # ADMINISTRADOR
     # ==========================================
 
@@ -776,8 +793,25 @@ def crear_intervencion(
                 detail="El usuario no tiene un profesional asociado"
             )
 
-        # El profesional siempre será él mismo
         profesional_id = usuario.profesional_id
+
+        # ======================================
+        # VERIFICAR LISTA DE ESPERA
+        # ======================================
+
+        asignacion = db.query(
+            models.ListaEspera
+        ).filter(
+            models.ListaEspera.id_hogar == intervencion.hogar_id,
+            models.ListaEspera.profesional_id == profesional_id
+        ).first()
+
+        if asignacion is None:
+
+            raise HTTPException(
+                status_code=403,
+                detail="Este hogar no está asignado a tu lista de espera"
+            )
 
     # ==========================================
     # OTRO ROL
@@ -788,23 +822,6 @@ def crear_intervencion(
         raise HTTPException(
             status_code=403,
             detail="No tienes permisos para crear intervenciones"
-        )
-
-    # ==========================================
-    # VERIFICAR HOGAR
-    # ==========================================
-
-    hogar = db.query(
-        models.Hogar
-    ).filter(
-        models.Hogar.id == intervencion.hogar_id
-    ).first()
-
-    if hogar is None:
-
-        raise HTTPException(
-            status_code=404,
-            detail="El hogar no existe"
         )
 
     # ==========================================
@@ -830,7 +847,7 @@ def crear_intervencion(
 
     nueva_intervencion = models.Intervencion(
 
-        hogar_id=intervencion.hogar_id,
+        hogar_id=hogar.id,
 
         profesional_id=profesional_id,
 
@@ -1048,66 +1065,57 @@ def eliminar_intervencion(
 def crear_lista_espera(
     datos: schemas.ListaEsperaCreate,
     db: Session = Depends(get_db),
-    usuario = Depends(obtener_usuario_actual)
+    usuario = Depends(requiere_admin)
 ):
 
-    # ==========================================
-    # ADMINISTRADOR
-    # ==========================================
+    # =========================================
+    # VERIFICAR QUE EL HOGAR EXISTA
+    # =========================================
 
-    if usuario.rol == "administrador":
+    hogar = db.query(
+        models.Hogar
+    ).filter(
+        models.Hogar.id_hogar == datos.id_hogar
+    ).first()
 
-        profesional_id = datos.profesional_id
-
-    # ==========================================
-    # PROFESIONAL
-    # ==========================================
-
-    elif usuario.rol == "profesional":
-
-        if usuario.profesional_id is None:
-
-            raise HTTPException(
-                status_code=403,
-                detail="El usuario no tiene un profesional asociado"
-            )
-
-        # Se asigna automáticamente al profesional
-        profesional_id = usuario.profesional_id
-
-    # ==========================================
-    # OTRO ROL
-    # ==========================================
-
-    else:
-
+    if hogar is None:
         raise HTTPException(
-            status_code=403,
-            detail="No tienes permisos para crear una entrada"
+            status_code=404,
+            detail="El hogar no existe"
         )
 
-    # ==========================================
+
+    # =========================================
     # VERIFICAR PROFESIONAL
-    # ==========================================
+    # =========================================
 
-    if profesional_id is not None:
+    profesional = db.query(
+        models.Profesional
+    ).filter(
+        models.Profesional.id == datos.profesional_id
+    ).first()
 
-        profesional = db.query(
-            models.Profesional
-        ).filter(
-            models.Profesional.id == profesional_id
-        ).first()
+    if profesional is None:
+        raise HTTPException(
+            status_code=404,
+            detail="El profesional no existe"
+        )
 
-        if profesional is None:
 
-            raise HTTPException(
-                status_code=404,
-                detail="El profesional no existe"
-            )
+    # =========================================
+    # VERIFICAR PROFESIONAL ACTIVO
+    # =========================================
 
-    # ==========================================
+    if not profesional.activo:
+        raise HTTPException(
+            status_code=400,
+            detail="No se puede asignar un profesional inactivo"
+        )
+
+
+    # =========================================
     # CREAR ENTRADA
-    # ==========================================
+    # =========================================
 
     nueva_entrada = models.ListaEspera(
 
@@ -1123,7 +1131,7 @@ def crear_lista_espera(
 
         telefono=datos.telefono,
 
-        profesional_id=profesional_id,
+        profesional_id=datos.profesional_id,
 
         dia=datos.dia,
 
@@ -1134,6 +1142,7 @@ def crear_lista_espera(
         observaciones=datos.observaciones
     )
 
+
     db.add(nueva_entrada)
 
     db.commit()
@@ -1142,15 +1151,59 @@ def crear_lista_espera(
 
     return nueva_entrada
 
-@app.get("/lista-espera")
+@app.get(
+    "/lista-espera",
+    response_model=list[schemas.ListaEsperaResponse]
+)
 def obtener_lista_espera(
     db: Session = Depends(get_db),
     usuario = Depends(obtener_usuario_actual)
 ):
 
-    lista = db.query(models.ListaEspera).all()
+    # ==========================================
+    # ADMINISTRADOR
+    # ==========================================
 
-    return lista
+    if usuario.rol == "administrador":
+
+        lista = db.query(
+            models.ListaEspera
+        ).all()
+
+        return lista
+
+    # ==========================================
+    # PROFESIONAL
+    # ==========================================
+
+    elif usuario.rol == "profesional":
+
+        if usuario.profesional_id is None:
+
+            raise HTTPException(
+                status_code=403,
+                detail="El usuario no tiene un profesional asociado"
+            )
+
+        lista = db.query(
+            models.ListaEspera
+        ).filter(
+            models.ListaEspera.profesional_id
+            == usuario.profesional_id
+        ).all()
+
+        return lista
+
+    # ==========================================
+    # OTRO ROL
+    # ==========================================
+
+    else:
+
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permisos para consultar la lista de espera"
+        )
 
 @app.get(
     "/lista-espera/{id}",
