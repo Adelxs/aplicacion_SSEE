@@ -136,30 +136,11 @@ def obtener_hogares(
     usuario = Depends(obtener_usuario_actual)
 ):
 
-    if usuario.rol == "administrador":
+    if usuario.rol in ["administrador", "profesional"]:
 
         hogares = db.query(
             models.Hogar
         ).all()
-
-        return hogares
-
-    elif usuario.rol == "profesional":
-
-        if usuario.profesional_id is None:
-            raise HTTPException(
-                status_code=403,
-                detail="El usuario no está asociado a un profesional"
-            )
-
-        hogares = (
-            db.query(models.Hogar)
-            .join(models.Hogar.profesionales)
-            .filter(
-                models.Profesional.id == usuario.profesional_id
-            )
-            .all()
-        )
 
         return hogares
 
