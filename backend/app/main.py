@@ -497,25 +497,9 @@ def obtener_mis_hogares(
             detail="Solo los profesionales pueden acceder a sus hogares"
         )
 
-    if usuario.profesional_id is None:
-        raise HTTPException(
-            status_code=403,
-            detail="El usuario no está asociado a un profesional"
-        )
-
-    profesional = db.query(
-        models.Profesional
-    ).filter(
-        models.Profesional.id == usuario.profesional_id
-    ).first()
-
-    if profesional is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Profesional no encontrado"
-        )
-
-    return profesional.hogares
+    return db.query(
+        models.Hogar
+    ).all()
 
 @app.post("/profesionales/me/hogares/{id_hogar}")
 def agregar_hogar_a_mis_hogares(
