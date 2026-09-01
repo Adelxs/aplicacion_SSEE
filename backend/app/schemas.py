@@ -157,6 +157,8 @@ class ListaEsperaResponse(BaseModel):
 
 class ListaEsperaUpdate(BaseModel):
 
+    id_hogar: int | None = None
+
     cuidador_principal: str | None = None
 
     psdf: str | None = None
@@ -166,6 +168,8 @@ class ListaEsperaUpdate(BaseModel):
     unidad_vecinal: str | None = None
 
     telefono: str | None = None
+
+    profesional_id: int | None = None
 
     dia: str | None = None
 

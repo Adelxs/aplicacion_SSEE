@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import "./Profesionales.css";
@@ -170,12 +171,16 @@ function Profesionales() {
 
 
     if (cargando) {
+
         return <h2>Cargando profesionales...</h2>;
+
     }
 
 
     if (error) {
+
         return <h2>{error}</h2>;
+
     }
 
 
@@ -443,8 +448,8 @@ function Profesionales() {
                                         }
                                     >
                                         {profesional.activo
-                                            ? "🔴"
-                                            : "🟢"
+                                            ? "Inactivar"
+                                            : "Activar"
                                         }
                                     </button>
 
@@ -465,3 +470,4 @@ function Profesionales() {
 }
 
 export default Profesionales;
+

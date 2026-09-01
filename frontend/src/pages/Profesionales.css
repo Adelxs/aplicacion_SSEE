@@ -1,3 +1,4 @@
+
 /* =========================================================
    PÁGINA PROFESIONALES
    ========================================================= */
@@ -38,17 +39,31 @@
 .btn-nuevo {
     background-color: #BC4F4F;
     color: white;
+
     border: none;
+
     padding: 11px 18px;
+
     border-radius: 8px;
+
     font-size: 14px;
     font-weight: 600;
+
     cursor: pointer;
-    transition: 0.2s;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .btn-nuevo:hover {
-    background-color: #1d4ed8;
+    background-color: #a94343;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 10px rgba(188, 79, 79, 0.18);
 }
 
 
@@ -58,13 +73,18 @@
 
 .ssee-table-container {
     background: white;
+
     border-radius: 12px;
+
     overflow-x: auto;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+
+    box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.06);
 }
 
 .ssee-table {
     width: 100%;
+
     border-collapse: collapse;
 }
 
@@ -74,18 +94,36 @@
 
 .ssee-table th {
     text-align: left;
+
     padding: 15px;
+
     font-size: 14px;
     font-weight: 600;
+
     color: #475569;
-    border-bottom: 1px solid #e5e7eb;
+
+    border-bottom:
+        1px solid #e5e7eb;
+
+    white-space: nowrap;
 }
 
 .ssee-table td {
     padding: 15px;
+
     font-size: 14px;
-    border-bottom: 1px solid #f1f5f9;
+
+    border-bottom:
+        1px solid #f1f5f9;
+
     color: #334155;
+
+    vertical-align: middle;
+}
+
+.ssee-table tbody tr {
+    transition:
+        background-color 0.2s ease;
 }
 
 .ssee-table tbody tr:hover {
@@ -99,19 +137,25 @@
 
 .estado {
     display: inline-block;
+
     padding: 5px 10px;
+
     border-radius: 20px;
+
     font-size: 12px;
+
     font-weight: 600;
 }
 
 .estado.activo {
     background-color: #dcfce7;
+
     color: #166534;
 }
 
 .estado.inactivo {
     background-color: #fee2e2;
+
     color: #991b1b;
 }
 
@@ -122,44 +166,119 @@
 
 .acciones {
     display: flex;
+
     gap: 8px;
+
     align-items: center;
+
+    flex-wrap: nowrap;
 }
+
+
+/* =========================================================
+   BOTONES DE ACCIÓN
+   ========================================================= */
 
 .btn-editar,
 .btn-desactivar,
 .btn-activar {
+
     border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 7px;
+
+    min-height: 36px;
+
+    padding: 8px 13px;
+
+    border-radius: 8px;
+
     cursor: pointer;
-    font-size: 15px;
-    transition: 0.2s;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+    white-space: nowrap;
 }
 
+
+/* =========================================================
+   EDITAR
+   ========================================================= */
+
 .btn-editar {
+
     background-color: #e0f2fe;
+
+    color: #0369a1;
+
+    width: 36px;
+
+    padding: 8px;
 }
 
 .btn-editar:hover {
+
     background-color: #bae6fd;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 3px 8px rgba(3, 105, 161, 0.15);
 }
 
+
+/* =========================================================
+   INACTIVAR
+   ========================================================= */
+
 .btn-desactivar {
+
     background-color: #fee2e2;
+
+    color: #b91c1c;
 }
 
 .btn-desactivar:hover {
+
     background-color: #fecaca;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 3px 8px rgba(185, 28, 28, 0.15);
 }
 
+
+/* =========================================================
+   ACTIVAR
+   ========================================================= */
+
 .btn-activar {
+
     background-color: #dcfce7;
+
+    color: #15803d;
 }
 
 .btn-activar:hover {
+
     background-color: #bbf7d0;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 3px 8px rgba(21, 128, 61, 0.15);
 }
 
 
@@ -168,16 +287,23 @@
    ========================================================= */
 
 .modal-overlay {
+
     position: fixed;
+
     inset: 0;
 
-    background-color: rgba(0, 0, 0, 0.45);
+    background-color:
+        rgba(0, 0, 0, 0.45);
 
     display: flex;
+
     justify-content: center;
+
     align-items: center;
 
     z-index: 1000;
+
+    padding: 20px;
 }
 
 
@@ -186,29 +312,38 @@
    ========================================================= */
 
 .profesional-modal {
+
     width: 500px;
+
     max-width: 90%;
 
     background: white;
+
     border-radius: 14px;
 
     padding: 25px;
 
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+    box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.2);
 
-    animation: aparecerModal 0.2s ease;
+    animation:
+        aparecerModal 0.2s ease;
 }
 
 @keyframes aparecerModal {
 
     from {
         opacity: 0;
-        transform: translateY(-10px);
+
+        transform:
+            translateY(-10px);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+
+        transform:
+            translateY(0);
     }
 }
 
@@ -218,21 +353,29 @@
    ========================================================= */
 
 .modal-header {
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: flex-start;
 
     margin-bottom: 25px;
 }
 
 .modal-header h2 {
+
     margin: 0;
+
     font-size: 22px;
 }
 
 .modal-header p {
+
     margin-top: 6px;
+
     color: #777;
+
     font-size: 14px;
 }
 
@@ -242,7 +385,9 @@
    ========================================================= */
 
 .modal-close {
+
     border: none;
+
     background: transparent;
 
     font-size: 20px;
@@ -250,10 +395,17 @@
     cursor: pointer;
 
     color: #64748b;
+
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
 }
 
 .modal-close:hover {
+
     color: #111827;
+
+    transform: scale(1.05);
 }
 
 
@@ -262,20 +414,27 @@
    ========================================================= */
 
 .form-grid {
+
     display: grid;
+
     grid-template-columns: 1fr;
+
     gap: 18px;
 }
 
 .form-group {
+
     display: flex;
+
     flex-direction: column;
 }
 
 .form-group label {
+
     margin-bottom: 7px;
 
     font-size: 14px;
+
     font-weight: 600;
 
     color: #374151;
@@ -283,9 +442,11 @@
 
 .form-group input,
 .form-group select {
+
     padding: 11px 12px;
 
-    border: 1px solid #d1d5db;
+    border:
+        1px solid #d1d5db;
 
     border-radius: 7px;
 
@@ -293,14 +454,18 @@
 
     outline: none;
 
-    transition: 0.2s;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus {
-    border-color: #2563eb;
 
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    border-color: #BC4F4F;
+
+    box-shadow:
+        0 0 0 2px rgba(188, 79, 79, 0.10);
 }
 
 
@@ -309,6 +474,7 @@
    ========================================================= */
 
 .form-actions {
+
     display: flex;
 
     justify-content: flex-end;
@@ -318,10 +484,17 @@
     margin-top: 25px;
 }
 
+
+/* =========================================================
+   CANCELAR
+   ========================================================= */
+
 .btn-cancelar {
+
     padding: 10px 16px;
 
-    border: 1px solid #d1d5db;
+    border:
+        1px solid #d1d5db;
 
     background-color: white;
 
@@ -330,18 +503,30 @@
     cursor: pointer;
 
     color: #374151;
+
+    font-weight: 500;
+
+    transition:
+        background-color 0.2s ease;
 }
 
 .btn-cancelar:hover {
+
     background-color: #f3f4f6;
 }
 
+
+/* =========================================================
+   GUARDAR
+   ========================================================= */
+
 .btn-guardar {
+
     padding: 10px 18px;
 
     border: none;
 
-    background-color: #2563eb;
+    background-color: #BC4F4F;
 
     color: white;
 
@@ -350,10 +535,21 @@
     cursor: pointer;
 
     font-weight: 600;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .btn-guardar:hover {
-    background-color: #1d4ed8;
+
+    background-color: #a94343;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 10px rgba(188, 79, 79, 0.18);
 }
 
 
@@ -364,31 +560,64 @@
 @media (max-width: 768px) {
 
     .profesionales-page {
+
         padding: 20px;
     }
 
+
     .profesionales-header {
+
         flex-direction: column;
+
         align-items: flex-start;
+
         gap: 15px;
     }
 
+
     .profesionales-header .btn-nuevo {
+
         width: 100%;
     }
 
+
     .profesional-modal {
+
         width: 90%;
+
         padding: 20px;
     }
 
+
     .ssee-table th,
     .ssee-table td {
+
         padding: 10px;
+    }
+
+
+    .acciones {
+
+        gap: 6px;
+    }
+
+
+    .btn-desactivar,
+    .btn-activar {
+
+        padding:
+            7px 10px;
+
+        font-size: 12px;
     }
 
 }
 
+
+/* =========================================================
+   TÍTULOS GENERALES
+   ========================================================= */
+
 h2 {
-    color: #BC4F4F;;
+    color: #BC4F4F;
 }

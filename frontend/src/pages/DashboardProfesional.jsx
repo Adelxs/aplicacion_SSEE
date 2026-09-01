@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import "./DashboardProfesional.css";
@@ -12,6 +13,10 @@ function DashboardProfesional() {
     const [error, setError] = useState(null);
 
 
+    // =========================================
+    // CARGAR DASHBOARD
+    // =========================================
+
     useEffect(() => {
 
         const cargarDashboard = async () => {
@@ -24,8 +29,12 @@ function DashboardProfesional() {
                     hogaresResponse
                 ] = await Promise.all([
 
-                    api.get("/profesionales/me"),
+                    api.get(
+                        "/profesionales/me"
+                    ),
 
+                    // Mismo endpoint utilizado
+                    // para obtener las intervenciones
                     api.get(
                         "/profesionales/me/intervenciones"
                     ),
@@ -35,15 +44,17 @@ function DashboardProfesional() {
                     )
 
                 ]);
-                
+
 
                 setProfesional(
                     profesionalResponse.data
                 );
 
+
                 setIntervenciones(
                     intervencionesResponse.data
                 );
+
 
                 setHogares(
                     hogaresResponse.data
@@ -75,6 +86,10 @@ function DashboardProfesional() {
     }, []);
 
 
+    // =========================================
+    // CARGANDO
+    // =========================================
+
     if (cargando) {
 
         return (
@@ -85,6 +100,10 @@ function DashboardProfesional() {
 
     }
 
+
+    // =========================================
+    // ERROR
+    // =========================================
 
     if (error) {
 
@@ -97,9 +116,9 @@ function DashboardProfesional() {
     }
 
 
-    // =========================
+    // =========================================
     // ESTADÍSTICAS
-    // =========================
+    // =========================================
 
     const totalIntervenciones =
         intervenciones.length;
@@ -123,14 +142,18 @@ function DashboardProfesional() {
         hogares.length;
 
 
+    // =========================================
+    // RENDER
+    // =========================================
+
     return (
 
         <div className="dashboard-profesional">
 
 
-            {/* ========================= */}
+            {/* ========================================= */}
             {/* HEADER */}
-            {/* ========================= */}
+            {/* ========================================= */}
 
             <div className="dashboard-profesional-header">
 
@@ -156,12 +179,16 @@ function DashboardProfesional() {
             </div>
 
 
-            {/* ========================= */}
+            {/* ========================================= */}
             {/* TARJETAS */}
-            {/* ========================= */}
+            {/* ========================================= */}
 
             <div className="profesional-cards">
 
+
+                {/* ========================= */}
+                {/* HOGARES */}
+                {/* ========================= */}
 
                 <div className="profesional-card">
 
@@ -180,6 +207,10 @@ function DashboardProfesional() {
                 </div>
 
 
+                {/* ========================= */}
+                {/* INTERVENCIONES */}
+                {/* ========================= */}
+
                 <div className="profesional-card">
 
                     <h3>
@@ -197,6 +228,10 @@ function DashboardProfesional() {
                 </div>
 
 
+                {/* ========================= */}
+                {/* PENDIENTES */}
+                {/* ========================= */}
+
                 <div className="profesional-card">
 
                     <h3>
@@ -213,6 +248,10 @@ function DashboardProfesional() {
 
                 </div>
 
+
+                {/* ========================= */}
+                {/* REALIZADAS */}
+                {/* ========================= */}
 
                 <div className="profesional-card">
 
@@ -234,130 +273,9 @@ function DashboardProfesional() {
             </div>
 
 
-            {/* ========================= */}
-            {/* MIS HOGARES */}
-            {/* ========================= */}
-
-            <div className="profesional-section">
-
-                <h2>
-                    Mis hogares
-                </h2>
-
-
-                {hogares.length === 0 ? (
-
-                    <p>
-                        No tienes hogares asignados.
-                    </p>
-
-                ) : (
-
-                    <div className="ssee-table-container">
-
-                        <table className="ssee-table">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th>
-                                        ID Hogar
-                                    </th>
-
-                                    <th>
-                                        Cuidador principal
-                                    </th>
-
-                                    <th>
-                                        PSDF
-                                    </th>
-
-                                    <th>
-                                        Dirección
-                                    </th>
-
-                                    <th>
-                                        Unidad vecinal
-                                    </th>
-
-                                    <th>
-                                        Teléfono
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-
-                            <tbody>
-
-                                {hogares.map(
-                                    (hogar) => (
-
-                                        <tr
-                                            key={
-                                                hogar.id
-                                            }
-                                        >
-
-                                            <td>
-                                                {
-                                                    hogar.id_hogar
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    hogar.cuidador_principal
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    hogar.psdf
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    hogar.direccion
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    hogar.unidad_vecinal
-                                                    || "No registrada"
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    hogar.telefono
-                                                    || "No registrado"
-                                                }
-                                            </td>
-
-                                        </tr>
-
-                                    )
-                                )}
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                )}
-
-            </div>
-
-
-            {/* ========================= */}
+            {/* ========================================= */}
             {/* PRÓXIMAS INTERVENCIONES */}
-            {/* ========================= */}
+            {/* ========================================= */}
 
             <div className="profesional-section">
 
@@ -414,31 +332,57 @@ function DashboardProfesional() {
                                             }
                                         >
 
-                                            <td>
-                                                {
-                                                    intervencion
-                                                        .hogar
-                                                        ?.cuidador_principal
-                                                }
-                                            </td>
+                                            {/* ========================= */}
+                                            {/* ID HOGAR */}
+                                            {/* ========================= */}
 
                                             <td>
+
+                                                <strong>
+                                                    {
+                                                        intervencion.hogar_id
+                                                    }
+                                                </strong>
+
+                                            </td>
+
+
+                                            {/* ========================= */}
+                                            {/* TIPO */}
+                                            {/* ========================= */}
+
+                                            <td>
+
                                                 {
                                                     intervencion.tipo
                                                 }
+
                                             </td>
 
+
+                                            {/* ========================= */}
+                                            {/* FECHA */}
+                                            {/* ========================= */}
+
                                             <td>
+
                                                 {
-                                                    intervencion
-                                                        .fecha_programada
+                                                    intervencion.fecha_programada
                                                 }
+
                                             </td>
 
+
+                                            {/* ========================= */}
+                                            {/* ESTADO */}
+                                            {/* ========================= */}
+
                                             <td>
+
                                                 {
                                                     intervencion.estado
                                                 }
+
                                             </td>
 
                                         </tr>
@@ -464,3 +408,4 @@ function DashboardProfesional() {
 }
 
 export default DashboardProfesional;
+

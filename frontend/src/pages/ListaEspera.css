@@ -1,73 +1,202 @@
-/* =========================================================
-   LISTA DE ESPERA
-   ========================================================= */
 
-.lista-espera-page {
-    padding: 30px;
+/* =========================
+   CONTENEDOR PRINCIPAL
+========================= */
+
+.intervenciones {
+    width: 100%;
+    min-height: 100vh;
+    background: #F3CD97;
 }
 
 
-/* =========================================================
+/* =========================
    HEADER
-   ========================================================= */
+========================= */
 
-.lista-espera-header {
+.intervenciones-header {
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
+    margin-bottom: 30px;
 }
 
-.lista-espera-header h1 {
+.intervenciones-header h1 {
     margin: 0;
-    font-size: 28px;
+    font-size: 32px;
+    font-weight: 700;
     color: #BC4F4F;
+    white-space: nowrap;
 }
 
-.lista-espera-header p {
-    margin-top: 6px;
-    color: #6b7280;
+.intervenciones-header p {
+    margin: 6px 0 0;
+    padding: 0;
+    text-align: left;
+    font-size: 15px;
+    color: #6b4f4f;
 }
 
+/* =========================
+   BOTÓN NUEVA ENTRADA
+========================= */
 
-/* =========================================================
-   BOTÓN NUEVO
-   ========================================================= */
-
-.btn-nuevo {
+.btn-nueva-intervencion {
     background: #BC4F4F;
     color: white;
     border: none;
+
     padding: 11px 18px;
-    border-radius: 8px;
+    border-radius: 10px;
+
     font-size: 14px;
     font-weight: 600;
+
     cursor: pointer;
 
     transition:
-        background 0.2s ease,
-        transform 0.15s ease;
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+    margin-left: auto;
 }
 
-.btn-nuevo:hover {
-    background: #1d4ed8;
-    transform: translateY(-1px);
+.btn-nueva-intervencion:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 5px 12px rgba(188, 79, 79, 0.18);
 }
 
-.btn-nuevo:active {
-    transform: translateY(0);
+
+/* =========================
+   TABLA
+========================= */
+
+.ssee-table-container {
+    background: #fffaf0;
+
+    border-radius: 14px;
+
+    border:
+        1px solid rgba(188, 79, 79, 0.12);
+
+    box-shadow:
+        0 4px 12px rgba(188, 79, 79, 0.08);
+
+    overflow-x: auto;
+}
+
+.ssee-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ssee-table th {
+    text-align: left;
+
+    padding: 14px;
+
+    color: #BC4F4F;
+    font-size: 14px;
+
+    border-bottom:
+        2px solid #E98B50;
+
+    /* Evita que los títulos se partan */
+    white-space: nowrap;
+}
+
+.ssee-table td {
+    padding: 14px;
+
+    color: #795548;
+    font-size: 14px;
+
+    border-bottom:
+        1px solid rgba(188, 79, 79, 0.10);
+
+    vertical-align: top;
+}
+
+.ssee-table tbody tr {
+    transition:
+        background 0.2s ease;
+}
+
+.ssee-table tbody tr:hover {
+    background: #FEF2A0;
 }
 
 
-/* =========================================================
+/* =========================
+   ACCIONES
+========================= */
+
+.acciones-intervencion {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+
+/* =========================
+   BOTONES TABLA
+========================= */
+
+.btn-editar,
+.btn-eliminar {
+    border: none;
+
+    padding: 8px 12px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+/* =========================
+   EDITAR
+========================= */
+
+.btn-editar {
+    background: #FEF2A0;
+    color: #BC4F4F;
+}
+
+.btn-editar:hover {
+    background: #fbe9a6;
+}
+
+
+/* =========================
+   ELIMINAR
+========================= */
+
+.btn-eliminar {
+    background: #BC4F4F;
+    color: white;
+}
+
+.btn-eliminar:hover {
+    background: #a94343;
+}
+
+
+/* =========================
    MODAL OVERLAY
-   ========================================================= */
+========================= */
 
 .modal-overlay {
     position: fixed;
     inset: 0;
 
-    background: rgba(0, 0, 0, 0.5);
+    background:
+        rgba(107, 79, 79, 0.45);
 
     display: flex;
     align-items: center;
@@ -79,97 +208,76 @@
 }
 
 
-/* =========================================================
-   MODAL
-   ========================================================= */
+/* =========================
+   CAJA MODAL
+========================= */
 
-.lista-espera-modal {
-    background: white;
-
+.modal-intervencion {
     width: 100%;
-    max-width: 900px;
+    max-width: 650px;
 
     max-height: 90vh;
-
     overflow-y: auto;
 
-    border-radius: 12px;
+    background: #fffaf0;
+
+    border-radius: 14px;
+
+    border:
+        1px solid rgba(188, 79, 79, 0.12);
 
     box-shadow:
-        0 20px 50px rgba(0, 0, 0, 0.25);
-
-    animation: modalEntrada 0.2s ease;
+        0 15px 40px rgba(107, 79, 79, 0.25);
 }
 
 
-/* Animación */
-
-@keyframes modalEntrada {
-
-    from {
-        opacity: 0;
-        transform: translateY(-10px) scale(0.98);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-
-}
-
-
-/* =========================================================
-   HEADER DEL MODAL
-   ========================================================= */
+/* =========================
+   HEADER MODAL
+========================= */
 
 .modal-header {
     display: flex;
-
-    justify-content: space-between;
     align-items: flex-start;
+    justify-content: space-between;
 
-    padding: 24px 28px;
+    padding: 24px 25px;
 
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom:
+        1px solid rgba(188, 79, 79, 0.12);
 }
 
 .modal-header h2 {
     margin: 0;
 
-    font-size: 21px;
-
     color: #BC4F4F;
+    font-size: 22px;
 }
 
 .modal-header p {
     margin: 6px 0 0;
 
-    color: #6b7280;
-
+    color: #795548;
     font-size: 14px;
 }
 
 
-/* =========================================================
+/* =========================
    BOTÓN CERRAR
-   ========================================================= */
+========================= */
 
 .modal-close {
+    width: 36px;
+    height: 36px;
+
     border: none;
+    border-radius: 10px;
 
-    background: transparent;
+    background: #FEF2A0;
+    color: #BC4F4F;
 
-    font-size: 20px;
-
-    color: #6b7280;
+    font-size: 24px;
 
     cursor: pointer;
-
-    width: 34px;
-    height: 34px;
-
-    border-radius: 6px;
 
     display: flex;
     align-items: center;
@@ -177,83 +285,70 @@
 
     transition:
         background 0.2s ease,
-        color 0.2s ease;
+        transform 0.2s ease;
 }
 
 .modal-close:hover {
-    background: #f3f4f6;
-
-    color: #111827;
+    background: #fbe9a6;
+    transform: scale(1.05);
 }
 
 
-/* =========================================================
+/* =========================
    FORMULARIO
-   ========================================================= */
+========================= */
 
-.lista-espera-modal form {
-    padding: 25px 28px;
-}
+.modal-intervencion form {
+    padding: 25px;
 
-
-/* =========================================================
-   GRID DEL FORMULARIO
-   ========================================================= */
-
-.form-grid {
     display: grid;
 
     grid-template-columns:
-        repeat(2, minmax(0, 1fr));
+        1fr 1fr;
 
-    gap: 18px 20px;
+    gap: 18px;
 }
 
 
-/* =========================================================
-   GRUPO DEL FORMULARIO
-   ========================================================= */
+/* =========================
+   LABEL
+========================= */
 
-.form-group {
+.modal-intervencion label {
     display: flex;
-
     flex-direction: column;
 
     gap: 7px;
-}
 
-.form-group label {
+    color: #795548;
+
     font-size: 14px;
-
     font-weight: 600;
-
-    color: #374151;
 }
 
 
-/* =========================================================
+/* =========================
    INPUTS
-   ========================================================= */
+========================= */
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-
+.modal-intervencion input,
+.modal-intervencion select,
+.modal-intervencion textarea {
     width: 100%;
-
     box-sizing: border-box;
 
-    border: 1px solid #d1d5db;
+    padding: 11px 12px;
 
-    border-radius: 7px;
+    border:
+        1px solid rgba(188, 79, 79, 0.20);
 
-    padding: 10px 12px;
-
-    font-size: 14px;
-
-    color: #111827;
+    border-radius: 10px;
 
     background: white;
+    color: #6b4f4f;
+
+    font-family: inherit;
+    font-size: 14px;
 
     outline: none;
 
@@ -263,398 +358,145 @@
 }
 
 
-/* Focus */
+/* =========================
+   FOCUS
+========================= */
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-
-    border-color: #2563eb;
+.modal-intervencion input:focus,
+.modal-intervencion select:focus,
+.modal-intervencion textarea:focus {
+    border-color: #E98B50;
 
     box-shadow:
-        0 0 0 3px rgba(37, 99, 235, 0.12);
+        0 0 0 3px rgba(233, 139, 80, 0.15);
 }
 
 
-/* =========================================================
-   TEXTAREA
-   ========================================================= */
+/* =========================
+   OBSERVACIONES
+========================= */
 
-.form-group textarea {
-
-    min-height: 100px;
-
-    resize: vertical;
-
-    font-family: inherit;
-}
-
-
-/* =========================================================
-   OBSERVACIONES OCUPA TODO EL ANCHO
-   ========================================================= */
-
-.form-group-full {
-
+.campo-completo {
     grid-column: 1 / -1;
+}
 
+.modal-intervencion textarea {
+    min-height: 100px;
+    resize: vertical;
 }
 
 
-/* =========================================================
-   BOTONES DEL FORMULARIO
-   ========================================================= */
+/* =========================
+   BOTONES FORMULARIO
+========================= */
 
 .form-actions {
+    grid-column: 1 / -1;
 
     display: flex;
-
     justify-content: flex-end;
 
     gap: 10px;
 
-    margin-top: 25px;
-
-    padding-top: 20px;
-
-    border-top: 1px solid #e5e7eb;
+    padding-top: 5px;
 }
 
 
-/* =========================================================
-   BOTÓN CANCELAR
-   ========================================================= */
+/* =========================
+   CANCELAR
+========================= */
 
-.btn-cancelar {
+.form-actions button[type="button"] {
+    background: #FEF2A0;
+    color: #BC4F4F;
 
-    background: white;
+    border: none;
 
-    color: #374151;
+    padding: 11px 18px;
 
-    border: 1px solid #d1d5db;
-
-    padding: 10px 18px;
-
-    border-radius: 7px;
-
-    font-size: 14px;
+    border-radius: 10px;
 
     font-weight: 600;
 
     cursor: pointer;
-
-    transition:
-        background 0.2s ease,
-        border-color 0.2s ease;
-}
-
-.btn-cancelar:hover {
-
-    background: #f9fafb;
-
-    border-color: #9ca3af;
-
 }
 
 
-/* =========================================================
-   BOTÓN GUARDAR
-   ========================================================= */
+/* =========================
+   GUARDAR
+========================= */
 
-.btn-guardar {
-
-    background: #2563eb;
-
+.form-actions button[type="submit"] {
+    background: #BC4F4F;
     color: white;
 
     border: none;
 
-    padding: 10px 20px;
-
-    border-radius: 7px;
-
-    font-size: 14px;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition:
-        background 0.2s ease,
-        transform 0.15s ease;
-}
-
-.btn-guardar:hover {
-
-    background: #1d4ed8;
-
-    transform: translateY(-1px);
-
-}
-
-.btn-guardar:active {
-
-    transform: translateY(0);
-
-}
-
-
-/* =========================================================
-   TABLA
-   ========================================================= */
-
-.ssee-table-container {
-
-    width: 100%;
-
-    overflow-x: auto;
-
-    margin-top: 25px;
+    padding: 11px 18px;
 
     border-radius: 10px;
 
-}
-
-
-/* =========================================================
-   ACCIONES
-   ========================================================= */
-
-.acciones {
-
-    display: flex;
-
-    gap: 8px;
-
-    align-items: center;
-
-}
-
-
-/* =========================================================
-   BOTÓN EDITAR
-   ========================================================= */
-
-.btn-editar {
-
-    width: 34px;
-    height: 34px;
-
-    border: none;
-
-    border-radius: 6px;
-
-    background: #eff6ff;
-
-    color: #2563eb;
-
-    cursor: pointer;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 15px;
-
-    transition:
-        background 0.2s ease,
-        transform 0.15s ease;
-}
-
-.btn-editar:hover {
-
-    background: #dbeafe;
-
-    transform: translateY(-1px);
-
-}
-
-
-/* =========================================================
-   BOTÓN ELIMINAR
-   ========================================================= */
-
-.btn-eliminar {
-
-    width: 34px;
-    height: 34px;
-
-    border: none;
-
-    border-radius: 6px;
-
-    background: #fef2f2;
-
-    color: #dc2626;
-
-    cursor: pointer;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 15px;
-
-    transition:
-        background 0.2s ease,
-        transform 0.15s ease;
-}
-
-.btn-eliminar:hover {
-
-    background: #fee2e2;
-
-    transform: translateY(-1px);
-
-}
-
-
-/* =========================================================
-   ESTADOS
-   ========================================================= */
-
-.estado {
-
-    display: inline-block;
-
-    padding: 5px 9px;
-
-    border-radius: 999px;
-
-    font-size: 12px;
-
     font-weight: 600;
+
+    cursor: pointer;
+}
+
+.form-actions button[type="submit"]:hover {
+    box-shadow:
+        0 5px 12px rgba(188, 79, 79, 0.20);
 }
 
 
-/* Pendiente */
+/* =========================
+   RESPONSIVE MODAL
+========================= */
 
-.estado-pendiente {
+@media (max-width: 650px) {
 
-    background: #fef3c7;
-
-    color: #92400e;
-}
-
-
-/* En espera */
-
-.estado-espera {
-
-    background: #dbeafe;
-
-    color: #1e40af;
-}
-
-
-/* Atendido */
-
-.estado-atendido {
-
-    background: #dcfce7;
-
-    color: #166534;
-}
-
-
-/* Cancelado */
-
-.estado-cancelado {
-
-    background: #fee2e2;
-
-    color: #991b1b;
-}
-
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
-@media (max-width: 768px) {
-
-    .lista-espera-page {
-        padding: 20px;
+    .modal-intervencion form {
+        grid-template-columns: 1fr;
     }
 
-    .lista-espera-header {
+    .campo-completo {
+        grid-column: auto;
+    }
 
+    .modal-intervencion {
+        max-height: 95vh;
+    }
+
+    .form-actions {
         flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 15px;
-
     }
 
-    .btn-nuevo {
-
+    .form-actions button {
         width: 100%;
     }
-
-    .form-grid {
-
-        grid-template-columns: 1fr;
-
-    }
-
-    .form-group-full {
-
-        grid-column: auto;
-
-    }
-
-    .lista-espera-modal {
-
-        max-height: 95vh;
-
-    }
-
-    .modal-header {
-
-        padding: 20px;
-
-    }
-
-    .lista-espera-modal form {
-
-        padding: 20px;
-
-    }
-
 }
 
 
-/* =========================================================
-   SCROLLBAR DEL MODAL
-   ========================================================= */
+/* =========================
+   RESPONSIVE HEADER
+========================= */
 
-.lista-espera-modal::-webkit-scrollbar {
+@media (max-width: 650px) {
 
-    width: 8px;
+    .intervenciones-header {
+        text-align: left;
+    }
 
+    .intervenciones-subheader {
+        flex-direction: column;
+        align-items: stretch;
+
+        gap: 15px;
+    }
+
+    .btn-nueva-intervencion {
+        width: 100%;
+        margin-left: 0;
+
+        box-sizing: border-box;
+    }
 }
 
-.lista-espera-modal::-webkit-scrollbar-track {
-
-    background: #f3f4f6;
-
-}
-
-.lista-espera-modal::-webkit-scrollbar-thumb {
-
-    background: #cbd5e1;
-
-    border-radius: 10px;
-
-}
-
-.lista-espera-modal::-webkit-scrollbar-thumb:hover {
-
-    background: #94a3b8;
-
-}

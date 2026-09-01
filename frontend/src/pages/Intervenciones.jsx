@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import "./Intervenciones.css";
@@ -5,17 +6,34 @@ import "./Intervenciones.css";
 function Intervenciones() {
 
     const [intervenciones, setIntervenciones] = useState([]);
+
+    // Hogares disponibles para el formulario
     const [hogares, setHogares] = useState([]);
+
+    // Profesionales disponibles para el administrador
     const [profesionales, setProfesionales] = useState([]);
+
+    // Usuario actualmente autenticado
+    const [usuario, setUsuario] = useState(null);
+
+    // Hogares asignados al profesional mediante ListaEspera
+    const [hogaresAsignados, setHogaresAsignados] = useState([]);
 
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
 
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
     const [intervencionEditar, setIntervencionEditar] = useState(null);
+
     const [guardando, setGuardando] = useState(false);
 
-    const [formulario, setFormulario] = useState({
+
+    // =========================================================
+    // FORMULARIO
+    // =========================================================
+
+    const formularioInicial = {
         hogar_id: "",
         profesional_id: "",
         tipo: "",
@@ -24,63 +42,134 @@ function Intervenciones() {
         fecha_realizada: "",
         estado: "pendiente",
         observaciones: ""
-    });
+    };
+
+    const [formulario, setFormulario] = useState(
+        formularioInicial
+    );
 
 
-    // =========================
+    // =========================================================
+    // OBTENER USUARIO ACTUAL
+    // =========================================================
+
+    const obtenerUsuario = async () => {
+
+        try {
+
+            const response = await api.get(
+                "/usuarios/me"
+            );
+
+            setUsuario(response.data);
+
+            return response.data;
+
+        } catch (error) {
+
+            console.error(
+                "Error al obtener usuario:",
+                error
+            );
+
+            throw error;
+        }
+    };
+
+
+    // =========================================================
     // OBTENER INTERVENCIONES
-    // =========================
+    // =========================================================
 
     const obtenerIntervenciones = async () => {
 
         try {
 
-            const response = await api.get("/intervenciones");
+            const response = await api.get(
+                "/intervenciones"
+            );
 
-            setIntervenciones(response.data);
+            setIntervenciones(
+                response.data
+            );
+
+            setError(null);
 
         } catch (error) {
 
-            console.error(error);
-            setError("No se pudieron cargar las intervenciones");
+            console.error(
+                "Error al cargar intervenciones:",
+                error
+            );
 
+            console.error(
+                "Respuesta API:",
+                error.response?.data
+            );
+
+            setError(
+                error.response?.data?.detail ||
+                "No se pudieron cargar las intervenciones"
+            );
         }
-
     };
 
 
-    // =========================
-    // OBTENER HOGARES
-    // =========================
+    // =========================================================
+    // OBTENER TODOS LOS HOGARES
+    // =========================================================
+    //
+    // SOLO ADMINISTRADOR
+    //
+    // El profesional NO necesita este endpoint.
+    // El profesional trabajará con ListaEspera.
+    // =========================================================
 
     const obtenerHogares = async () => {
 
         try {
 
-            const response = await api.get("/hogares");
+            const response = await api.get(
+                "/hogares"
+            );
 
-            setHogares(response.data);
+            setHogares(
+                response.data
+            );
 
         } catch (error) {
 
-            console.error("Error al cargar hogares:", error);
+            console.error(
+                "Error al cargar hogares:",
+                error
+            );
 
+            console.error(
+                "Respuesta API:",
+                error.response?.data
+            );
         }
-
     };
 
 
-    // =========================
+    // =========================================================
     // OBTENER PROFESIONALES
-    // =========================
+    // =========================================================
+    //
+    // SOLO ADMINISTRADOR
+    // =========================================================
 
     const obtenerProfesionales = async () => {
 
         try {
 
-            const response = await api.get("/profesionales");
+            const response = await api.get(
+                "/profesionales"
+            );
 
-            setProfesionales(response.data);
+            setProfesionales(
+                response.data
+            );
 
         } catch (error) {
 
@@ -89,32 +178,121 @@ function Intervenciones() {
                 error
             );
 
+            console.error(
+                "Respuesta API:",
+                error.response?.data
+            );
         }
-
     };
 
 
-    // =========================
+    // =========================================================
+    // OBTENER HOGARES ASIGNADOS
+    // =========================================================
+    //
+    // PROFESIONAL
+    //
+    // La fuente de verdad será ListaEspera.
+    //
+    // El backend ya filtra:
+    //
+    // profesional_id == usuario.profesional_id
+    //
+    // Por lo tanto aquí solamente recibimos los casos
+    // asignados al profesional autenticado.
+    // =========================================================
+
+    const obtenerHogaresAsignados = async () => {
+
+        try {
+
+            const response = await api.get(
+                "/lista-espera"
+            );
+
+            setHogaresAsignados(
+                response.data
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Error al cargar lista de espera:",
+                error
+            );
+
+            console.error(
+                "Respuesta API:",
+                error.response?.data
+            );
+
+            alert(
+                error.response?.data?.detail ||
+                "No se pudieron cargar los hogares asignados"
+            );
+        }
+    };
+
+
+    // =========================================================
     // CARGA INICIAL
-    // =========================
+    // =========================================================
 
     useEffect(() => {
 
         const cargarDatos = async () => {
 
-            setCargando(true);
-
             try {
 
-                await Promise.all([
-                    obtenerIntervenciones(),
-                    obtenerHogares(),
-                    obtenerProfesionales()
-                ]);
+                setCargando(true);
+
+                // Primero obtenemos el usuario
+                const usuarioActual =
+                    await obtenerUsuario();
+
+
+                // Obtenemos las intervenciones
+                await obtenerIntervenciones();
+
+
+                // =================================================
+                // ADMINISTRADOR
+                // =================================================
+
+                if (
+                    usuarioActual.rol === "administrador"
+                ) {
+
+                    await Promise.all([
+                        obtenerHogares(),
+                        obtenerProfesionales()
+                    ]);
+
+                }
+
+
+                // =================================================
+                // PROFESIONAL
+                // =================================================
+
+                if (
+                    usuarioActual.rol === "profesional"
+                ) {
+
+                    await obtenerHogaresAsignados();
+
+                }
 
             } catch (error) {
 
-                console.error(error);
+                console.error(
+                    "Error al cargar datos:",
+                    error
+                );
+
+                setError(
+                    "No se pudieron cargar los datos"
+                );
 
             } finally {
 
@@ -129,78 +307,129 @@ function Intervenciones() {
     }, []);
 
 
-    // =========================
+    // =========================================================
     // CAMBIAR CAMPOS
-    // =========================
+    // =========================================================
 
     const manejarCambio = (e) => {
 
-        const { name, value } = e.target;
+        const {
+            name,
+            value
+        } = e.target;
 
         setFormulario({
+
             ...formulario,
+
             [name]: value
+
         });
 
     };
 
 
-    // =========================
+    // =========================================================
     // NUEVA INTERVENCIÓN
-    // =========================
+    // =========================================================
 
     const nuevaIntervencion = () => {
 
         setIntervencionEditar(null);
 
-        setFormulario({
-            hogar_id: "",
-            profesional_id: "",
-            tipo: "",
-            numero_intervencion: "",
-            fecha_programada: "",
-            fecha_realizada: "",
-            estado: "pendiente",
-            observaciones: ""
-        });
+        setFormulario(
+            formularioInicial
+        );
 
         setMostrarFormulario(true);
 
     };
 
 
-    // =========================
-    // EDITAR
-    // =========================
+    // =========================================================
+    // EDITAR INTERVENCIÓN
+    // =========================================================
 
     const editarIntervencion = (intervencion) => {
 
-        setIntervencionEditar(intervencion);
+        setIntervencionEditar(
+            intervencion
+        );
+
+
+        /*
+         * El backend devuelve:
+         *
+         * intervencion.hogar.id_hogar
+         *
+         * pero también necesitamos recordar que el
+         * formulario utiliza hogar_id.
+         */
 
         setFormulario({
-            hogar_id: intervencion.hogar?.id || "",
-            profesional_id: intervencion.profesional?.id || "",
-            tipo: intervencion.tipo || "",
+
+            hogar_id:
+                intervencion.hogar?.id_hogar ||
+                intervencion.hogar_id ||
+                "",
+
+            profesional_id:
+                intervencion.profesional?.id ||
+                intervencion.profesional_id ||
+                "",
+
+            tipo:
+                intervencion.tipo ||
+                "",
+
             numero_intervencion:
-                intervencion.numero_intervencion || "",
+                intervencion.numero_intervencion ||
+                "",
+
             fecha_programada:
-                intervencion.fecha_programada || "",
+                intervencion.fecha_programada ||
+                "",
+
             fecha_realizada:
-                intervencion.fecha_realizada || "",
+                intervencion.fecha_realizada ||
+                "",
+
             estado:
-                intervencion.estado || "pendiente",
+                intervencion.estado ||
+                "pendiente",
+
             observaciones:
-                intervencion.observaciones || ""
+                intervencion.observaciones ||
+                ""
+
         });
+
 
         setMostrarFormulario(true);
 
     };
 
 
-    // =========================
-    // GUARDAR
-    // =========================
+    // =========================================================
+    // CERRAR FORMULARIO
+    // =========================================================
+
+    const cerrarFormulario = () => {
+
+        setMostrarFormulario(false);
+
+        setIntervencionEditar(null);
+
+        setFormulario(
+            formularioInicial
+        );
+
+    };
+
+
+    // =========================================================
+    // GUARDAR INTERVENCIÓN
+    // =========================================================
 
     const guardarIntervencion = async (e) => {
 
@@ -208,15 +437,21 @@ function Intervenciones() {
 
         setGuardando(true);
 
+
         try {
+
+            /*
+             * =====================================================
+             * DATOS BASE
+             * =====================================================
+             */
 
             const datos = {
 
                 hogar_id:
-                    Number(formulario.hogar_id),
-
-                profesional_id:
-                    Number(formulario.profesional_id),
+                    Number(
+                        formulario.hogar_id
+                    ),
 
                 tipo:
                     formulario.tipo,
@@ -229,60 +464,143 @@ function Intervenciones() {
                         : null,
 
                 fecha_programada:
-                    formulario.fecha_programada || null,
+                    formulario.fecha_programada ||
+                    null,
 
                 fecha_realizada:
-                    formulario.fecha_realizada || null,
+                    formulario.fecha_realizada ||
+                    null,
 
                 estado:
                     formulario.estado,
 
                 observaciones:
-                    formulario.observaciones || null
+                    formulario.observaciones ||
+                    null
+
             };
 
 
-            if (intervencionEditar) {
+            /*
+             * =====================================================
+             * ADMINISTRADOR
+             * =====================================================
+             *
+             * El administrador sí puede seleccionar
+             * el profesional.
+             */
 
-                await api.put(
-                    `/intervenciones/${intervencionEditar.id}`,
-                    datos
-                );
+            if (
+                usuario?.rol === "administrador"
+            ) {
+
+                datos.profesional_id =
+                    Number(
+                        formulario.profesional_id
+                    );
+
+            }
+
+
+            console.log(
+                "DATOS QUE SE ENVIAN:",
+                datos
+            );
+
+
+            // =====================================================
+            // CREAR
+            // =====================================================
+
+            if (!intervencionEditar) {
+
+                const response =
+                    await api.post(
+                        "/intervenciones",
+                        datos
+                    );
+
 
                 console.log(
-                    "DATOS ENVIADOS:",
-                    datos
+                    "RESPUESTA POST:",
+                    response.data
                 );
 
-            } else {
 
-                await api.post(
-                    "/intervenciones",
-                    datos
+                alert(
+                    "Intervención registrada correctamente"
                 );
 
             }
 
 
+            // =====================================================
+            // ACTUALIZAR
+            // =====================================================
+
+            else {
+
+                const response =
+                    await api.put(
+
+                        `/intervenciones/${intervencionEditar.id}`,
+
+                        datos
+
+                    );
+
+
+                console.log(
+                    "RESPUESTA PUT:",
+                    response.data
+                );
+
+
+                alert(
+                    "Intervención actualizada correctamente"
+                );
+
+            }
+
+
+            // =====================================================
+            // ACTUALIZAR TABLA
+            // =====================================================
+
             await obtenerIntervenciones();
 
-            console.log(
-                "INTERVENCIONES ACTUALIZADAS:",
-                intervenciones
-            );
 
-            setMostrarFormulario(false);
-            setIntervencionEditar(null);
+            // =====================================================
+            // CERRAR MODAL
+            // =====================================================
+
+            cerrarFormulario();
+
 
         } catch (error) {
 
             console.error(
-                "Error al guardar intervención:",
+                "ERROR AL GUARDAR INTERVENCIÓN:",
                 error
             );
 
+            console.error(
+                "STATUS:",
+                error.response?.status
+            );
+
+            console.error(
+                "RESPUESTA BACKEND:",
+                error.response?.data
+            );
+
+
             alert(
+
+                error.response?.data?.detail ||
+
                 "No se pudo guardar la intervención"
+
             );
 
         } finally {
@@ -294,19 +612,24 @@ function Intervenciones() {
     };
 
 
-    // =========================
+    // =========================================================
     // ELIMINAR
-    // =========================
+    // =========================================================
 
     const eliminarIntervencion = async (id) => {
 
-        const confirmar = window.confirm(
-            "¿Estás seguro de que deseas eliminar esta intervención?"
-        );
+        const confirmar =
+            window.confirm(
+                "¿Estás seguro de que deseas eliminar esta intervención?"
+            );
+
 
         if (!confirmar) {
+
             return;
+
         }
+
 
         try {
 
@@ -314,17 +637,39 @@ function Intervenciones() {
                 `/intervenciones/${id}`
             );
 
+
             await obtenerIntervenciones();
+
+
+            alert(
+                "Intervención eliminada correctamente"
+            );
+
 
         } catch (error) {
 
             console.error(
-                "Error al eliminar intervención:",
+                "ERROR AL ELIMINAR:",
                 error
             );
 
+            console.error(
+                "STATUS:",
+                error.response?.status
+            );
+
+            console.error(
+                "RESPUESTA BACKEND:",
+                error.response?.data
+            );
+
+
             alert(
+
+                error.response?.data?.detail ||
+
                 "No se pudo eliminar la intervención"
+
             );
 
         }
@@ -332,44 +677,52 @@ function Intervenciones() {
     };
 
 
-    // =========================
+    // =========================================================
     // CARGANDO
-    // =========================
+    // =========================================================
 
     if (cargando) {
 
         return (
+
             <h2>
                 Cargando intervenciones...
             </h2>
+
         );
 
     }
 
+
+    // =========================================================
+    // ERROR
+    // =========================================================
 
     if (error) {
 
         return (
+
             <h2>
                 {error}
             </h2>
+
         );
 
     }
 
 
-    // =========================
+    // =========================================================
     // RENDER
-    // =========================
+    // =========================================================
 
     return (
 
         <div className="intervenciones">
 
 
-            {/* ========================= */}
+            {/* ================================================= */}
             {/* HEADER */}
-            {/* ========================= */}
+            {/* ================================================= */}
 
             <div className="intervenciones-header">
 
@@ -391,15 +744,17 @@ function Intervenciones() {
                     className="btn-nueva-intervencion"
                     onClick={nuevaIntervencion}
                 >
+
                     + Nueva intervención
+
                 </button>
 
             </div>
 
 
-            {/* ========================= */}
+            {/* ================================================= */}
             {/* MODAL */}
-            {/* ========================= */}
+            {/* ================================================= */}
 
             {mostrarFormulario && (
 
@@ -408,6 +763,10 @@ function Intervenciones() {
                     <div className="modal-intervencion">
 
 
+                        {/* ===================================== */}
+                        {/* HEADER MODAL */}
+                        {/* ===================================== */}
+
                         <div className="modal-header">
 
                             <div>
@@ -415,17 +774,24 @@ function Intervenciones() {
                                 <h2>
 
                                     {intervencionEditar
+
                                         ? "Editar intervención"
+
                                         : "Nueva intervención"
+
                                     }
 
                                 </h2>
 
+
                                 <p>
 
                                     {intervencionEditar
+
                                         ? "Modifica los datos de la intervención"
+
                                         : "Registra una nueva intervención"
+
                                     }
 
                                 </p>
@@ -436,220 +802,432 @@ function Intervenciones() {
                             <button
                                 type="button"
                                 className="modal-close"
-                                onClick={() => {
-
-                                    setMostrarFormulario(false);
-                                    setIntervencionEditar(null);
-
-                                }}
+                                onClick={
+                                    cerrarFormulario
+                                }
                             >
+
                                 ×
+
                             </button>
 
                         </div>
 
 
+                        {/* ===================================== */}
+                        {/* FORMULARIO */}
+                        {/* ===================================== */}
+
                         <form
-                            onSubmit={guardarIntervencion}
+                            onSubmit={
+                                guardarIntervencion
+                            }
                         >
 
 
+                            {/* ================================= */}
                             {/* HOGAR */}
+                            {/* ================================= */}
 
                             <label>
 
                                 Hogar
 
-                                <select
-                                    name="hogar_id"
-                                    value={
-                                        formulario.hogar_id
-                                    }
-                                    onChange={
-                                        manejarCambio
-                                    }
-                                    required
-                                >
 
-                                    <option value="">
-                                        Seleccionar hogar
-                                    </option>
+                                {usuario?.rol === "profesional" ? (
 
+                                    /*
+                                     * =================================
+                                     * PROFESIONAL
+                                     * =================================
+                                     *
+                                     * Solamente hogares que aparecen
+                                     * en su ListaEspera.
+                                     */
 
-                                    {hogares.map((hogar) => (
-                                        <option
-                                            key={hogar.id}
-                                            value={hogar.id}
-                                        >
-                                          {hogar.id_hogar}
+                                    <select
+
+                                        name="hogar_id"
+
+                                        value={
+                                            formulario.hogar_id
+                                        }
+
+                                        onChange={
+                                            manejarCambio
+                                        }
+
+                                        required
+
+                                    >
+
+                                        <option value="">
+
+                                            Seleccionar hogar asignado
+
                                         </option>
-                                    ))}
 
-                                </select>
+
+                                        {hogaresAsignados.map(
+
+                                            (entrada) => (
+
+                                                <option
+
+                                                    key={
+                                                        entrada.id
+                                                    }
+
+                                                    value={
+                                                        entrada.id_hogar
+                                                    }
+
+                                                >
+
+                                                    {entrada.id_hogar}
+
+                                                    {" - "}
+
+                                                    {
+                                                        entrada.cuidador_principal
+                                                    }
+
+                                                </option>
+
+                                            )
+
+                                        )}
+
+                                    </select>
+
+                                ) : (
+
+                                    /*
+                                     * =================================
+                                     * ADMINISTRADOR
+                                     * =================================
+                                     *
+                                     * Puede seleccionar cualquier hogar.
+                                     */
+
+                                    <select
+
+                                        name="hogar_id"
+
+                                        value={
+                                            formulario.hogar_id
+                                        }
+
+                                        onChange={
+                                            manejarCambio
+                                        }
+
+                                        required
+
+                                    >
+
+                                        <option value="">
+
+                                            Seleccionar hogar
+
+                                        </option>
+
+
+                                        {hogares.map(
+
+                                            (hogar) => (
+
+                                                <option
+
+                                                    key={
+                                                        hogar.id_hogar
+                                                    }
+
+                                                    value={
+                                                        hogar.id_hogar
+                                                    }
+
+                                                >
+
+                                                    {hogar.id_hogar}
+
+                                                    {" - "}
+
+                                                    {
+                                                        hogar.cuidador_principal
+                                                    }
+
+                                                </option>
+
+                                            )
+
+                                        )}
+
+                                    </select>
+
+                                )}
 
                             </label>
 
 
+                            {/* ================================= */}
                             {/* PROFESIONAL */}
+                            {/* ================================= */}
 
-                            <label>
+                            {usuario?.rol === "administrador" && (
 
-                                Profesional
+                                <label>
 
-                                <select
-                                    name="profesional_id"
-                                    value={
-                                        formulario.profesional_id
-                                    }
-                                    onChange={
-                                        manejarCambio
-                                    }
-                                    required
-                                >
-
-                                    <option value="">
-                                        Seleccionar profesional
-                                    </option>
+                                    Profesional
 
 
-                                    {profesionales.map(
-                                        (profesional) => (
+                                    <select
 
-                                            <option
-                                                key={
-                                                    profesional.id
-                                                }
-                                                value={
-                                                    profesional.id
-                                                }
-                                            >
+                                        name="profesional_id"
 
-                                                {
-                                                    profesional.nombre
-                                                }
+                                        value={
+                                            formulario.profesional_id
+                                        }
 
-                                            </option>
+                                        onChange={
+                                            manejarCambio
+                                        }
 
-                                        )
-                                    )}
+                                        required
 
-                                </select>
+                                    >
 
-                            </label>
+                                        <option value="">
+
+                                            Seleccionar profesional
+
+                                        </option>
 
 
+                                        {profesionales.map(
+
+                                            (profesional) => (
+
+                                                <option
+
+                                                    key={
+                                                        profesional.id
+                                                    }
+
+                                                    value={
+                                                        profesional.id
+                                                    }
+
+                                                >
+
+                                                    {
+                                                        profesional.nombre
+                                                    }
+
+                                                </option>
+
+                                            )
+
+                                        )}
+
+                                    </select>
+
+                                </label>
+
+                            )}
+
+
+                            {/* ================================= */}
+                            {/* PROFESIONAL INFORMACIÓN */}
+                            {/* ================================= */}
+
+                            {usuario?.rol === "profesional" && (
+
+                                <div className="campo-profesional-info">
+
+                                    <label>
+
+                                        Profesional
+
+                                        <input
+
+                                            type="text"
+
+                                            value={
+                                                "Usuario actual"
+                                            }
+
+                                            disabled
+
+                                        />
+
+                                    </label>
+
+                                </div>
+
+                            )}
+
+
+                            {/* ================================= */}
                             {/* TIPO */}
+                            {/* ================================= */}
 
                             <label>
 
                                 Tipo de intervención
 
                                 <input
+
                                     type="text"
+
                                     name="tipo"
+
                                     value={
                                         formulario.tipo
                                     }
+
                                     onChange={
                                         manejarCambio
                                     }
+
                                     placeholder="Ej: Visita domiciliaria"
+
                                     required
+
                                 />
 
                             </label>
 
 
+                            {/* ================================= */}
                             {/* NÚMERO */}
+                            {/* ================================= */}
 
                             <label>
 
                                 Número de intervención
 
                                 <input
+
                                     type="number"
+
                                     name="numero_intervencion"
+
                                     value={
                                         formulario.numero_intervencion
                                     }
+
                                     onChange={
                                         manejarCambio
                                     }
+
                                     min="1"
+
                                     placeholder="Ej: 1"
+
                                 />
 
                             </label>
 
 
+                            {/* ================================= */}
                             {/* FECHA PROGRAMADA */}
+                            {/* ================================= */}
 
                             <label>
 
                                 Fecha programada
 
                                 <input
+
                                     type="date"
+
                                     name="fecha_programada"
+
                                     value={
                                         formulario.fecha_programada
                                     }
+
                                     onChange={
                                         manejarCambio
                                     }
+
                                     required
+
                                 />
 
                             </label>
 
 
+                            {/* ================================= */}
                             {/* FECHA REALIZADA */}
+                            {/* ================================= */}
 
                             <label>
 
                                 Fecha realizada
 
                                 <input
+
                                     type="date"
+
                                     name="fecha_realizada"
+
                                     value={
                                         formulario.fecha_realizada
                                     }
+
                                     onChange={
                                         manejarCambio
                                     }
+
                                 />
 
                             </label>
 
 
+                            {/* ================================= */}
                             {/* ESTADO */}
+                            {/* ================================= */}
 
                             <label>
 
                                 Estado
 
                                 <select
+
                                     name="estado"
+
                                     value={
                                         formulario.estado
                                     }
+
                                     onChange={
                                         manejarCambio
                                     }
+
                                     required
+
                                 >
 
                                     <option value="pendiente">
+
                                         Pendiente
+
                                     </option>
+
 
                                     <option value="realizada">
+
                                         Realizada
+
                                     </option>
 
+
                                     <option value="cancelada">
+
                                         Cancelada
+
                                     </option>
 
                                 </select>
@@ -657,58 +1235,80 @@ function Intervenciones() {
                             </label>
 
 
+                            {/* ================================= */}
                             {/* OBSERVACIONES */}
+                            {/* ================================= */}
 
                             <label className="campo-completo">
 
                                 Observaciones
 
                                 <textarea
+
                                     name="observaciones"
+
                                     value={
                                         formulario.observaciones
                                     }
+
                                     onChange={
                                         manejarCambio
                                     }
+
                                     placeholder="Observaciones de la intervención..."
+
                                 />
 
                             </label>
 
 
+                            {/* ================================= */}
                             {/* ACCIONES */}
+                            {/* ================================= */}
 
                             <div className="form-actions">
 
                                 <button
+
                                     type="button"
-                                    onClick={() => {
 
-                                        setMostrarFormulario(false);
-                                        setIntervencionEditar(null);
+                                    onClick={
+                                        cerrarFormulario
+                                    }
 
-                                    }}
                                 >
+
                                     Cancelar
+
                                 </button>
 
 
                                 <button
+
                                     type="submit"
-                                    disabled={guardando}
+
+                                    disabled={
+                                        guardando
+                                    }
+
                                 >
 
                                     {guardando
+
                                         ? "Guardando..."
+
                                         : intervencionEditar
+
                                             ? "Guardar cambios"
+
                                             : "Registrar intervención"
+
                                     }
 
                                 </button>
 
                             </div>
+
 
                         </form>
 
@@ -719,9 +1319,9 @@ function Intervenciones() {
             )}
 
 
-            {/* ========================= */}
+            {/* ================================================= */}
             {/* TABLA */}
-            {/* ========================= */}
+            {/* ================================================= */}
 
             <div className="ssee-table-container">
 
@@ -732,23 +1332,37 @@ function Intervenciones() {
 
                         <tr>
 
-                            <th>ID</th>
+                            <th>
+                                ID Hogar
+                            </th>
 
-                            {/* CAMBIO: AHORA MUESTRA ID HOGAR */}
+                            <th>
+                                Profesional
+                            </th>
 
-                            <th>ID Hogar</th>
+                            <th>
+                                Tipo
+                            </th>
 
-                            <th>Profesional</th>
+                            <th>
+                                Fecha programada
+                            </th>
 
-                            <th>Tipo</th>
+                            <th>
+                                Fecha realizada
+                            </th>
 
-                            <th>Fecha programada</th>
+                            <th>
+                                Estado
+                            </th>
 
-                            <th>Fecha realizada</th>
+                            <th>
+                                Observaciones
+                            </th>
 
-                            <th>Estado</th>
-
-                            <th>Acciones</th>
+                            <th>
+                                Acciones
+                            </th>
 
                         </tr>
 
@@ -758,69 +1372,84 @@ function Intervenciones() {
                     <tbody>
 
                         {intervenciones.map(
+
                             (intervencion) => (
 
                                 <tr
+
                                     key={
                                         intervencion.id
                                     }
+
                                 >
 
                                     <td>
-                                        {
-                                            intervencion.id
-                                        }
-                                    </td>
 
-
-                                    {/* CAMBIO IMPORTANTE */}
-
-                                    <td>
                                         {
                                             intervencion
                                                 .hogar
                                                 ?.id_hogar
                                         }
+
                                     </td>
 
 
                                     <td>
+
                                         {
                                             intervencion
                                                 .profesional
                                                 ?.nombre
                                         }
+
                                     </td>
 
 
                                     <td>
+
                                         {
                                             intervencion.tipo
                                         }
+
                                     </td>
 
 
                                     <td>
+
                                         {
-                                            intervencion
-                                                .fecha_programada
+                                            intervencion.fecha_programada
                                         }
+
                                     </td>
 
 
                                     <td>
+
                                         {
                                             intervencion
                                                 .fecha_realizada
                                                 ?? "Pendiente"
                                         }
+
                                     </td>
 
 
                                     <td>
+
                                         {
                                             intervencion.estado
                                         }
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {
+                                            intervencion.observaciones
+                                            ?? "-"
+                                        }
+
                                     </td>
 
 
@@ -830,26 +1459,40 @@ function Intervenciones() {
 
 
                                             <button
+
+                                                type="button"
+
                                                 className="btn-editar"
+
                                                 onClick={() =>
                                                     editarIntervencion(
                                                         intervencion
                                                     )
                                                 }
+
                                             >
+
                                                 ✏️
+
                                             </button>
 
 
                                             <button
+
+                                                type="button"
+
                                                 className="btn-eliminar"
+
                                                 onClick={() =>
                                                     eliminarIntervencion(
                                                         intervencion.id
                                                     )
                                                 }
+
                                             >
+
                                                 🗑️
+
                                             </button>
 
 
@@ -860,6 +1503,7 @@ function Intervenciones() {
                                 </tr>
 
                             )
+
                         )}
 
                     </tbody>
@@ -868,6 +1512,7 @@ function Intervenciones() {
 
             </div>
 
+
         </div>
 
     );
@@ -875,3 +1520,4 @@ function Intervenciones() {
 }
 
 export default Intervenciones;
+

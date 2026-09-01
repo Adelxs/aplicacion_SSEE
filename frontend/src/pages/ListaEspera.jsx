@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import "./ListaEspera.css";
@@ -12,13 +11,19 @@ function ListaEspera() {
 
     const [usuario, setUsuario] = useState(null);
 
-    // Hogares que pertenecen al profesional
+    // =========================================
+    // HOGARES Y PROFESIONALES
+    // =========================================
+
+    const [hogares, setHogares] = useState([]);
+    const [profesionales, setProfesionales] = useState([]);
+
+    // Hogares del profesional
     const [hogaresProfesional, setHogaresProfesional] = useState([]);
 
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [modoFormulario, setModoFormulario] = useState("crear");
 
-    // ID de la entrada que estamos editando
     const [idEditando, setIdEditando] = useState(null);
 
 
@@ -27,17 +32,29 @@ function ListaEspera() {
     // =========================================
 
     const formularioInicial = {
+
         id_hogar: "",
+
         cuidador_principal: "",
+
         psdf: "",
+
         direccion: "",
+
         unidad_vecinal: "",
+
         telefono: "",
-        profesional_nombre: "",
+
+        profesional_id: "",
+
         dia: "",
-        estado: "pendiente",
+
+        estado: "Pendiente",
+
         fecha_solicitud: "",
+
         observaciones: ""
+
     };
 
 
@@ -70,6 +87,88 @@ function ListaEspera() {
             );
 
             throw error;
+
+        }
+
+    };
+
+
+    // =========================================
+    // OBTENER HOGARES
+    // =========================================
+
+    const obtenerHogares = async () => {
+
+        try {
+
+            const response = await api.get(
+                "/hogares"
+            );
+
+            setHogares(
+                response.data
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Error al obtener hogares:",
+                error
+            );
+
+            console.error(
+                "Respuesta API:",
+                error.response?.data
+            );
+
+            alert(
+                error.response?.data?.detail ||
+                "No se pudieron cargar los hogares"
+            );
+
+        }
+
+    };
+
+
+    // =========================================
+    // OBTENER PROFESIONALES
+    // =========================================
+
+    const obtenerProfesionales = async () => {
+
+        try {
+
+            const response = await api.get(
+                "/profesionales"
+            );
+
+            const profesionalesActivos =
+                response.data.filter(
+                    profesional =>
+                        profesional.activo === true
+                );
+
+            setProfesionales(
+                profesionalesActivos
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Error al obtener profesionales:",
+                error
+            );
+
+            console.error(
+                "Respuesta API:",
+                error.response?.data
+            );
+
+            alert(
+                error.response?.data?.detail ||
+                "No se pudieron cargar los profesionales"
+            );
 
         }
 
@@ -118,44 +217,13 @@ function ListaEspera() {
     // OBTENER LISTA DE ESPERA
     // =========================================
 
-    const obtenerListaEspera = async (
-        usuarioActual = usuario
-    ) => {
+    const obtenerListaEspera = async () => {
 
         try {
 
-            let response;
-
-            /*
-             * Si es profesional:
-             * por ahora utilizamos el endpoint de lista
-             * de espera y el backend debería devolver
-             * solamente sus hogares.
-             *
-             * Si posteriormente creamos un endpoint
-             * específico como:
-             *
-             * /profesionales/me/lista-espera
-             *
-             * solamente habrá que cambiar esta ruta.
-             */
-
-            if (
-                usuarioActual?.rol === "profesional"
-            ) {
-
-                response = await api.get(
-                    "/lista-espera"
-                );
-
-            } else {
-
-                response = await api.get(
-                    "/lista-espera"
-                );
-
-            }
-
+            const response = await api.get(
+                "/lista-espera"
+            );
 
             setListaEspera(
                 response.data
@@ -201,19 +269,32 @@ function ListaEspera() {
 
                 setCargando(true);
 
-                // Primero obtenemos el usuario
                 const usuarioActual =
                     await obtenerUsuario();
 
 
-                // Después obtenemos la lista
-                await obtenerListaEspera(
-                    usuarioActual
-                );
+                await obtenerListaEspera();
 
 
-                // Si es profesional,
-                // cargamos sus hogares
+                // ==============================
+                // ADMINISTRADOR
+                // ==============================
+
+                if (
+                    usuarioActual.rol === "administrador"
+                ) {
+
+                    await obtenerHogares();
+
+                    await obtenerProfesionales();
+
+                }
+
+
+                // ==============================
+                // PROFESIONAL
+                // ==============================
+
                 if (
                     usuarioActual.rol === "profesional"
                 ) {
@@ -268,7 +349,7 @@ function ListaEspera() {
 
 
     // =========================================
-    // CAMBIAR HOGAR DEL PROFESIONAL
+    // CAMBIAR HOGAR
     // =========================================
 
     const manejarCambioHogar = (e) => {
@@ -276,7 +357,6 @@ function ListaEspera() {
         const idHogar = e.target.value;
 
 
-        // Si no seleccionó ningún hogar
         if (!idHogar) {
 
             setFormulario({
@@ -284,10 +364,15 @@ function ListaEspera() {
                 ...formulario,
 
                 id_hogar: "",
+
                 cuidador_principal: "",
+
                 psdf: "",
+
                 direccion: "",
+
                 unidad_vecinal: "",
+
                 telefono: ""
 
             });
@@ -297,11 +382,16 @@ function ListaEspera() {
         }
 
 
-        // Buscamos el hogar seleccionado
-        const hogarSeleccionado =
-            hogaresProfesional.find(
+        const listaHogares =
+            usuario?.rol === "administrador"
+                ? hogares
+                : hogaresProfesional;
 
-                (hogar) =>
+
+        const hogarSeleccionado =
+            listaHogares.find(
+
+                hogar =>
                     String(hogar.id_hogar) ===
                     String(idHogar)
 
@@ -314,11 +404,6 @@ function ListaEspera() {
 
         }
 
-
-        /*
-         * Copiamos automáticamente los datos
-         * del hogar al formulario.
-         */
 
         setFormulario({
 
@@ -348,14 +433,34 @@ function ListaEspera() {
 
 
     // =========================================
-    // FORMULARIO VACÍO
+    // CAMBIAR PROFESIONAL
+    // =========================================
+
+    const manejarCambioProfesional = (e) => {
+
+        setFormulario({
+
+            ...formulario,
+
+            profesional_id:
+                e.target.value
+
+        });
+
+    };
+
+
+    // =========================================
+    // LIMPIAR FORMULARIO
     // =========================================
 
     const limpiarFormulario = () => {
 
-        setFormulario(
-            formularioInicial
-        );
+        setFormulario({
+
+            ...formularioInicial
+
+        });
 
     };
 
@@ -364,7 +469,22 @@ function ListaEspera() {
     // NUEVA ENTRADA
     // =========================================
 
-    const abrirNuevo = () => {
+    const abrirNuevo = async () => {
+
+        if (
+            usuario?.rol !== "administrador"
+        ) {
+
+            return;
+
+        }
+
+
+        // Recargamos hogares y profesionales
+        await obtenerHogares();
+
+        await obtenerProfesionales();
+
 
         setModoFormulario(
             "crear"
@@ -374,7 +494,22 @@ function ListaEspera() {
             null
         );
 
-        limpiarFormulario();
+
+        const hoy =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
+
+        setFormulario({
+
+            ...formularioInicial,
+
+            fecha_solicitud:
+                hoy
+
+        });
+
 
         setMostrarFormulario(
             true
@@ -387,13 +522,29 @@ function ListaEspera() {
     // EDITAR ENTRADA
     // =========================================
 
-    const abrirEditar = (entrada) => {
+    const abrirEditar = async (entrada) => {
+
+        if (
+            usuario?.rol !== "administrador"
+        ) {
+
+            return;
+
+        }
+
+
+        // Nos aseguramos de tener
+        // los datos actualizados
+        await obtenerHogares();
+
+        await obtenerProfesionales();
+
 
         setModoFormulario(
             "editar"
         );
 
-        // Guardamos el ID de la entrada
+
         setIdEditando(
             entrada.id
         );
@@ -419,14 +570,14 @@ function ListaEspera() {
             telefono:
                 entrada.telefono ?? "",
 
-            profesional_nombre:
-                entrada.profesional_nombre ?? "",
+            profesional_id:
+                entrada.profesional_id ?? "",
 
             dia:
                 entrada.dia ?? "",
 
             estado:
-                entrada.estado ?? "pendiente",
+                entrada.estado ?? "Pendiente",
 
             fecha_solicitud:
                 entrada.fecha_solicitud ?? "",
@@ -476,18 +627,24 @@ function ListaEspera() {
         e.preventDefault();
 
 
-        console.log(
-            "DATOS QUE SE ENVIAN:",
-            formulario
-        );
-
-
-        // Validación adicional para profesionales
-
         if (
-            usuario?.rol === "profesional" &&
-            !formulario.id_hogar
+            usuario?.rol !== "administrador"
         ) {
+
+            alert(
+                "No tienes permisos para realizar esta acción"
+            );
+
+            return;
+
+        }
+
+
+        // =================================
+        // VALIDACIONES
+        // =================================
+
+        if (!formulario.id_hogar) {
 
             alert(
                 "Debe seleccionar un hogar"
@@ -496,6 +653,84 @@ function ListaEspera() {
             return;
 
         }
+
+
+        if (!formulario.profesional_id) {
+
+            alert(
+                "Debe seleccionar un profesional"
+            );
+
+            return;
+
+        }
+
+
+        if (!formulario.fecha_solicitud) {
+
+            alert(
+                "Debe seleccionar la fecha de solicitud"
+            );
+
+            return;
+
+        }
+
+
+        // =================================
+        // DATOS PARA CREAR
+        // =================================
+
+        const datosEnviar = {
+
+            id_hogar:
+                Number(
+                    formulario.id_hogar
+                ),
+
+            cuidador_principal:
+                formulario.cuidador_principal,
+
+            psdf:
+                formulario.psdf,
+
+            direccion:
+                formulario.direccion,
+
+            unidad_vecinal:
+                formulario.unidad_vecinal ||
+                null,
+
+            telefono:
+                formulario.telefono ||
+                null,
+
+            profesional_id:
+                Number(
+                    formulario.profesional_id
+                ),
+
+            dia:
+                formulario.dia ||
+                null,
+
+            estado:
+                formulario.estado,
+
+            fecha_solicitud:
+                formulario.fecha_solicitud,
+
+            observaciones:
+                formulario.observaciones ||
+                null
+
+        };
+
+
+        console.log(
+            "DATOS QUE SE ENVIAN:",
+            datosEnviar
+        );
 
 
         try {
@@ -513,16 +748,7 @@ function ListaEspera() {
 
                         "/lista-espera",
 
-                        {
-
-                            ...formulario,
-
-                            id_hogar:
-                                Number(
-                                    formulario.id_hogar
-                                )
-
-                        }
+                        datosEnviar
 
                     );
 
@@ -541,26 +767,69 @@ function ListaEspera() {
 
 
             // =================================
-            // ACTUALIZAR
+            // EDITAR
             // =================================
 
             else {
+
+                const datosActualizar = {
+
+                    id_hogar:
+                        Number(
+                            formulario.id_hogar
+                        ),
+
+                    cuidador_principal:
+                        formulario.cuidador_principal,
+
+                    psdf:
+                        formulario.psdf,
+
+                    direccion:
+                        formulario.direccion,
+
+                    unidad_vecinal:
+                        formulario.unidad_vecinal ||
+                        null,
+
+                    telefono:
+                        formulario.telefono ||
+                        null,
+
+                    profesional_id:
+                        Number(
+                            formulario.profesional_id
+                        ),
+
+                    dia:
+                        formulario.dia ||
+                        null,
+
+                    estado:
+                        formulario.estado,
+
+                    fecha_solicitud:
+                        formulario.fecha_solicitud,
+
+                    observaciones:
+                        formulario.observaciones ||
+                        null
+
+                };
+
+
+                console.log(
+                    "DATOS PUT:",
+                    datosActualizar
+                );
+
 
                 const response =
                     await api.put(
 
                         `/lista-espera/${idEditando}`,
 
-                        {
-
-                            ...formulario,
-
-                            id_hogar:
-                                Number(
-                                    formulario.id_hogar
-                                )
-
-                        }
+                        datosActualizar
 
                     );
 
@@ -578,14 +847,18 @@ function ListaEspera() {
             }
 
 
-            // Cerramos el modal
+            // =================================
+            // CERRAR
+            // =================================
+
             cerrarFormulario();
 
 
-            // Volvemos a cargar la tabla
-            await obtenerListaEspera(
-                usuario
-            );
+            // =================================
+            // RECARGAR
+            // =================================
+
+            await obtenerListaEspera();
 
 
         } catch (error) {
@@ -601,18 +874,44 @@ function ListaEspera() {
             );
 
             console.error(
-                "RESPUESTA DEL BACKEND:",
+                "RESPUESTA BACKEND:",
                 error.response?.data
             );
 
 
-            alert(
+            const detalle =
+                error.response?.data?.detail;
 
-                error.response?.data?.detail ||
 
-                "No se pudo guardar la entrada"
+            if (
+                Array.isArray(detalle)
+            ) {
 
-            );
+                const mensajes =
+                    detalle
+                        .map(
+                            item =>
+                                item.msg ||
+                                JSON.stringify(item)
+                        )
+                        .join("\n");
+
+
+                alert(
+                    mensajes
+                );
+
+            } else {
+
+                alert(
+
+                    detalle ||
+
+                    "No se pudo guardar la entrada"
+
+                );
+
+            }
 
         }
 
@@ -620,12 +919,23 @@ function ListaEspera() {
 
 
     // =========================================
-    // ELIMINAR ENTRADA
+    // ELIMINAR
     // =========================================
 
-    const eliminarEntrada = async (
-        id
-    ) => {
+    const eliminarEntrada = async (id) => {
+
+        if (
+            usuario?.rol !== "administrador"
+        ) {
+
+            alert(
+                "No tienes permisos para realizar esta acción"
+            );
+
+            return;
+
+        }
+
 
         const confirmar =
             window.confirm(
@@ -649,8 +959,6 @@ function ListaEspera() {
             );
 
 
-            // Actualizamos la tabla
-
             setListaEspera(
 
                 listaEspera.filter(
@@ -667,19 +975,12 @@ function ListaEspera() {
                 "Entrada eliminada correctamente"
             );
 
-
         } catch (error) {
 
             console.error(
                 "ERROR AL ELIMINAR:",
                 error
             );
-
-            console.error(
-                "RESPUESTA:",
-                error.response?.data
-            );
-
 
             alert(
 
@@ -734,59 +1035,67 @@ function ListaEspera() {
 
     return (
 
-        <div className="lista-espera-page">
+        <div className="intervenciones">
 
 
             {/* ================================= */}
             {/* HEADER */}
             {/* ================================= */}
 
-            <div className="lista-espera-header">
+            
+{/* ================================= */}
+{/* HEADER */}
+{/* ================================= */}
 
-                <div>
+<div className="intervenciones-header">
 
-                    <h1>
-                        Lista de espera
-                    </h1>
+    <div>
 
-                    <p>
-                        Casos registrados en lista de espera
-                    </p>
+        <h1>
+            Lista de espera
+        </h1>
 
-                </div>
+        <p>
+            Casos registrados en lista de espera
+        </p>
+
+    </div>
 
 
-                <button
-                    className="btn-nuevo"
-                    onClick={abrirNuevo}
-                >
+    {usuario?.rol === "administrador" && (
 
-                    {usuario?.rol === "profesional"
+        <button
+            className="btn-nueva-intervencion"
+            onClick={abrirNuevo}
+        >
 
-                        ? "+ Nueva entrada"
+            + Nueva entrada
 
-                        : "+ Nueva entrada"
+        </button>
 
-                    }
+    )}
 
-                </button>
 
-            </div>
+
+</div>
+
+
 
 
             {/* ================================= */}
             {/* MODAL */}
             {/* ================================= */}
 
-            {mostrarFormulario && (
+            {mostrarFormulario &&
+                usuario?.rol === "administrador" && (
 
                 <div className="modal-overlay">
 
-                    <div className="lista-espera-modal">
+                    <div className="modal-intervencion">
 
 
                         {/* ========================= */}
-                        {/* HEADER DEL MODAL */}
+                        {/* HEADER */}
                         {/* ========================= */}
 
                         <div className="modal-header">
@@ -824,9 +1133,7 @@ function ListaEspera() {
                             <button
                                 type="button"
                                 className="modal-close"
-                                onClick={
-                                    cerrarFormulario
-                                }
+                                onClick={cerrarFormulario}
                             >
 
                                 ✕
@@ -841,460 +1148,370 @@ function ListaEspera() {
                         {/* ========================= */}
 
                         <form
-                            onSubmit={
-                                guardarEntrada
-                            }
+                            onSubmit={guardarEntrada}
                         >
 
-                            <div className="form-grid">
+
+                            {/* ========================= */}
+                            {/* HOGAR */}
+                            {/* ========================= */}
+
+                            <label>
+
+                                Hogar
+
+                                <select
+                                    name="id_hogar"
+                                    value={
+                                        formulario.id_hogar
+                                    }
+                                    onChange={
+                                        manejarCambioHogar
+                                    }
+                                    required
+                                >
+
+                                    <option value="">
+                                        Seleccione un hogar
+                                    </option>
 
 
-                                {/* ========================= */}
-                                {/* ID HOGAR */}
-                                {/* ========================= */}
+                                    {hogares.map(
+                                        hogar => (
 
-                                <div className="form-group">
+                                            <option
+                                                key={
+                                                    hogar.id_hogar
+                                                }
+                                                value={
+                                                    hogar.id_hogar
+                                                }
+                                            >
 
-                                    <label>
-                                        ID Hogar
-                                    </label>
+                                                {hogar.id_hogar}
+                                                {" - "}
+                                                {
+                                                    hogar.cuidador_principal
+                                                }
 
-
-                                    {usuario?.rol === "profesional" && modoFormulario === "crear" ? (
-
-                                        <select
-
-                                            name="id_hogar"
-
-                                            value={
-                                                formulario.id_hogar
-                                            }
-
-                                            onChange={
-                                                manejarCambioHogar
-                                            }
-
-                                            required
-
-                                        >
-
-                                            <option value="">
-                                                Seleccione un hogar
                                             </option>
 
-
-                                            {hogaresProfesional.map(
-
-                                                (hogar) => (
-
-                                                    <option
-
-                                                        key={
-                                                            hogar.id_hogar
-                                                        }
-
-                                                        value={
-                                                            hogar.id_hogar
-                                                        }
-
-                                                    >
-
-                                                        {hogar.id_hogar}
-                                                        {" - "}
-                                                        {
-                                                            hogar.cuidador_principal
-                                                        }
-
-                                                    </option>
-
-                                                )
-
-                                            )}
-
-                                        </select>
-
-                                    ) : (
-
-                                        <input
-
-                                            type="number"
-
-                                            name="id_hogar"
-
-                                            value={
-                                                formulario.id_hogar
-                                            }
-
-                                            onChange={
-                                                manejarCambio
-                                            }
-
-                                            required
-
-                                            disabled={
-                                                usuario?.rol === "profesional"
-                                            }
-
-                                        />
-
+                                        )
                                     )}
 
-                                </div>
+                                </select>
 
+                            </label>
 
-                                {/* ========================= */}
-                                {/* CUIDADOR */}
-                                {/* ========================= */}
 
-                                <div className="form-group">
+                            {/* ========================= */}
+                            {/* CUIDADOR */}
+                            {/* ========================= */}
 
-                                    <label>
-                                        Cuidador/a
-                                    </label>
+                            <label>
 
-                                    <input
+                                Cuidador/a
 
-                                        type="text"
+                                <input
+                                    type="text"
+                                    name="cuidador_principal"
+                                    value={
+                                        formulario.cuidador_principal
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
+                                    required
+                                />
 
-                                        name="cuidador_principal"
+                            </label>
 
-                                        value={
-                                            formulario.cuidador_principal
-                                        }
 
-                                        onChange={
-                                            manejarCambio
-                                        }
+                            {/* ========================= */}
+                            {/* PSDF */}
+                            {/* ========================= */}
 
-                                        required
+                            <label>
 
-                                    />
+                                PSDF
 
-                                </div>
+                                <input
+                                    type="text"
+                                    name="psdf"
+                                    value={
+                                        formulario.psdf
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
+                                    required
+                                />
 
+                            </label>
 
-                                {/* ========================= */}
-                                {/* PSDF */}
-                                {/* ========================= */}
 
-                                <div className="form-group">
+                            {/* ========================= */}
+                            {/* DIRECCIÓN */}
+                            {/* ========================= */}
 
-                                    <label>
-                                        PSDF
-                                    </label>
+                            <label>
 
-                                    <input
+                                Dirección
 
-                                        type="text"
+                                <input
+                                    type="text"
+                                    name="direccion"
+                                    value={
+                                        formulario.direccion
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
+                                    required
+                                />
 
-                                        name="psdf"
+                            </label>
 
-                                        value={
-                                            formulario.psdf
-                                        }
 
-                                        onChange={
-                                            manejarCambio
-                                        }
+                            {/* ========================= */}
+                            {/* TELÉFONO */}
+                            {/* ========================= */}
 
-                                        required
+                            <label>
 
-                                    />
+                                Teléfono
 
-                                </div>
+                                <input
+                                    type="text"
+                                    name="telefono"
+                                    value={
+                                        formulario.telefono
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
+                                />
 
+                            </label>
 
-                                {/* ========================= */}
-                                {/* DIRECCIÓN */}
-                                {/* ========================= */}
 
-                                <div className="form-group">
+                            {/* ========================= */}
+                            {/* UNIDAD VECINAL */}
+                            {/* ========================= */}
 
-                                    <label>
-                                        Dirección
-                                    </label>
+                            <label>
 
-                                    <input
+                                Unidad vecinal
 
-                                        type="text"
+                                <input
+                                    type="text"
+                                    name="unidad_vecinal"
+                                    value={
+                                        formulario.unidad_vecinal
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
+                                />
 
-                                        name="direccion"
+                            </label>
 
-                                        value={
-                                            formulario.direccion
-                                        }
 
-                                        onChange={
-                                            manejarCambio
-                                        }
+                            {/* ========================= */}
+                            {/* PROFESIONAL */}
+                            {/* ========================= */}
 
-                                        required
+                            <label>
 
-                                    />
+                                Profesional
 
-                                </div>
+                                <select
+                                    name="profesional_id"
+                                    value={
+                                        formulario.profesional_id
+                                    }
+                                    onChange={
+                                        manejarCambioProfesional
+                                    }
+                                    required
+                                >
 
+                                    <option value="">
+                                        Seleccione un profesional
+                                    </option>
 
-                                {/* ========================= */}
-                                {/* TELÉFONO */}
-                                {/* ========================= */}
 
-                                <div className="form-group">
+                                    {profesionales.map(
+                                        profesional => (
 
-                                    <label>
-                                        Teléfono
-                                    </label>
+                                            <option
+                                                key={
+                                                    profesional.id
+                                                }
+                                                value={
+                                                    profesional.id
+                                                }
+                                            >
 
-                                    <input
+                                                {
+                                                    profesional.nombre
+                                                }
 
-                                        type="text"
+                                                {" - "}
 
-                                        name="telefono"
+                                                {
+                                                    profesional.disciplina
+                                                }
 
-                                        value={
-                                            formulario.telefono
-                                        }
+                                            </option>
 
-                                        onChange={
-                                            manejarCambio
-                                        }
+                                        )
+                                    )}
 
-                                    />
+                                </select>
 
-                                </div>
+                            </label>
 
 
-                                {/* ========================= */}
-                                {/* UNIDAD VECINAL */}
-                                {/* ========================= */}
+                            {/* ========================= */}
+                            {/* DÍA */}
+                            {/* ========================= */}
 
-                                <div className="form-group">
+                            <label>
 
-                                    <label>
-                                        Unidad vecinal
-                                    </label>
+                                Día
 
-                                    <input
+                                <select
+                                    name="dia"
+                                    value={
+                                        formulario.dia
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
+                                >
 
-                                        type="text"
+                                    <option value="">
+                                        Seleccionar
+                                    </option>
 
-                                        name="unidad_vecinal"
+                                    <option value="Lunes">
+                                        Lunes
+                                    </option>
 
-                                        value={
-                                            formulario.unidad_vecinal
-                                        }
+                                    <option value="Martes">
+                                        Martes
+                                    </option>
 
-                                        onChange={
-                                            manejarCambio
-                                        }
+                                    <option value="Miércoles">
+                                        Miércoles
+                                    </option>
 
-                                    />
+                                    <option value="Jueves">
+                                        Jueves
+                                    </option>
 
-                                </div>
+                                    <option value="Viernes">
+                                        Viernes
+                                    </option>
 
+                                </select>
 
-                                {/* ========================= */}
-                                {/* PROFESIONAL */}
-                                {/* ========================= */}
+                            </label>
 
-                                <div className="form-group">
 
-                                    <label>
-                                        Profesional
-                                    </label>
+                            {/* ========================= */}
+                            {/* ESTADO */}
+                            {/* ========================= */}
 
-                                    <input
+                            <label>
 
-                                        type="text"
+                                Estado
 
-                                        name="profesional_nombre"
+                                <select
+                                    name="estado"
+                                    value={
+                                        formulario.estado
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
+                                >
 
-                                        value={
-                                            formulario.profesional_nombre
-                                        }
+                                    <option value="Pendiente">
+                                        Pendiente
+                                    </option>
 
-                                        onChange={
-                                            manejarCambio
-                                        }
+                                    <option value="En espera">
+                                        En espera
+                                    </option>
 
-                                    />
+                                    <option value="Atendido">
+                                        Atendido
+                                    </option>
 
-                                </div>
+                                    <option value="Cancelado">
+                                        Cancelado
+                                    </option>
 
+                                </select>
 
-                                {/* ========================= */}
-                                {/* DÍA */}
-                                {/* ========================= */}
+                            </label>
 
-                                <div className="form-group">
 
-                                    <label>
-                                        Día
-                                    </label>
+                            {/* ========================= */}
+                            {/* FECHA */}
+                            {/* ========================= */}
 
-                                    <select
+                            <label>
 
-                                        name="dia"
+                                Fecha solicitud
 
-                                        value={
-                                            formulario.dia
-                                        }
+                                <input
+                                    type="date"
+                                    name="fecha_solicitud"
+                                    value={
+                                        formulario.fecha_solicitud
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
+                                    required
+                                />
 
-                                        onChange={
-                                            manejarCambio
-                                        }
+                            </label>
 
-                                    >
 
-                                        <option value="">
-                                            Seleccionar
-                                        </option>
+                            {/* ========================= */}
+                            {/* OBSERVACIONES */}
+                            {/* ========================= */}
 
-                                        <option value="Lunes">
-                                            Lunes
-                                        </option>
+                            <label className="campo-completo">
 
-                                        <option value="Martes">
-                                            Martes
-                                        </option>
+                                Observaciones
 
-                                        <option value="Miércoles">
-                                            Miércoles
-                                        </option>
+                                <textarea
+                                    name="observaciones"
+                                    value={
+                                        formulario.observaciones
+                                    }
+                                    onChange={
+                                        manejarCambio
+                                    }
+                                />
 
-                                        <option value="Jueves">
-                                            Jueves
-                                        </option>
+                            </label>
 
-                                        <option value="Viernes">
-                                            Viernes
-                                        </option>
 
-                                    </select>
-
-                                </div>
-
-
-                                {/* ========================= */}
-                                {/* ESTADO */}
-                                {/* ========================= */}
-
-                                <div className="form-group">
-
-                                    <label>
-                                        Estado
-                                    </label>
-
-                                    <select
-
-                                        name="estado"
-
-                                        value={
-                                            formulario.estado
-                                        }
-
-                                        onChange={
-                                            manejarCambio
-                                        }
-
-                                    >
-
-                                        <option value="pendiente">
-                                            Pendiente
-                                        </option>
-
-                                        <option value="en espera">
-                                            En espera
-                                        </option>
-
-                                        <option value="atendido">
-                                            Atendido
-                                        </option>
-
-                                        <option value="cancelado">
-                                            Cancelado
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-
-                                {/* ========================= */}
-                                {/* FECHA */}
-                                {/* ========================= */}
-
-                                <div className="form-group">
-
-                                    <label>
-                                        Fecha solicitud
-                                    </label>
-
-                                    <input
-
-                                        type="date"
-
-                                        name="fecha_solicitud"
-
-                                        value={
-                                            formulario.fecha_solicitud
-                                        }
-
-                                        onChange={
-                                            manejarCambio
-                                        }
-
-                                    />
-
-                                </div>
-
-
-                                {/* ========================= */}
-                                {/* OBSERVACIONES */}
-                                {/* ========================= */}
-
-                                <div className="form-group form-group-full">
-
-                                    <label>
-                                        Observaciones
-                                    </label>
-
-                                    <textarea
-
-                                        name="observaciones"
-
-                                        value={
-                                            formulario.observaciones
-                                        }
-
-                                        onChange={
-                                            manejarCambio
-                                        }
-
-                                    />
-
-                                </div>
-
-
-                            </div>
-
-
-                            {/* ================================= */}
-                            {/* BOTONES DEL FORMULARIO */}
-                            {/* ================================= */}
+                            {/* ========================= */}
+                            {/* BOTONES */}
+                            {/* ========================= */}
 
                             <div className="form-actions">
 
                                 <button
-
                                     type="button"
-
-                                    className="btn-cancelar"
-
-                                    onClick={
-                                        cerrarFormulario
-                                    }
-
+                                    onClick={cerrarFormulario}
                                 >
 
                                     Cancelar
@@ -1303,11 +1520,7 @@ function ListaEspera() {
 
 
                                 <button
-
                                     type="submit"
-
-                                    className="btn-guardar"
-
                                 >
 
                                     {modoFormulario === "crear"
@@ -1381,8 +1594,20 @@ function ListaEspera() {
                             </th>
 
                             <th>
-                                Acciones
+                                Fecha solicitud
                             </th>
+
+                            <th>
+                                Observaciones
+                            </th>
+
+                            {usuario?.rol === "administrador" && (
+
+                                <th>
+                                    Acciones
+                                </th>
+
+                            )}
 
                         </tr>
 
@@ -1393,150 +1618,202 @@ function ListaEspera() {
 
                         {listaEspera.map(
 
-                            (entrada) => (
+                            (entrada) => {
 
-                                <tr
-                                    key={
-                                        entrada.id
-                                    }
-                                >
+                                const profesional =
+                                    profesionales.find(
 
-                                    <td>
+                                        profesional =>
+                                            Number(
+                                                profesional.id
+                                            ) ===
+                                            Number(
+                                                entrada.profesional_id
+                                            )
 
-                                        <strong>
+                                    );
+
+
+                                return (
+
+                                    <tr
+                                        key={
+                                            entrada.id
+                                        }
+                                    >
+
+                                        <td>
+
+                                            <strong>
+                                                {
+                                                    entrada.id_hogar
+                                                }
+                                            </strong>
+
+                                        </td>
+
+
+                                        <td>
+
                                             {
-                                                entrada.id_hogar
-                                            }
-                                        </strong>
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {
-                                            entrada.cuidador_principal
-                                        }
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {
-                                            entrada.psdf
-                                        }
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {
-                                            entrada.direccion
-                                        }
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {
-                                            entrada.unidad_vecinal
-                                        }
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {
-                                            entrada.telefono
-                                            ?? "-"
-                                        }
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {
-                                            entrada.profesional_nombre
-                                            ?? "Sin asignar"
-                                        }
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {
-                                            entrada.dia
-                                            ?? "-"
-                                        }
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {
-                                            entrada.estado
-                                        }
-
-                                    </td>
-
-
-                                    <td className="acciones">
-
-
-                                        {/* EDITAR */}
-
-                                        <button
-
-                                            type="button"
-
-                                            className="btn-editar"
-
-                                            onClick={() =>
-                                                abrirEditar(
-                                                    entrada
-                                                )
+                                                entrada.cuidador_principal
                                             }
 
-                                        >
-
-                                            ✏️
-
-                                        </button>
+                                        </td>
 
 
-                                        {/* ELIMINAR */}
+                                        <td>
 
-                                        <button
-
-                                            type="button"
-
-                                            className="btn-eliminar"
-
-                                            onClick={() =>
-                                                eliminarEntrada(
-                                                    entrada.id
-                                                )
+                                            {
+                                                entrada.psdf
                                             }
 
-                                        >
-
-                                            🗑️
-
-                                        </button>
+                                        </td>
 
 
-                                    </td>
+                                        <td>
 
-                                </tr>
+                                            {
+                                                entrada.direccion
+                                            }
 
-                            )
+                                        </td>
+
+
+                                        <td>
+
+                                            {
+                                                entrada.unidad_vecinal
+                                                ?? "-"
+                                            }
+
+                                        </td>
+
+
+                                        <td>
+
+                                            {
+                                                entrada.telefono
+                                                ?? "-"
+                                            }
+
+                                        </td>
+
+
+                                        <td>
+
+                                            {
+
+                                                profesional
+
+                                                    ? profesional.nombre
+
+                                                    : "Sin asignar"
+
+                                            }
+
+                                        </td>
+
+
+                                        <td>
+
+                                            {
+                                                entrada.dia
+                                                ?? "-"
+                                            }
+
+                                        </td>
+
+
+                                        <td>
+
+                                            {
+                                                entrada.estado
+                                            }
+
+                                        </td>
+
+
+                                        {/* ========================= */}
+                                        {/* FECHA */}
+                                        {/* ========================= */}
+
+                                        <td>
+
+                                            {
+                                                entrada.fecha_solicitud
+                                                    ? new Date(
+                                                        `${entrada.fecha_solicitud}T00:00:00`
+                                                    ).toLocaleDateString(
+                                                        "es-CL"
+                                                    )
+                                                    : "-"
+                                            }
+
+                                        </td>
+
+
+                                        {/* ========================= */}
+                                        {/* OBSERVACIONES */}
+                                        {/* ========================= */}
+
+                                        <td>
+
+                                            {
+                                                entrada.observaciones
+                                                ?? "-"
+                                            }
+
+                                        </td>
+
+
+                                        {/* ========================= */}
+                                        {/* ACCIONES */}
+                                        {/* ========================= */}
+
+                                        {usuario?.rol === "administrador" && (
+
+                                            <td className="acciones-intervencion">
+
+
+                                                <button
+                                                    type="button"
+                                                    className="btn-editar"
+                                                    onClick={() =>
+                                                        abrirEditar(
+                                                            entrada
+                                                        )
+                                                    }
+                                                >
+
+                                                    ✏️
+
+                                                </button>
+
+
+                                                <button
+                                                    type="button"
+                                                    className="btn-eliminar"
+                                                    onClick={() =>
+                                                        eliminarEntrada(
+                                                            entrada.id
+                                                        )
+                                                    }
+                                                >
+
+                                                    🗑️
+
+                                                </button>
+
+                                            </td>
+
+                                        )}
+
+                                    </tr>
+
+                                );
+
+                            }
 
                         )}
 
@@ -1554,4 +1831,3 @@ function ListaEspera() {
 }
 
 export default ListaEspera;
-

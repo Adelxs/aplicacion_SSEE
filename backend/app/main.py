@@ -276,51 +276,51 @@ def obtener_hogar(
         detail="No tienes permisos para acceder a este hogar"
     )
     
-@app.get(
-    "/profesionales/me/hogares/disponibles",
-    response_model=list[schemas.HogarResumen]
-)
-def obtener_hogares_disponibles(
-    usuario=Depends(obtener_usuario_actual),
-    db: Session = Depends(get_db)
-):
+#@app.get(
+   # "/profesionales/me/hogares/disponibles",
+   # response_model=list[schemas.HogarResumen]
+#)
+#def obtener_hogares_disponibles(
+  #  usuario=Depends(obtener_usuario_actual),
+   # db: Session = Depends(get_db)
+#):
 
-    if usuario.rol != "profesional":
-        raise HTTPException(
-            status_code=403,
-            detail="Solo los profesionales pueden acceder a los hogares disponibles"
-        )
+    #if usuario.rol != "profesional":
+     #   raise HTTPException(
+      #      status_code=403,
+      #      detail="Solo los profesionales pueden acceder a los hogares disponibles"
+      #  )
 
-    if usuario.profesional_id is None:
-        raise HTTPException(
-            status_code=403,
-            detail="El usuario no está asociado a un profesional"
-        )
+    #if usuario.profesional_id is None:
+       # raise HTTPException(
+          #  status_code=403,
+          #  detail="El usuario no está asociado a un profesional"
+       # )
 
-    profesional = db.query(
-        models.Profesional
-    ).filter(
-        models.Profesional.id == usuario.profesional_id
-    ).first()
+    #profesional = db.query(
+      #  models.Profesional
+    #).filter(
+     #   models.Profesional.id == usuario.profesional_id
+    #).first()
 
-    if profesional is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Profesional no encontrado"
-        )
+    #if profesional is None:
+        #raise HTTPException(
+          #  status_code=404,
+           # detail="Profesional no encontrado"
+       # )
 
-    hogares_asignados = {
-        hogar.id
-        for hogar in profesional.hogares
-    }
+    #hogares_asignados = {
+    #    hogar.id
+      #  for hogar in profesional.hogares
+    #}
 
-    hogares_disponibles = db.query(
-        models.Hogar
-    ).filter(
-        ~models.Hogar.id.in_(hogares_asignados)
-    ).all()
+   # hogares_disponibles = db.query(
+     #   models.Hogar
+    #).filter(
+     #   ~models.Hogar.id.in_(hogares_asignados)
+    #).all()
 
-    return hogares_disponibles
+    #return hogares_disponibles
 
 ################################################################ Dashboard intervenciones ##################################################
     
@@ -943,6 +943,10 @@ def actualizar_intervencion(
     usuario = Depends(obtener_usuario_actual)
 ):
 
+    # ==========================================
+    # BUSCAR INTERVENCIÓN
+    # ==========================================
+
     intervencion = db.query(
         models.Intervencion
     ).filter(
@@ -956,6 +960,7 @@ def actualizar_intervencion(
             detail="Intervención no encontrada"
         )
 
+
     # ==========================================
     # VERIFICAR PERMISOS
     # ==========================================
@@ -963,6 +968,7 @@ def actualizar_intervencion(
     if usuario.rol == "administrador":
 
         pass
+
 
     elif usuario.rol == "profesional":
 
@@ -973,12 +979,20 @@ def actualizar_intervencion(
                 detail="El usuario no tiene un profesional asociado"
             )
 
-        if intervencion.profesional_id != usuario.profesional_id:
+
+        # La intervención debe pertenecer
+        # al profesional autenticado
+
+        if (
+            intervencion.profesional_id
+            != usuario.profesional_id
+        ):
 
             raise HTTPException(
                 status_code=403,
                 detail="No puedes modificar una intervención que no te pertenece"
             )
+
 
     else:
 
@@ -987,32 +1001,100 @@ def actualizar_intervencion(
             detail="No tienes permisos para modificar esta intervención"
         )
 
+
     # ==========================================
-    # ACTUALIZAR CAMPOS
+    # OBTENER DATOS A ACTUALIZAR
     # ==========================================
 
     datos_actualizados = datos.model_dump(
         exclude_unset=True
     )
 
-    # Un profesional NO puede cambiar
-    # el profesional de la intervención
+
+    # ==========================================
+    # PROFESIONAL
+    # ==========================================
 
     if usuario.rol == "profesional":
+
+        # Un profesional NO puede cambiar
+        # el profesional asociado
 
         datos_actualizados.pop(
             "profesional_id",
             None
         )
 
+
     # ==========================================
-    # EVITAR MODIFICAR EL ID
+    # EVITAR MODIFICAR ID
     # ==========================================
 
     datos_actualizados.pop(
         "id",
         None
     )
+
+
+    # ==========================================
+    # PROCESAR HOGAR
+    # ==========================================
+
+    if "hogar_id" in datos_actualizados:
+
+        hogar_id_hogar = datos_actualizados["hogar_id"]
+
+
+        # Buscar por el identificador visible
+        # del hogar
+
+        hogar = db.query(
+            models.Hogar
+        ).filter(
+            models.Hogar.id_hogar
+            == hogar_id_hogar
+        ).first()
+
+
+        if hogar is None:
+
+            raise HTTPException(
+                status_code=404,
+                detail="El hogar no existe"
+            )
+
+
+        # ======================================
+        # PROFESIONAL
+        # ======================================
+
+        if usuario.rol == "profesional":
+
+            asignacion = db.query(
+                models.ListaEspera
+            ).filter(
+                models.ListaEspera.id_hogar
+                == hogar.id_hogar,
+
+                models.ListaEspera.profesional_id
+                == usuario.profesional_id
+            ).first()
+
+
+            if asignacion is None:
+
+                raise HTTPException(
+                    status_code=403,
+                    detail="Este hogar no está asignado a tu lista de espera"
+                )
+
+
+        # ======================================
+        # CONVERTIR
+        # ======================================
+
+        datos_actualizados["hogar_id"] = hogar.id
+
 
     # ==========================================
     # APLICAR CAMBIOS
@@ -1026,11 +1108,21 @@ def actualizar_intervencion(
             valor
         )
 
+
+    # ==========================================
+    # GUARDAR
+    # ==========================================
+
     db.commit()
 
-    db.refresh(intervencion)
+    db.refresh(
+        intervencion
+    )
+
 
     return intervencion
+
+
 
 
 @app.delete("/intervenciones/{id}")
@@ -1237,7 +1329,7 @@ def actualizar_lista_espera(
     id: int,
     datos: schemas.ListaEsperaUpdate,
     db: Session = Depends(get_db),
-    usuario = Depends(obtener_usuario_actual)
+    usuario = Depends(requiere_admin)
 ):
 
     entrada = db.query(
@@ -1253,62 +1345,63 @@ def actualizar_lista_espera(
             detail="Entrada de lista de espera no encontrada"
         )
 
-    # ==========================================
-    # ADMINISTRADOR
-    # ==========================================
 
-    if usuario.rol == "administrador":
+    # =========================================
+    # VALIDAR HOGAR
+    # =========================================
 
-        pass
+    if datos.id_hogar is not None:
 
-    # ==========================================
-    # PROFESIONAL
-    # ==========================================
+        hogar = db.query(
+            models.Hogar
+        ).filter(
+            models.Hogar.id_hogar == datos.id_hogar
+        ).first()
 
-    elif usuario.rol == "profesional":
-
-        if usuario.profesional_id is None:
-
-            raise HTTPException(
-                status_code=403,
-                detail="El usuario no tiene un profesional asociado"
-            )
-
-        if entrada.profesional_id != usuario.profesional_id:
+        if hogar is None:
 
             raise HTTPException(
-                status_code=403,
-                detail="No puedes modificar una entrada que no te pertenece"
+                status_code=404,
+                detail="El hogar no existe"
             )
 
-    # ==========================================
-    # OTRO ROL
-    # ==========================================
 
-    else:
+    # =========================================
+    # VALIDAR PROFESIONAL
+    # =========================================
 
-        raise HTTPException(
-            status_code=403,
-            detail="No tienes permisos para modificar esta entrada"
-        )
+    if datos.profesional_id is not None:
 
-    # ==========================================
+        profesional = db.query(
+            models.Profesional
+        ).filter(
+            models.Profesional.id == datos.profesional_id
+        ).first()
+
+        if profesional is None:
+
+            raise HTTPException(
+                status_code=404,
+                detail="El profesional no existe"
+            )
+
+
+        if not profesional.activo:
+
+            raise HTTPException(
+                status_code=400,
+                detail="No se puede asignar un profesional inactivo"
+            )
+
+
+    # =========================================
     # ACTUALIZAR
-    # ==========================================
+    # =========================================
 
     datos_actualizados = datos.model_dump(
         exclude_unset=True
     )
 
-    # El profesional no puede modificar
-    # la asignación del profesional
-
-    if usuario.rol == "profesional":
-
-        datos_actualizados.pop(
-            "profesional_id",
-            None
-        )
 
     for campo, valor in datos_actualizados.items():
 
@@ -1318,9 +1411,11 @@ def actualizar_lista_espera(
             valor
         )
 
+
     db.commit()
 
     db.refresh(entrada)
+
 
     return entrada
 
@@ -1328,7 +1423,7 @@ def actualizar_lista_espera(
 def eliminar_lista_espera(
     id: int,
     db: Session = Depends(get_db),
-    usuario = Depends(obtener_usuario_actual)
+    usuario = Depends(requiere_admin)
 ):
 
     entrada = db.query(
@@ -1338,63 +1433,17 @@ def eliminar_lista_espera(
     ).first()
 
     if entrada is None:
-
         raise HTTPException(
             status_code=404,
             detail="Entrada de lista de espera no encontrada"
         )
 
-    # ==========================================
-    # ADMINISTRADOR
-    # ==========================================
-
-    if usuario.rol == "administrador":
-
-        pass
-
-    # ==========================================
-    # PROFESIONAL
-    # ==========================================
-
-    elif usuario.rol == "profesional":
-
-        if usuario.profesional_id is None:
-
-            raise HTTPException(
-                status_code=403,
-                detail="El usuario no tiene un profesional asociado"
-            )
-
-        if entrada.profesional_id != usuario.profesional_id:
-
-            raise HTTPException(
-                status_code=403,
-                detail="No puedes eliminar una entrada que no te pertenece"
-            )
-
-    # ==========================================
-    # OTRO ROL
-    # ==========================================
-
-    else:
-
-        raise HTTPException(
-            status_code=403,
-            detail="No tienes permisos para eliminar esta entrada"
-        )
-
-    # ==========================================
-    # ELIMINAR
-    # ==========================================
-
     db.delete(entrada)
-
     db.commit()
 
     return {
         "mensaje": "Entrada de lista de espera eliminada correctamente"
     }
-
 ################################################################ Dashboard ##################################################
     
 @app.get("/dashboard/resumen")

@@ -12,8 +12,6 @@ function Hogares() {
 
     const [usuario, setUsuario] = useState(null);
 
-    const [hogaresDisponibles, setHogaresDisponibles] = useState([]);
-
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [modoFormulario, setModoFormulario] = useState("crear");
 
@@ -26,6 +24,27 @@ function Hogares() {
         unidad_vecinal: "",
         estado: "Activo"
     });
+
+
+    // =========================
+    // FORMULARIO INICIAL
+    // =========================
+
+    const formularioInicial = () => {
+
+        return {
+
+            id_hogar: "",
+            cuidador_principal: "",
+            psdf: "",
+            direccion: "",
+            telefono: "",
+            unidad_vecinal: "",
+            estado: "Activo"
+
+        };
+
+    };
 
 
     // =========================
@@ -61,34 +80,34 @@ function Hogares() {
 
 
     // =========================
-    // OBTENER HOGARES
+    // OBTENER TODOS LOS HOGARES
+    // =========================
+    //
+    // IMPORTANTE:
+    //
+    // Tanto administrador como profesional
+    // utilizan /hogares.
+    //
+    // El profesional solamente tendrá
+    // permisos de lectura desde el frontend.
+    //
+    // Los permisos reales deben estar
+    // protegidos también en el backend.
     // =========================
 
     const obtenerHogares = async () => {
 
         try {
 
-            // Profesional
-            if (usuario?.rol === "profesional") {
+            const response = await api.get(
+                "/hogares"
+            );
 
-                const response = await api.get(
-                    "/profesionales/me/hogares"
-                );
+            setHogares(
+                response.data
+            );
 
-                setHogares(response.data);
-
-            }
-
-            // Administrador
-            else {
-
-                const response = await api.get(
-                    "/hogares"
-                );
-
-                setHogares(response.data);
-
-            }
+            setError(null);
 
         } catch (error) {
 
@@ -103,57 +122,9 @@ function Hogares() {
             );
 
             setError(
+                error.response?.data?.detail ||
                 "No se pudieron cargar los hogares"
             );
-
-        }
-
-    };
-
-
-    // =========================
-    // OBTENER HOGARES DISPONIBLES
-    // =========================
-
-    const obtenerHogaresDisponibles = async () => {
-
-        try {
-
-            const response = await api.get(
-                "/profesionales/me/hogares/disponibles"
-            );
-
-            setHogaresDisponibles(
-                response.data
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Error al cargar hogares disponibles:",
-                error
-            );
-
-            console.error(
-                "Respuesta API:",
-                error.response?.data
-            );
-
-            if (
-                error.response?.data?.detail
-            ) {
-
-                alert(
-                    error.response.data.detail
-                );
-
-            } else {
-
-                alert(
-                    "No se pudieron cargar los hogares disponibles"
-                );
-
-            }
 
         }
 
@@ -173,56 +144,16 @@ function Hogares() {
                 setCargando(true);
 
                 // Primero obtenemos el usuario
-                const responseUsuario = await api.get(
-                    "/usuarios/me"
-                );
+                await obtenerUsuario();
 
-                const usuarioActual =
-                    responseUsuario.data;
-
-                setUsuario(usuarioActual);
-
-
-                // =========================
-                // CARGAR HOGARES SEGÚN ROL
-                // =========================
-
-                if (
-                    usuarioActual.rol === "profesional"
-                ) {
-
-                    const responseHogares =
-                        await api.get(
-                            "/profesionales/me/hogares"
-                        );
-
-                    setHogares(
-                        responseHogares.data
-                    );
-
-                } else {
-
-                    const responseHogares =
-                        await api.get(
-                            "/hogares"
-                        );
-
-                    setHogares(
-                        responseHogares.data
-                    );
-
-                }
+                // Después cargamos TODOS los hogares
+                await obtenerHogares();
 
             } catch (error) {
 
                 console.error(
                     "Error al cargar datos:",
                     error
-                );
-
-                console.error(
-                    "Respuesta API:",
-                    error.response?.data
                 );
 
                 setError(
@@ -249,76 +180,48 @@ function Hogares() {
 
     const manejarCambio = (e) => {
 
-        const { name, value } = e.target;
+        const {
+            name,
+            value
+        } = e.target;
 
         setFormulario({
+
             ...formulario,
+
             [name]: value
+
         });
 
     };
 
 
     // =========================
-    // FORMULARIO VACÍO
+    // NUEVO HOGAR
     // =========================
-
-    const formularioInicial = () => {
-
-        return {
-
-            id_hogar: "",
-            cuidador_principal: "",
-            psdf: "",
-            direccion: "",
-            telefono: "",
-            unidad_vecinal: "",
-            estado: "Activo"
-
-        };
-
-    };
-
-
-    // =========================
-    // NUEVO / AGREGAR HOGAR
+    //
+    // SOLO ADMINISTRADOR
     // =========================
 
     const abrirNuevo = () => {
 
+        // Seguridad adicional en frontend
+        if (
+            usuario?.rol !== "administrador"
+        ) {
+
+            return;
+
+        }
+
+
+        setModoFormulario(
+            "crear"
+        );
+
         setFormulario(
             formularioInicial()
         );
-
-
-        // =========================
-        // PROFESIONAL
-        // =========================
-
-        if (
-            usuario?.rol === "profesional"
-        ) {
-
-            setModoFormulario(
-                "agregar"
-            );
-
-            obtenerHogaresDisponibles();
-
-        }
-
-        // =========================
-        // ADMINISTRADOR
-        // =========================
-
-        else {
-
-            setModoFormulario(
-                "crear"
-            );
-
-        }
-
 
         setMostrarFormulario(
             true
@@ -330,8 +233,21 @@ function Hogares() {
     // =========================
     // EDITAR HOGAR
     // =========================
+    //
+    // SOLO ADMINISTRADOR
+    // =========================
 
     const abrirEditar = (hogar) => {
+
+        // Seguridad adicional en frontend
+        if (
+            usuario?.rol !== "administrador"
+        ) {
+
+            return;
+
+        }
+
 
         setModoFormulario(
             "editar"
@@ -343,22 +259,22 @@ function Hogares() {
                 hogar.id_hogar,
 
             cuidador_principal:
-                hogar.cuidador_principal,
+                hogar.cuidador_principal ?? "",
 
             psdf:
-                hogar.psdf,
+                hogar.psdf ?? "",
 
             direccion:
-                hogar.direccion,
+                hogar.direccion ?? "",
 
             telefono:
-                hogar.telefono,
+                hogar.telefono ?? "",
 
             unidad_vecinal:
-                hogar.unidad_vecinal,
+                hogar.unidad_vecinal ?? "",
 
             estado:
-                hogar.estado
+                hogar.estado ?? "Activo"
 
         });
 
@@ -370,7 +286,31 @@ function Hogares() {
 
 
     // =========================
-    // GUARDAR / AGREGAR HOGAR
+    // CERRAR FORMULARIO
+    // =========================
+
+    const cerrarFormulario = () => {
+
+        setMostrarFormulario(
+            false
+        );
+
+        setModoFormulario(
+            "crear"
+        );
+
+        setFormulario(
+            formularioInicial()
+        );
+
+    };
+
+
+    // =========================
+    // GUARDAR HOGAR
+    // =========================
+    //
+    // SOLO ADMINISTRADOR
     // =========================
 
     const guardarHogar = async (e) => {
@@ -378,91 +318,14 @@ function Hogares() {
         e.preventDefault();
 
 
-        // =========================
-        // AGREGAR HOGAR EXISTENTE
-        // =========================
-
         if (
-            modoFormulario === "agregar"
+            usuario?.rol !== "administrador"
         ) {
 
-            try {
-
-                const idHogar =
-                    Number(
-                        formulario.id_hogar
-                    );
-
-
-                await api.post(
-                    `/profesionales/me/hogares/${idHogar}`
-                );
-
-
-                alert(
-                    "Hogar agregado correctamente"
-                );
-
-
-                // Actualizar tabla
-                await obtenerHogares();
-
-
-                // Actualizar disponibles
-                await obtenerHogaresDisponibles();
-
-
-                setFormulario(
-                    formularioInicial()
-                );
-
-                setMostrarFormulario(
-                    false
-                );
-
-
-                return;
-
-            } catch (error) {
-
-                console.error(
-                    "Error al agregar hogar:",
-                    error
-                );
-
-                console.error(
-                    "Respuesta API:",
-                    error.response?.data
-                );
-
-
-                if (
-                    error.response?.data?.detail
-                ) {
-
-                    alert(
-                        error.response.data.detail
-                    );
-
-                } else {
-
-                    alert(
-                        "No se pudo agregar el hogar"
-                    );
-
-                }
-
-
-                return;
-
-            }
+            return;
 
         }
 
-
-        // =========================
-        // CREAR / EDITAR
-        // =========================
 
         try {
 
@@ -500,6 +363,11 @@ function Hogares() {
                     response.data
 
                 ]);
+
+
+                alert(
+                    "Hogar creado correctamente"
+                );
 
             }
 
@@ -539,17 +407,15 @@ function Hogares() {
 
                 );
 
+
+                alert(
+                    "Hogar actualizado correctamente"
+                );
+
             }
 
 
-            setFormulario(
-                formularioInicial()
-            );
-
-            setMostrarFormulario(
-                false
-            );
-
+            cerrarFormulario();
 
         } catch (error) {
 
@@ -564,21 +430,13 @@ function Hogares() {
             );
 
 
-            if (
-                error.response?.data?.detail
-            ) {
+            alert(
 
-                alert(
-                    error.response.data.detail
-                );
+                error.response?.data?.detail ||
 
-            } else {
+                "No se pudo guardar la información"
 
-                alert(
-                    "No se pudo guardar la información"
-                );
-
-            }
+            );
 
         }
 
@@ -588,14 +446,22 @@ function Hogares() {
     // =========================
     // ELIMINAR HOGAR
     // =========================
-    // SOLO ADMINISTRADOR
     //
-    // Elimina el hogar del sistema.
+    // SOLO ADMINISTRADOR
     // =========================
 
     const eliminarHogar = async (
         id_hogar
     ) => {
+
+        if (
+            usuario?.rol !== "administrador"
+        ) {
+
+            return;
+
+        }
+
 
         const confirmar =
             window.confirm(
@@ -631,6 +497,11 @@ function Hogares() {
             );
 
 
+            alert(
+                "Hogar eliminado correctamente"
+            );
+
+
         } catch (error) {
 
             console.error(
@@ -644,117 +515,13 @@ function Hogares() {
             );
 
 
-            if (
-                error.response?.data?.detail
-            ) {
-
-                alert(
-                    error.response.data.detail
-                );
-
-            } else {
-
-                alert(
-                    "No se pudo eliminar el hogar"
-                );
-
-            }
-
-        }
-
-    };
-
-
-    // =========================
-    // QUITAR HOGAR DE MI LISTA
-    // =========================
-    // SOLO PROFESIONAL
-    //
-    // NO elimina el hogar del sistema.
-    //
-    // Elimina únicamente la relación:
-    //
-    // profesional_hogar
-    //
-    // profesional_id + hogar_id
-    // =========================
-
-    const quitarHogarDeMiLista = async (
-        id_hogar
-    ) => {
-
-        const confirmar =
-            window.confirm(
-
-                `¿Está seguro de quitar el hogar ${id_hogar} de su lista?`
-
-            );
-
-
-        if (!confirmar) {
-
-            return;
-
-        }
-
-
-        try {
-
-            await api.delete(
-                `/profesionales/me/hogares/${id_hogar}`
-            );
-
-
             alert(
-                "Hogar eliminado de tu lista correctamente"
-            );
 
+                error.response?.data?.detail ||
 
-            // Actualizamos la tabla
-            setHogares(
-
-                hogares.filter(
-
-                    (hogar) =>
-                        hogar.id_hogar !== id_hogar
-
-                )
+                "No se pudo eliminar el hogar"
 
             );
-
-
-            // Actualizamos hogares disponibles
-            await obtenerHogaresDisponibles();
-
-
-        } catch (error) {
-
-            console.error(
-                "Error al quitar hogar de la lista:",
-                error
-            );
-
-            console.error(
-                "Respuesta API:",
-                error.response?.data
-            );
-
-
-            if (
-                error.response?.data?.detail
-            ) {
-
-                alert(
-                    error.response.data.detail
-                );
-
-            } else {
-
-                alert(
-                    "No se pudo quitar el hogar de tu lista"
-                );
-
-            }
 
         }
 
@@ -816,33 +583,39 @@ function Hogares() {
                         Hogares
                     </h1>
 
+
                     <p>
+
                         {usuario?.rol === "profesional"
 
-                            ? "Hogares asignados a mi lista"
+                            ? "Todos los hogares registrados en el sistema"
 
                             : "Hogares registrados en el sistema"
 
                         }
+
                     </p>
 
                 </div>
 
 
-                <button
-                    className="btn-nuevo"
-                    onClick={abrirNuevo}
-                >
+                {/* ========================= */}
+                {/* BOTÓN NUEVO */}
+                {/* ========================= */}
+                
 
-                    {usuario?.rol === "profesional"
+                {usuario?.rol === "administrador" && (
 
-                        ? "+ Agregar hogar"
+                    <button
+                        className="btn-nuevo"
+                        onClick={abrirNuevo}
+                    >
 
-                        : "+ Nuevo hogar"
+                        + Nuevo hogar
 
-                    }
+                    </button>
 
-                </button>
+                )}
 
             </div>
 
@@ -872,11 +645,7 @@ function Hogares() {
 
                                         ? "Nuevo hogar"
 
-                                        : modoFormulario === "editar"
-
-                                            ? "Editar hogar"
-
-                                            : "Agregar hogar"
+                                        : "Editar hogar"
 
                                     }
 
@@ -889,11 +658,7 @@ function Hogares() {
 
                                         ? "Ingrese los datos del hogar"
 
-                                        : modoFormulario === "editar"
-
-                                            ? "Modifique los datos del hogar"
-
-                                            : "Seleccione un hogar disponible"
+                                        : "Modifique los datos del hogar"
 
                                     }
 
@@ -908,17 +673,9 @@ function Hogares() {
 
                                 className="modal-close"
 
-                                onClick={() => {
-
-                                    setMostrarFormulario(
-                                        false
-                                    );
-
-                                    setFormulario(
-                                        formularioInicial()
-                                    );
-
-                                }}
+                                onClick={
+                                    cerrarFormulario
+                                }
 
                             >
 
@@ -937,12 +694,12 @@ function Hogares() {
                             onSubmit={guardarHogar}
                         >
 
+                            <div className="form-grid">
 
-                            {/* ========================= */}
-                            {/* PROFESIONAL: AGREGAR */}
-                            {/* ========================= */}
 
-                            {modoFormulario === "agregar" ? (
+                                {/* ========================= */}
+                                {/* ID HOGAR */}
+                                {/* ========================= */}
 
                                 <div className="form-group">
 
@@ -951,7 +708,9 @@ function Hogares() {
                                     </label>
 
 
-                                    <select
+                                    <input
+
+                                        type="number"
 
                                         name="id_hogar"
 
@@ -965,268 +724,210 @@ function Hogares() {
 
                                         required
 
+                                        disabled={
+                                            modoFormulario === "editar"
+                                        }
+
+                                    />
+
+                                </div>
+
+
+                                {/* ========================= */}
+                                {/* CUIDADOR */}
+                                {/* ========================= */}
+
+                                <div className="form-group">
+
+                                    <label>
+                                        Cuidador principal
+                                    </label>
+
+
+                                    <input
+
+                                        type="text"
+
+                                        name="cuidador_principal"
+
+                                        value={
+                                            formulario.cuidador_principal
+                                        }
+
+                                        onChange={
+                                            manejarCambio
+                                        }
+
+                                        required
+
+                                    />
+
+                                </div>
+
+
+                                {/* ========================= */}
+                                {/* PSDF */}
+                                {/* ========================= */}
+
+                                <div className="form-group">
+
+                                    <label>
+                                        PSDF
+                                    </label>
+
+
+                                    <input
+
+                                        type="text"
+
+                                        name="psdf"
+
+                                        value={
+                                            formulario.psdf
+                                        }
+
+                                        onChange={
+                                            manejarCambio
+                                        }
+
+                                        required
+
+                                    />
+
+                                </div>
+
+
+                                {/* ========================= */}
+                                {/* DIRECCIÓN */}
+                                {/* ========================= */}
+
+                                <div className="form-group">
+
+                                    <label>
+                                        Dirección
+                                    </label>
+
+
+                                    <input
+
+                                        type="text"
+
+                                        name="direccion"
+
+                                        value={
+                                            formulario.direccion
+                                        }
+
+                                        onChange={
+                                            manejarCambio
+                                        }
+
+                                        required
+
+                                    />
+
+                                </div>
+
+
+                                {/* ========================= */}
+                                {/* TELÉFONO */}
+                                {/* ========================= */}
+
+                                <div className="form-group">
+
+                                    <label>
+                                        Teléfono
+                                    </label>
+
+
+                                    <input
+
+                                        type="text"
+
+                                        name="telefono"
+
+                                        value={
+                                            formulario.telefono
+                                        }
+
+                                        onChange={
+                                            manejarCambio
+                                        }
+
+                                    />
+
+                                </div>
+
+
+                                {/* ========================= */}
+                                {/* UNIDAD VECINAL */}
+                                {/* ========================= */}
+
+                                <div className="form-group">
+
+                                    <label>
+                                        Unidad vecinal
+                                    </label>
+
+
+                                    <input
+
+                                        type="text"
+
+                                        name="unidad_vecinal"
+
+                                        value={
+                                            formulario.unidad_vecinal
+                                        }
+
+                                        onChange={
+                                            manejarCambio
+                                        }
+
+                                    />
+
+                                </div>
+
+
+                                {/* ========================= */}
+                                {/* ESTADO */}
+                                {/* ========================= */}
+
+                                <div className="form-group">
+
+                                    <label>
+                                        Estado
+                                    </label>
+
+
+                                    <select
+
+                                        name="estado"
+
+                                        value={
+                                            formulario.estado
+                                        }
+
+                                        onChange={
+                                            manejarCambio
+                                        }
+
                                     >
 
-                                        <option value="">
-                                            Seleccione un hogar
+                                        <option value="Activo">
+                                            Activo
                                         </option>
 
-
-                                        {hogaresDisponibles.map(
-
-                                            (hogar) => (
-
-                                                <option
-
-                                                    key={
-                                                        hogar.id
-                                                    }
-
-                                                    value={
-                                                        hogar.id_hogar
-                                                    }
-
-                                                >
-
-                                                    {hogar.id_hogar}
-
-                                                    {" - "}
-
-                                                    {
-                                                        hogar.cuidador_principal
-                                                    }
-
-                                                </option>
-
-                                            )
-
-                                        )}
+                                        <option value="Inactivo">
+                                            Inactivo
+                                        </option>
 
                                     </select>
 
                                 </div>
 
-                            ) : (
 
-
-                                /* ========================= */
-                                /* ADMINISTRADOR */
-                                /* ========================= */
-
-                                <div className="form-grid">
-
-
-                                    {/* ID HOGAR */}
-
-                                    <div className="form-group">
-
-                                        <label>
-                                            ID Hogar
-                                        </label>
-
-                                        <input
-
-                                            type="number"
-
-                                            name="id_hogar"
-
-                                            value={
-                                                formulario.id_hogar
-                                            }
-
-                                            onChange={
-                                                manejarCambio
-                                            }
-
-                                            required
-
-                                            disabled={
-                                                modoFormulario === "editar"
-                                            }
-
-                                        />
-
-                                    </div>
-
-
-                                    {/* CUIDADOR */}
-
-                                    <div className="form-group">
-
-                                        <label>
-                                            Cuidador principal
-                                        </label>
-
-                                        <input
-
-                                            type="text"
-
-                                            name="cuidador_principal"
-
-                                            value={
-                                                formulario.cuidador_principal
-                                            }
-
-                                            onChange={
-                                                manejarCambio
-                                            }
-
-                                            required
-
-                                        />
-
-                                    </div>
-
-
-                                    {/* PSDF */}
-
-                                    <div className="form-group">
-
-                                        <label>
-                                            PSDF
-                                        </label>
-
-                                        <input
-
-                                            type="text"
-
-                                            name="psdf"
-
-                                            value={
-                                                formulario.psdf
-                                            }
-
-                                            onChange={
-                                                manejarCambio
-                                            }
-
-                                            required
-
-                                        />
-
-                                    </div>
-
-
-                                    {/* DIRECCIÓN */}
-
-                                    <div className="form-group">
-
-                                        <label>
-                                            Dirección
-                                        </label>
-
-                                        <input
-
-                                            type="text"
-
-                                            name="direccion"
-
-                                            value={
-                                                formulario.direccion
-                                            }
-
-                                            onChange={
-                                                manejarCambio
-                                            }
-
-                                            required
-
-                                        />
-
-                                    </div>
-
-
-                                    {/* TELÉFONO */}
-
-                                    <div className="form-group">
-
-                                        <label>
-                                            Teléfono
-                                        </label>
-
-                                        <input
-
-                                            type="text"
-
-                                            name="telefono"
-
-                                            value={
-                                                formulario.telefono
-                                            }
-
-                                            onChange={
-                                                manejarCambio
-                                            }
-
-                                        />
-
-                                    </div>
-
-
-                                    {/* UNIDAD VECINAL */}
-
-                                    <div className="form-group">
-
-                                        <label>
-                                            Unidad vecinal
-                                        </label>
-
-                                        <input
-
-                                            type="text"
-
-                                            name="unidad_vecinal"
-
-                                            value={
-                                                formulario.unidad_vecinal
-                                            }
-
-                                            onChange={
-                                                manejarCambio
-                                            }
-
-                                        />
-
-                                    </div>
-
-
-                                    {/* ESTADO */}
-
-                                    <div className="form-group">
-
-                                        <label>
-                                            Estado
-                                        </label>
-
-                                        <select
-
-                                            name="estado"
-
-                                            value={
-                                                formulario.estado
-                                            }
-
-                                            onChange={
-                                                manejarCambio
-                                            }
-
-                                        >
-
-                                            <option value="Activo">
-                                                Activo
-                                            </option>
-
-                                            <option value="Inactivo">
-                                                Inactivo
-                                            </option>
-
-                                        </select>
-
-                                    </div>
-
-                                </div>
-
-                            )}
+                            </div>
 
 
                             {/* ========================= */}
@@ -1242,17 +943,9 @@ function Hogares() {
 
                                     className="btn-cancelar"
 
-                                    onClick={() => {
-
-                                        setMostrarFormulario(
-                                            false
-                                        );
-
-                                        setFormulario(
-                                            formularioInicial()
-                                        );
-
-                                    }}
+                                    onClick={
+                                        cerrarFormulario
+                                    }
 
                                 >
 
@@ -1273,11 +966,7 @@ function Hogares() {
 
                                         ? "Guardar hogar"
 
-                                        : modoFormulario === "editar"
-
-                                            ? "Guardar cambios"
-
-                                            : "Agregar hogar"
+                                        : "Guardar cambios"
 
                                     }
 
@@ -1336,9 +1025,18 @@ function Hogares() {
                                 Estado
                             </th>
 
-                            <th>
-                                Acciones
-                            </th>
+
+                            {/* ========================= */}
+                            {/* ACCIONES */}
+                            {/* ========================= */}
+
+                            {usuario?.rol === "administrador" && (
+
+                                <th>
+                                    Acciones
+                                </th>
+
+                            )}
 
                         </tr>
 
@@ -1377,22 +1075,40 @@ function Hogares() {
 
 
                                     <td>
-                                        {hogar.psdf}
+
+                                        {
+                                            hogar.psdf
+                                        }
+
                                     </td>
 
 
                                     <td>
-                                        {hogar.direccion}
+
+                                        {
+                                            hogar.direccion
+                                        }
+
                                     </td>
 
 
                                     <td>
-                                        {hogar.telefono}
+
+                                        {
+                                            hogar.telefono
+                                            ?? "-"
+                                        }
+
                                     </td>
 
 
                                     <td>
-                                        {hogar.unidad_vecinal}
+
+                                        {
+                                            hogar.unidad_vecinal
+                                            ?? "-"
+                                        }
+
                                     </td>
 
 
@@ -1412,7 +1128,9 @@ function Hogares() {
 
                                         >
 
-                                            {hogar.estado}
+                                            {
+                                                hogar.estado
+                                            }
 
                                         </span>
 
@@ -1420,75 +1138,44 @@ function Hogares() {
 
 
                                     {/* ========================= */}
-                                    {/* ACCIONES */}
+                                    {/* ACCIONES ADMINISTRADOR */}
                                     {/* ========================= */}
 
-                                    <td className="acciones">
+                                    {usuario?.rol === "administrador" && (
+
+                                        <td className="acciones">
 
 
-                                        {/* ========================= */}
-                                        {/* ADMINISTRADOR */}
-                                        {/* ========================= */}
+                                            <button
 
-                                        {usuario?.rol === "administrador" && (
+                                                className="btn-editar"
 
-                                            <>
+                                                onClick={() =>
+                                                    abrirEditar(
+                                                        hogar
+                                                    )
+                                                }
 
-                                                <button
+                                                title="Editar hogar"
 
-                                                    className="btn-editar"
+                                            >
 
-                                                    onClick={() =>
-                                                        abrirEditar(
-                                                            hogar
-                                                        )
-                                                    }
+                                                ✏️
 
-                                                >
+                                            </button>
 
-                                                    ✏️
-
-                                                </button>
-
-
-                                                <button
-
-                                                    className="btn-eliminar"
-
-                                                    onClick={() =>
-                                                        eliminarHogar(
-                                                            hogar.id_hogar
-                                                        )
-                                                    }
-
-                                                >
-
-                                                    🗑️
-
-                                                </button>
-
-                                            </>
-
-                                        )}
-
-
-                                        {/* ========================= */}
-                                        {/* PROFESIONAL */}
-                                        {/* ========================= */}
-
-                                        {usuario?.rol === "profesional" && (
 
                                             <button
 
                                                 className="btn-eliminar"
 
                                                 onClick={() =>
-                                                    quitarHogarDeMiLista(
+                                                    eliminarHogar(
                                                         hogar.id_hogar
                                                     )
                                                 }
 
-                                                title="Quitar de mi lista"
+                                                title="Eliminar hogar"
 
                                             >
 
@@ -1496,9 +1183,10 @@ function Hogares() {
 
                                             </button>
 
-                                        )}
 
-                                    </td>
+                                        </td>
+
+                                    )}
 
                                 </tr>
 
