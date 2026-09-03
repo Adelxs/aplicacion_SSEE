@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import date
-from typing import Optional
+from typing import Optional, List
 
 
 class HogarCreate(BaseModel):
@@ -229,3 +229,22 @@ class ProfesionalHogarCreate(BaseModel):
 class ProfesionalHogarResponse(BaseModel):
     hogar_id: int
     profesional_id: int
+    
+########################################################## Lotes ######################################################
+    
+    
+class IntervencionesLoteCreate(BaseModel):
+    intervenciones: list[IntervencionCreate]
+
+# Schemas para la respuesta en lote
+class IntervencionOmitida(BaseModel):
+    posicion_index: int
+    hogar_id: int
+    motivo: str
+
+class IntervencionesLoteResponse(BaseModel):
+    total_recibidos: int
+    insertados_exitosamente: int
+    omitidos: int
+    intervenciones_creadas: list[IntervencionResponse]
+    detalles_omitidos: list[IntervencionOmitida]

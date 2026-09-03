@@ -9,6 +9,8 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session, joinedload
+from typing import List
+
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="login"
@@ -1667,5 +1669,120 @@ def login(
         "token_type": "bearer"
     }
     
-################################################################## Profesional/Hogar ################################################################
+################################################################## Lotes ################################################################
     
+@app.post(
+    "/intervenciones/lote",
+    response_model=schemas.IntervencionesLoteResponse,
+    summary="Creación masiva de intervenciones"
+)
+def crear_intervenciones_lote(
+    lote: schemas.IntervencionesLoteCreate,
+    db: Session = Depends(get_db),
+    usuario = Depends(obtener_usuario_actual)
+):
+    # ==========================================
+    # VERIFICAR ROL Y PROFESIONAL ASOCIADO
+    # ==========================================
+    if usuario.rol == "profesional":
+        if usuario.profesional_id is None:
+            raise HTTPException(
+                status_code=403,
+                detail="El usuario profesional no tiene un profesional asociado"
+            )
+        profesional_base_id = usuario.profesional_id
+    elif usuario.rol != "administrador":
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permisos para crear intervenciones"
+        )
+
+    insertados = []
+    omitidos = []
+
+    # Iterar sobre cada intervención enviada en el lote
+    for idx, intervencion in enumerate(lote.intervenciones):
+        
+        # 1. Determinar el profesional_id para este ítem
+        if usuario.rol == "administrador":
+            prof_id = intervencion.profesional_id
+            if prof_id is None:
+                omitidos.append({
+                    "posicion_index": idx,
+                    "hogar_id": intervencion.hogar_id,
+                    "motivo": "Como administrador debes proporcionar 'profesional_id' en el JSON"
+                })
+                continue
+        else:
+            prof_id = profesional_base_id
+
+        # 2. Verificar que el Hogar existe
+        hogar = db.query(models.Hogar).filter(
+            models.Hogar.id_hogar == intervencion.hogar_id
+        ).first()
+
+        if hogar is None:
+            omitidos.append({
+                "posicion_index": idx,
+                "hogar_id": intervencion.hogar_id,
+                "motivo": f"El hogar_id {intervencion.hogar_id} no existe en la base de datos"
+            })
+            continue
+
+        # 3. Si es rol profesional, verificar Lista de Espera
+        if usuario.rol == "profesional":
+            asignacion = db.query(models.ListaEspera).filter(
+                models.ListaEspera.id_hogar == intervencion.hogar_id,
+                models.ListaEspera.profesional_id == prof_id
+            ).first()
+
+            if asignacion is None:
+                omitidos.append({
+                    "posicion_index": idx,
+                    "hogar_id": intervencion.hogar_id,
+                    "motivo": f"El hogar {intervencion.hogar_id} no está asignado a tu lista de espera"
+                })
+                continue
+
+        # 4. Verificar que el Profesional existe
+        profesional = db.query(models.Profesional).filter(
+            models.Profesional.id == prof_id
+        ).first()
+
+        if profesional is None:
+            omitidos.append({
+                "posicion_index": idx,
+                "hogar_id": intervencion.hogar_id,
+                "motivo": f"El profesional_id {prof_id} no existe"
+            })
+            continue
+
+        # 5. Crear la intervención
+        nueva_intervencion = models.Intervencion(
+            hogar_id=hogar.id,
+            profesional_id=prof_id,
+            tipo=intervencion.tipo,
+            numero_intervencion=intervencion.numero_intervencion,
+            fecha_programada=intervencion.fecha_programada,
+            fecha_realizada=intervencion.fecha_realizada,
+            estado=intervencion.estado,
+            observaciones=intervencion.observaciones
+        )
+        
+        db.add(nueva_intervencion)
+        insertados.append(nueva_intervencion)
+
+    # Hacer commit de todas las intervenciones válidas juntas
+    db.commit()
+
+    # Refrescar las instancias para obtener sus IDs asignados por la BD
+    for item in insertados:
+        db.refresh(item)
+
+    return {
+        "total_recibidos": len(lote.intervenciones),
+        "insertados_exitosamente": len(insertados),
+        "omitidos": len(omitidos),
+        "intervenciones_creadas": insertados,
+        "detalles_omitidos": omitidos
+    }
