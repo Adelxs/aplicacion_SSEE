@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import "./Hogares.css";
@@ -14,6 +13,10 @@ function Hogares() {
 
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [modoFormulario, setModoFormulario] = useState("crear");
+
+    const [busqueda, setBusqueda] = useState("");
+    const [paginaActual, setPaginaActual] = useState(1);
+    const elementosPorPagina = 10;
 
     const [formulario, setFormulario] = useState({
         id_hogar: "",
@@ -527,6 +530,41 @@ function Hogares() {
 
     };
 
+    // =========================
+// FILTRADO POR BÚSQUEDA
+// =========================
+
+const hogaresFiltrados = hogares.filter((hogar) =>
+    String(hogar.id_hogar)
+        .toLowerCase()
+        .includes(busqueda.toLowerCase())
+);
+
+// =========================
+// PAGINACIÓN
+// =========================
+
+const totalPaginas = Math.max(
+    1,
+    Math.ceil(hogaresFiltrados.length / elementosPorPagina)
+);
+
+const indiceInicio = (paginaActual - 1) * elementosPorPagina;
+const indiceFin = indiceInicio + elementosPorPagina;
+
+const hogaresPagina = hogaresFiltrados.slice(indiceInicio, indiceFin);
+
+// Cuando cambia la búsqueda, volver a la página 1
+const manejarBusqueda = (e) => {
+    setBusqueda(e.target.value);
+    setPaginaActual(1);
+};
+
+const irAPagina = (numero) => {
+    if (numero < 1 || numero > totalPaginas) return;
+    setPaginaActual(numero);
+};
+
 
     // =========================
     // CARGANDO
@@ -575,49 +613,40 @@ function Hogares() {
             {/* HEADER */}
             {/* ========================= */}
 
-            <div className="hogares-header">
+            
 
-                <div>
+                    <div className="hogares-header">
 
-                    <h1>
-                        Hogares
-                    </h1>
+    <div>
+        <h1>Hogares</h1>
+        <p>
+            {usuario?.rol === "profesional"
+                ? "Todos los hogares registrados en el sistema"
+                : "Hogares registrados en el sistema"}
+        </p>
+    </div>
 
+    {/* ========================= */}
+    {/* BUSCADOR */}
+    {/* ========================= */}
 
-                    <p>
+    <div className="hogares-buscador">
+        <input
+            type="text"
+            placeholder="Buscar por ID Hogar..."
+            value={busqueda}
+            onChange={manejarBusqueda}
+        />
+    </div>
 
-                        {usuario?.rol === "profesional"
+    {usuario?.rol === "administrador" && (
+        <button className="btn-nuevo" onClick={abrirNuevo}>
+            + Nuevo hogar
+        </button>
+    )}
 
-                            ? "Todos los hogares registrados en el sistema"
+</div>
 
-                            : "Hogares registrados en el sistema"
-
-                        }
-
-                    </p>
-
-                </div>
-
-
-                {/* ========================= */}
-                {/* BOTÓN NUEVO */}
-                {/* ========================= */}
-                
-
-                {usuario?.rol === "administrador" && (
-
-                    <button
-                        className="btn-nuevo"
-                        onClick={abrirNuevo}
-                    >
-
-                        + Nuevo hogar
-
-                    </button>
-
-                )}
-
-            </div>
 
 
             {/* ========================= */}
@@ -1045,9 +1074,9 @@ function Hogares() {
 
                     <tbody>
 
-                        {hogares.map(
+                        {hogaresPagina.map((hogar) => (
 
-                            (hogar) => (
+                            
 
                                 <tr
                                     key={
@@ -1198,7 +1227,45 @@ function Hogares() {
 
                 </table>
 
-            </div>
+               
+
+
+
+</div>
+
+{/* ========================= */}
+{/* PAGINACIÓN */}
+{/* ========================= */}
+
+{hogaresFiltrados.length === 0 ? (
+    <p className="sin-resultados">
+        No se encontraron hogares para "{busqueda}"
+    </p>
+) : (
+    <div className="paginacion">
+
+        <button
+            onClick={() => irAPagina(paginaActual - 1)}
+            disabled={paginaActual === 1}
+        >
+            ‹ Anterior
+        </button>
+
+        <span className="paginacion-info">
+            Página {paginaActual} de {totalPaginas}
+            {" "}({hogaresFiltrados.length} resultado{hogaresFiltrados.length !== 1 ? "s" : ""})
+        </span>
+
+        <button
+            onClick={() => irAPagina(paginaActual + 1)}
+            disabled={paginaActual === totalPaginas}
+        >
+            Siguiente ›
+        </button>
+
+    </div>
+)}
+            
 
         </div>
 
@@ -1207,4 +1274,3 @@ function Hogares() {
 }
 
 export default Hogares;
-

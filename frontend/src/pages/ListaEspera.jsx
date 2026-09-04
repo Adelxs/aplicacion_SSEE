@@ -26,6 +26,11 @@ function ListaEspera() {
 
     const [idEditando, setIdEditando] = useState(null);
 
+    const [filtroIdHogar, setFiltroIdHogar] = useState("");
+    const [filtroEstado, setFiltroEstado] = useState("");
+    const [paginaActual, setPaginaActual] = useState(1);
+    const elementosPorPagina = 10;
+
 
     // =========================================
     // FORMULARIO INICIAL
@@ -994,6 +999,61 @@ function ListaEspera() {
 
     };
 
+    // =========================================
+// FILTRADO
+// =========================================
+
+const listaEsperaFiltrada = listaEspera.filter((entrada) => {
+
+    const coincideIdHogar = String(
+        entrada.id_hogar ?? ""
+    )
+        .toLowerCase()
+        .includes(filtroIdHogar.toLowerCase());
+
+    const coincideEstado = filtroEstado
+        ? entrada.estado === filtroEstado
+        : true;
+
+    return (
+        coincideIdHogar &&
+        coincideEstado
+    );
+
+});
+
+// =========================================
+// PAGINACIÓN
+// =========================================
+
+const totalPaginas = Math.max(
+    1,
+    Math.ceil(listaEsperaFiltrada.length / elementosPorPagina)
+);
+
+const indiceInicio = (paginaActual - 1) * elementosPorPagina;
+const indiceFin = indiceInicio + elementosPorPagina;
+
+const listaEsperaPagina = listaEsperaFiltrada.slice(
+    indiceInicio,
+    indiceFin
+);
+
+const manejarFiltroIdHogar = (e) => {
+    setFiltroIdHogar(e.target.value);
+    setPaginaActual(1);
+};
+
+const manejarFiltroEstado = (e) => {
+    setFiltroEstado(e.target.value);
+    setPaginaActual(1);
+};
+
+const irAPagina = (numero) => {
+    if (numero < 1 || numero > totalPaginas) return;
+    setPaginaActual(numero);
+};
+
 
     // =========================================
     // CARGANDO
@@ -1050,32 +1110,44 @@ function ListaEspera() {
 <div className="intervenciones-header">
 
     <div>
+        <h1>Lista de espera</h1>
+        <p>Casos registrados en lista de espera</p>
+    </div>
 
-        <h1>
-            Lista de espera
-        </h1>
+    {/* ================================= */}
+    {/* FILTROS */}
+    {/* ================================= */}
 
-        <p>
-            Casos registrados en lista de espera
-        </p>
+    <div className="intervenciones-filtros">
+
+        <input
+            type="text"
+            placeholder="Buscar por ID Hogar..."
+            value={filtroIdHogar}
+            onChange={manejarFiltroIdHogar}
+        />
+
+        <select
+            value={filtroEstado}
+            onChange={manejarFiltroEstado}
+        >
+            <option value="">Todos los estados</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En espera">En espera</option>
+            <option value="Atendido">Atendido</option>
+            <option value="Cancelado">Cancelado</option>
+        </select>
 
     </div>
 
-
     {usuario?.rol === "administrador" && (
-
         <button
             className="btn-nueva-intervencion"
             onClick={abrirNuevo}
         >
-
             + Nueva entrada
-
         </button>
-
     )}
-
-
 
 </div>
 
@@ -1616,32 +1688,20 @@ function ListaEspera() {
 
                     <tbody>
 
-                        {listaEspera.map(
+                        {listaEsperaPagina.map(
 
-                            (entrada) => {
+        (entrada) => {
 
-                                const profesional =
-                                    profesionales.find(
+            const profesional =
+                profesionales.find(
+                    profesional =>
+                        Number(profesional.id) ===
+                        Number(entrada.profesional_id)
+                );
 
-                                        profesional =>
-                                            Number(
-                                                profesional.id
-                                            ) ===
-                                            Number(
-                                                entrada.profesional_id
-                                            )
+            return (
 
-                                    );
-
-
-                                return (
-
-                                    <tr
-                                        key={
-                                            entrada.id
-                                        }
-                                    >
-
+                <tr key={entrada.id}>
                                         <td>
 
                                             <strong>
@@ -1824,7 +1884,42 @@ function ListaEspera() {
             </div>
 
 
-        </div>
+{/* ================================= */}
+{/* PAGINACIÓN */}
+{/* ================================= */}
+
+{listaEsperaFiltrada.length === 0 ? (
+    <p className="sin-resultados">
+        No se encontraron entradas con los filtros aplicados
+    </p>
+) : (
+    <div className="paginacion">
+
+        <button
+            onClick={() => irAPagina(paginaActual - 1)}
+            disabled={paginaActual === 1}
+        >
+            ‹ Anterior
+        </button>
+
+        <span className="paginacion-info">
+            Página {paginaActual} de {totalPaginas}
+            {" "}({listaEsperaFiltrada.length} resultado{listaEsperaFiltrada.length !== 1 ? "s" : ""})
+        </span>
+
+        <button
+            onClick={() => irAPagina(paginaActual + 1)}
+            disabled={paginaActual === totalPaginas}
+        >
+            Siguiente ›
+        </button>
+
+    </div>
+)}
+
+</div>
+
+        
 
     );
 

@@ -28,6 +28,12 @@ function Intervenciones() {
 
     const [guardando, setGuardando] = useState(false);
 
+    const [filtroIdHogar, setFiltroIdHogar] = useState("");
+    const [filtroEstado, setFiltroEstado] = useState("");
+    const [filtroObservaciones, setFiltroObservaciones] = useState("");
+    const [paginaActual, setPaginaActual] = useState(1);
+    const elementosPorPagina = 10;
+
 
     // =========================================================
     // FORMULARIO
@@ -676,6 +682,73 @@ function Intervenciones() {
 
     };
 
+    // =========================================================
+// FILTRADO
+// =========================================================
+
+const intervencionesFiltradas = intervenciones.filter((intervencion) => {
+
+    const coincideIdHogar = String(
+        intervencion.hogar?.id_hogar ?? ""
+    )
+        .toLowerCase()
+        .includes(filtroIdHogar.toLowerCase());
+
+    const coincideEstado = filtroEstado
+        ? intervencion.estado === filtroEstado
+        : true;
+
+    const coincideObservaciones = String(
+        intervencion.observaciones ?? ""
+    )
+        .toLowerCase()
+        .includes(filtroObservaciones.toLowerCase());
+
+    return (
+        coincideIdHogar &&
+        coincideEstado &&
+        coincideObservaciones
+    );
+
+});
+
+// =========================================================
+// PAGINACIÓN
+// =========================================================
+
+const totalPaginas = Math.max(
+    1,
+    Math.ceil(intervencionesFiltradas.length / elementosPorPagina)
+);
+
+const indiceInicio = (paginaActual - 1) * elementosPorPagina;
+const indiceFin = indiceInicio + elementosPorPagina;
+
+const intervencionesPagina = intervencionesFiltradas.slice(
+    indiceInicio,
+    indiceFin
+);
+
+const manejarFiltroIdHogar = (e) => {
+    setFiltroIdHogar(e.target.value);
+    setPaginaActual(1);
+};
+
+const manejarFiltroEstado = (e) => {
+    setFiltroEstado(e.target.value);
+    setPaginaActual(1);
+};
+
+const manejarFiltroObservaciones = (e) => {
+    setFiltroObservaciones(e.target.value);
+    setPaginaActual(1);
+};
+
+const irAPagina = (numero) => {
+    if (numero < 1 || numero > totalPaginas) return;
+    setPaginaActual(numero);
+};
+
 
     // =========================================================
     // CARGANDO
@@ -726,30 +799,51 @@ function Intervenciones() {
 
             <div className="intervenciones-header">
 
-                <div>
+    <div>
+        <h1>Intervenciones</h1>
+        <p>Intervenciones registradas en el sistema</p>
+    </div>
 
-                    <h1>
-                        Intervenciones
-                    </h1>
+    {/* ================================================= */}
+    {/* FILTROS */}
+    {/* ================================================= */}
 
-                    <p>
-                        Intervenciones registradas
-                        en el sistema
-                    </p>
+    <div className="intervenciones-filtros">
 
-                </div>
+        <input
+            type="text"
+            placeholder="Buscar por ID Hogar..."
+            value={filtroIdHogar}
+            onChange={manejarFiltroIdHogar}
+        />
 
+        <select
+            value={filtroEstado}
+            onChange={manejarFiltroEstado}
+        >
+            <option value="">Todos los estados</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="realizada">Realizada</option>
+            <option value="cancelada">Cancelada</option>
+        </select>
 
-                <button
-                    className="btn-nueva-intervencion"
-                    onClick={nuevaIntervencion}
-                >
+        <input
+            type="text"
+            placeholder="Buscar en observaciones..."
+            value={filtroObservaciones}
+            onChange={manejarFiltroObservaciones}
+        />
 
-                    + Nueva intervención
+    </div>
 
-                </button>
+    <button
+        className="btn-nueva-intervencion"
+        onClick={nuevaIntervencion}
+    >
+        + Nueva intervención
+    </button>
 
-            </div>
+</div>
 
 
             {/* ================================================= */}
@@ -1371,17 +1465,11 @@ function Intervenciones() {
 
                     <tbody>
 
-                        {intervenciones.map(
+                        {intervencionesPagina.map(
 
-                            (intervencion) => (
+                              (intervencion) => (
 
-                                <tr
-
-                                    key={
-                                        intervencion.id
-                                    }
-
-                                >
+                               <tr key={intervencion.id}>
 
                                     <td>
 
@@ -1512,6 +1600,40 @@ function Intervenciones() {
 
             </div>
 
+{/* ================================================= */}
+{/* PAGINACIÓN */}
+{/* ================================================= */}
+
+{intervencionesFiltradas.length === 0 ? (
+    <p className="sin-resultados">
+        No se encontraron intervenciones con los filtros aplicados
+    </p>
+) : (
+    <div className="paginacion">
+
+        <button
+            onClick={() => irAPagina(paginaActual - 1)}
+            disabled={paginaActual === 1}
+        >
+            ‹ Anterior
+        </button>
+
+        <span className="paginacion-info">
+            Página {paginaActual} de {totalPaginas}
+            {" "}({intervencionesFiltradas.length} resultado{intervencionesFiltradas.length !== 1 ? "s" : ""})
+        </span>
+
+        <button
+            onClick={() => irAPagina(paginaActual + 1)}
+            disabled={paginaActual === totalPaginas}
+        >
+            Siguiente ›
+        </button>
+
+    </div>
+)}
+
+
 
         </div>
 
@@ -1520,4 +1642,3 @@ function Intervenciones() {
 }
 
 export default Intervenciones;
-

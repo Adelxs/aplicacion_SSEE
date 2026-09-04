@@ -14,9 +14,10 @@
 ========================= */
 
 .intervenciones-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 15px;
     margin-bottom: 30px;
 }
 
@@ -25,10 +26,13 @@
     font-size: 32px;
     font-weight: 700;
     color: #BC4F4F;
+    white-space: nowrap;
 }
 
 .intervenciones-header p {
-    margin: 8px 0 0;
+    margin: 6px 0 0;
+    padding: 0;
+    text-align: left;
     font-size: 15px;
     color: #6b4f4f;
 }
@@ -39,6 +43,10 @@
 ========================= */
 
 .btn-nueva-intervencion {
+    
+    justify-self: end;
+    margin-left: 0; 
+
     background: #BC4F4F;
     color: white;
     border: none;
@@ -578,4 +586,111 @@
         box-sizing: border-box;
     }
 
+}
+
+/* =========================
+   FILTROS
+========================= */
+
+.intervenciones-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.intervenciones-filtros input,
+.intervenciones-filtros select {
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    min-width: 180px;
+    transition: border 0.2s ease;
+}
+
+.intervenciones-filtros input:focus,
+.intervenciones-filtros select:focus {
+    border-color: #E98B50;
+    box-shadow: 0 0 0 2px rgba(233, 139, 80, 0.15);
+}
+/* =========================
+   PAGINACIÓN
+========================= */
+
+.paginacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 16px;
+}
+
+.paginacion button {
+    border: none;
+    background: #BC4F4F;
+    color: #FEF2A0;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.paginacion button:hover:not(:disabled) {
+    background: #E98B50;
+}
+
+.paginacion button:disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.paginacion-info {
+    font-size: 13px;
+    color: #5f4545;
+    font-weight: 600;
+}
+
+.sin-resultados {
+    text-align: center;
+    padding: 20px;
+    color: #64748b;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .intervenciones-header {
+        grid-template-columns: 1fr;
+        justify-items: stretch;
+    }
+
+    .intervenciones-filtros {
+        width: 100%;
+    }
+
+    .intervenciones-filtros input,
+    .intervenciones-filtros select {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .btn-nueva-intervencion {
+        justify-self: stretch;
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .paginacion {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .intervenciones-filtros {
+        flex-direction: column;
+    }
 }

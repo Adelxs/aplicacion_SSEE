@@ -1,3 +1,8 @@
+import math  
+
+from typing import List, Optional
+from fastapi import FastAPI, Depends, HTTPException, status
+# ... tus demás importaciones
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import Base, engine, get_db
@@ -10,6 +15,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session, joinedload
 from typing import List
+from math import ceil
 
 
 oauth2_scheme = OAuth2PasswordBearer(
@@ -152,6 +158,7 @@ def obtener_hogares(
             status_code=403,
             detail="No tienes permisos para consultar hogares"
         )
+
 
 @app.put("/hogares/{id_hogar}")
 def actualizar_hogar(
