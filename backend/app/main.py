@@ -17,7 +17,6 @@ from jose import jwt, JWTError
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 from math import ceil
-from app.backup import router as backup_router
 import subprocess
 from datetime import datetime
 
