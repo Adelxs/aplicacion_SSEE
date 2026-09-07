@@ -22,7 +22,6 @@ from datetime import datetime
 
 from fastapi.responses import FileResponse
 
-app.include_router(backup_router)
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="login"
