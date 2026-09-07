@@ -1,8 +1,9 @@
-import math  
+import math
+import os  
 
 from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status
-# ... tus demás importaciones
+
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import Base, engine, get_db
@@ -16,7 +17,13 @@ from jose import jwt, JWTError
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 from math import ceil
+from app.backup import router as backup_router
+import subprocess
+from datetime import datetime
 
+from fastapi.responses import FileResponse
+
+app.include_router(backup_router)
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="login"
@@ -1793,3 +1800,46 @@ def crear_intervenciones_lote(
         "intervenciones_creadas": insertados,
         "detalles_omitidos": omitidos
     }
+    
+    
+######################################################################## backup ######################################################
+@app.get("/backup", tags=["Backup"])
+def crear_backup(
+    usuario=Depends(requiere_admin)
+):
+    database_url = os.getenv("DATABASE_URL")
+
+    if not database_url:
+        raise HTTPException(
+            status_code=500,
+            detail="DATABASE_URL no está configurada"
+        )
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"backup_{timestamp}.sql"
+    filepath = f"/tmp/{filename}"
+
+    try:
+        subprocess.run(
+            [
+                "pg_dump",
+                database_url,
+                "-f",
+                filepath
+            ],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+
+        return FileResponse(
+            path=filepath,
+            filename=filename,
+            media_type="application/sql"
+        )
+
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al crear el backup: {e.stderr}"
+        )
