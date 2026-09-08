@@ -55,12 +55,21 @@ class ProfesionalResumen(BaseModel):
         from_attributes = True
         
 class IntervencionCreate(BaseModel):
+
     hogar_id: int
+
+    profesional_id: int | None = None
+
     tipo: str
+
     numero_intervencion: int | None = None
+
     fecha_programada: date | None = None
+
     fecha_realizada: date | None = None
+
     estado: str
+
     observaciones: str | None = None
     
 class IntervencionResponse(BaseModel):

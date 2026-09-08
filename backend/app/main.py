@@ -729,9 +729,13 @@ def eliminar_hogar_de_mis_hogares(
     response_model=schemas.IntervencionResponse
 )
 def crear_intervencion(
+
     intervencion: schemas.IntervencionCreate,
+
     db: Session = Depends(get_db),
+
     usuario = Depends(obtener_usuario_actual)
+
 ):
 
     # ==========================================
@@ -759,6 +763,13 @@ def crear_intervencion(
 
         profesional_id = intervencion.profesional_id
 
+        if profesional_id is None:
+
+            raise HTTPException(
+                status_code=400,
+                detail="Debes indicar un profesional_id"
+            )
+
     # ==========================================
     # PROFESIONAL
     # ==========================================
@@ -782,6 +793,7 @@ def crear_intervencion(
             models.ListaEspera
         ).filter(
             models.ListaEspera.id_hogar == intervencion.hogar_id,
+
             models.ListaEspera.profesional_id == profesional_id
         ).first()
 
