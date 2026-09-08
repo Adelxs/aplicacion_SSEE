@@ -1455,6 +1455,10 @@ const irAPagina = (numero) => {
                             </th>
 
                             <th>
+                                Nro Intervención
+                            </th>
+
+                            <th>
                                 Acciones
                             </th>
 
@@ -1539,6 +1543,16 @@ const irAPagina = (numero) => {
                                         }
 
                                     </td>
+
+                                     <td>
+
+                                        {
+                                            intervencion.numero_intervencion
+                                            ?? "-"
+                                        }
+
+                                    </td>
+                                    
 
 
                                     <td>
