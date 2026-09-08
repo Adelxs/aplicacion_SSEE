@@ -141,7 +141,7 @@ function Sidebar() {
                                 className="sidebar-link"
                                 onClick={cerrarMenu}
                             >
-                                Lista de espera
+                                Atenciones Actuales
                             </NavLink>
 
                         </>
