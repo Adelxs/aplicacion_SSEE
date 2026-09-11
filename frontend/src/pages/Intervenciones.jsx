@@ -6,6 +6,10 @@ import "./Intervenciones.css";
 function Intervenciones() {
 
     const [intervenciones, setIntervenciones] = useState([]);
+    const [mostrarHistorial, setMostrarHistorial] = useState(false);
+    const [historialHogar, setHistorialHogar] = useState([]);
+    const [hogarHistorial, setHogarHistorial] = useState(null);
+    const [cargandoHistorial, setCargandoHistorial] = useState(false);
 
     // Hogares disponibles para el formulario
     const [hogares, setHogares] = useState([]);
@@ -31,6 +35,7 @@ function Intervenciones() {
     const [filtroIdHogar, setFiltroIdHogar] = useState("");
     const [filtroEstado, setFiltroEstado] = useState("");
     const [filtroObservaciones, setFiltroObservaciones] = useState("");
+    const [filtroUnidadVecinal, setFiltroUnidadVecinal] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
     const elementosPorPagina = 10;
 
@@ -49,6 +54,17 @@ function Intervenciones() {
         estado: "pendiente",
         observaciones: ""
     };
+
+    const unidadesVecinales = [
+    ...new Set(
+        intervenciones
+            .map(
+                (intervencion) =>
+                    intervencion.hogar?.unidad_vecinal
+            )
+            .filter(Boolean)
+    )
+];
 
     const [formulario, setFormulario] = useState(
         formularioInicial
@@ -119,6 +135,46 @@ function Intervenciones() {
             );
         }
     };
+
+    const obtenerHistorialHogar = async (idHogar) => {
+    try {
+        setCargandoHistorial(true);
+
+        const response = await api.get(
+            `/hogares/${idHogar}/intervenciones`
+        );
+
+        setHistorialHogar(response.data);
+
+        if (response.data.length > 0) {
+            setHogarHistorial(response.data[0].hogar);
+        } else {
+            setHogarHistorial(null);
+        }
+
+        setMostrarHistorial(true);
+
+    } catch (error) {
+        console.error(
+            "Error al obtener historial:",
+            error
+        );
+
+        alert(
+            error.response?.data?.detail ||
+            "No se pudo obtener el historial del hogar"
+        );
+
+    } finally {
+        setCargandoHistorial(false);
+    }
+};
+
+const cerrarHistorial = () => {
+    setMostrarHistorial(false);
+    setHistorialHogar([]);
+    setHogarHistorial(null);
+};
 
 
     // =========================================================
@@ -703,10 +759,15 @@ const intervencionesFiltradas = intervenciones.filter((intervencion) => {
     )
         .toLowerCase()
         .includes(filtroObservaciones.toLowerCase());
+    
+    const coincideUnidadVecinal = filtroUnidadVecinal
+    ? intervencion.hogar?.unidad_vecinal === filtroUnidadVecinal
+    : true;
 
     return (
         coincideIdHogar &&
         coincideEstado &&
+        coincideUnidadVecinal &&
         coincideObservaciones
     );
 
@@ -741,6 +802,11 @@ const manejarFiltroEstado = (e) => {
 
 const manejarFiltroObservaciones = (e) => {
     setFiltroObservaciones(e.target.value);
+    setPaginaActual(1);
+};
+
+const manejarFiltroUnidadVecinal = (e) => {
+    setFiltroUnidadVecinal(e.target.value);
     setPaginaActual(1);
 };
 
@@ -816,6 +882,24 @@ const irAPagina = (numero) => {
             value={filtroIdHogar}
             onChange={manejarFiltroIdHogar}
         />
+
+        <select
+    value={filtroUnidadVecinal}
+    onChange={manejarFiltroUnidadVecinal}
+>
+    <option value="">
+        Todas las unidades vecinales
+    </option>
+
+    {unidadesVecinales.map((unidad) => (
+        <option
+            key={unidad}
+            value={unidad}
+        >
+            {unidad}
+        </option>
+    ))}
+</select>
 
         <select
             value={filtroEstado}
@@ -1412,6 +1496,300 @@ const irAPagina = (numero) => {
 
             )}
 
+            {/* ================================================= */}
+{/* MODAL HISTORIAL DEL HOGAR */}
+{/* ================================================= */}
+
+{mostrarHistorial && (
+
+    <div className="modal-overlay">
+
+        <div className="modal-historial">
+
+            {/* ===================================== */}
+            {/* HEADER */}
+            {/* ===================================== */}
+
+            <div className="modal-header">
+
+                <div>
+
+                    <h2>
+                        Historial del hogar
+                    </h2>
+
+                    <p>
+                        Ficha de intervenciones
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    className="modal-close"
+                    onClick={cerrarHistorial}
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            {/* ===================================== */}
+            {/* CARGANDO */}
+            {/* ===================================== */}
+
+            {cargandoHistorial ? (
+
+                <div className="historial-cargando">
+
+                    <p>
+                        Cargando historial...
+                    </p>
+
+                </div>
+
+            ) : (
+
+                <>
+
+                    {/* ================================= */}
+                    {/* INFORMACIÓN DEL HOGAR */}
+                    {/* ================================= */}
+
+                    {hogarHistorial && (
+
+                        <div className="ficha-hogar">
+
+                            <h3>
+                                Información del hogar
+                            </h3>
+
+                            <div className="ficha-hogar-grid">
+
+                                <div>
+                                    <strong>
+                                        ID Hogar
+                                    </strong>
+
+                                    <span>
+                                        {hogarHistorial.id_hogar}
+                                    </span>
+                                </div>
+
+
+                                <div>
+                                    <strong>
+                                        Cuidador principal
+                                    </strong>
+
+                                    <span>
+                                        {hogarHistorial.cuidador_principal}
+                                    </span>
+                                </div>
+
+
+                                <div>
+                                    <strong>
+                                        PSDF
+                                    </strong>
+
+                                    <span>
+                                        {hogarHistorial.psdf}
+                                    </span>
+                                </div>
+
+
+                                <div>
+                                    <strong>
+                                        Unidad Vecinal
+                                    </strong>
+
+                                    <span>
+                                        {hogarHistorial.unidad_vecinal || "-"}
+                                    </span>
+                                </div>
+
+
+                                <div>
+                                    <strong>
+                                        Dirección
+                                    </strong>
+
+                                    <span>
+                                        {hogarHistorial.direccion}
+                                    </span>
+                                </div>
+
+
+                                <div>
+                                    <strong>
+                                        Teléfono
+                                    </strong>
+
+                                    <span>
+                                        {hogarHistorial.telefono || "-"}
+                                    </span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    )}
+
+
+                    {/* ================================= */}
+                    {/* HISTORIAL */}
+                    {/* ================================= */}
+
+                    <div className="historial-intervenciones">
+
+                        <h3>
+                            Historial de intervenciones
+                        </h3>
+
+
+                        {historialHogar.length === 0 ? (
+
+                            <p className="sin-historial">
+                                Este hogar no tiene intervenciones registradas.
+                            </p>
+
+                        ) : (
+
+                            <div className="historial-lista">
+
+                                {historialHogar.map(
+                                    (intervencion) => (
+
+                                        <div
+                                            className="intervencion-card"
+                                            key={intervencion.id}
+                                        >
+
+                                            {/* FECHA */}
+
+                                            <div className="intervencion-fecha">
+
+                                                {intervencion.fecha_realizada
+                                                    || intervencion.fecha_programada
+                                                    || "Sin fecha"}
+
+                                            </div>
+
+
+                                            {/* CONTENIDO */}
+
+                                            <div className="intervencion-card-contenido">
+
+                                                <div className="intervencion-card-header">
+
+                                                    <h4>
+                                                        Intervención
+                                                        {" #"}
+                                                        {intervencion.numero_intervencion
+                                                            ?? "-"}
+                                                    </h4>
+
+                                                    <span
+                                                        className={`estado-${intervencion.estado}`}
+                                                    >
+                                                        {intervencion.estado}
+                                                    </span>
+
+                                                </div>
+
+
+                                                <p>
+                                                    <strong>
+                                                        Tipo:
+                                                    </strong>
+
+                                                    {" "}
+
+                                                    {intervencion.tipo}
+                                                </p>
+
+
+                                                <p>
+                                                    <strong>
+                                                        Profesional:
+                                                    </strong>
+
+                                                    {" "}
+
+                                                    {intervencion.profesional?.nombre
+                                                        ?? "Sin profesional"}
+                                                </p>
+
+
+                                                {intervencion.fecha_programada && (
+
+                                                    <p>
+                                                        <strong>
+                                                            Fecha programada:
+                                                        </strong>
+
+                                                        {" "}
+
+                                                        {intervencion.fecha_programada}
+                                                    </p>
+
+                                                )}
+
+
+                                                {intervencion.fecha_realizada && (
+
+                                                    <p>
+                                                        <strong>
+                                                            Fecha realizada:
+                                                        </strong>
+
+                                                        {" "}
+
+                                                        {intervencion.fecha_realizada}
+                                                    </p>
+
+                                                )}
+
+
+                                                <div className="intervencion-observaciones">
+
+                                                    <strong>
+                                                        Observaciones:
+                                                    </strong>
+
+                                                    <p>
+                                                        {intervencion.observaciones
+                                                            || "Sin observaciones"}
+                                                    </p>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    )
+                                )}
+
+                            </div>
+
+                        )}
+
+                    </div>
+
+                </>
+
+            )}
+
+        </div>
+
+    </div>
+
+)}
+
 
             {/* ================================================= */}
             {/* TABLA */}
@@ -1558,6 +1936,20 @@ const irAPagina = (numero) => {
                                     <td>
 
                                         <div className="acciones-intervencion">
+
+                                            <button
+                                                type="button"
+                                                className="btn-historial"
+                                                onClick={() =>
+                                                    obtenerHistorialHogar(
+                                                        intervencion.hogar?.id_hogar
+                                                    )
+                                                }
+                                                title="Ver historial del hogar"
+                                            >
+                                                📋
+                                            </button>
+
 
 
                                             <button

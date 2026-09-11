@@ -1,0 +1,505 @@
+.lista-espera-container {
+    padding: 30px;
+    min-height: 100vh;
+    background: #F3CD97;
+    color: #795548;
+}
+
+.lista-espera-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.lista-espera-header h1 {
+    margin: 0 0 6px;
+    font-size: 30px;
+    color: #795548;
+}
+
+.lista-espera-header p {
+    margin: 0;
+    color: #6b4f4f;
+}
+
+.btn-actualizar-lista {
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    background: #BC4F4F;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-actualizar-lista:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.lista-espera-cargando {
+    text-align: center;
+    padding: 60px 20px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.lista-espera-error {
+    background: #f8d7da;
+    color: #842029;
+    border: 1px solid #f1aeb5;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+}
+
+.lista-espera-resumen {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.resumen-card {
+    background: #fffaf0;
+    border-radius: 12px;
+    padding: 18px 25px;
+    min-width: 180px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.resumen-numero {
+    font-size: 28px;
+    font-weight: bold;
+    color: #BC4F4F;
+}
+
+.resumen-label {
+    font-size: 14px;
+    color: #6b4f4f;
+}
+
+.profesiones-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.profesion-seccion {
+    background: #fffaf0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.profesion-header {
+    background: #E98B50;
+    padding: 18px 22px;
+}
+
+.profesion-header h2 {
+    margin: 0 0 5px;
+    color: white;
+    font-size: 21px;
+}
+
+.profesion-contador {
+    color: white;
+    font-size: 14px;
+}
+
+.profesion-vacia {
+    padding: 25px;
+    text-align: center;
+    color: #795548;
+    font-style: italic;
+}
+
+.tabla-contenedor {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tabla-lista-espera {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 950px;
+}
+
+.tabla-lista-espera th {
+    background: #FEF2A0;
+    color: #795548;
+    padding: 12px 10px;
+    text-align: left;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.tabla-lista-espera td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #ead9c2;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.tabla-lista-espera tbody tr:hover {
+    background: #fff7df;
+}
+
+.btn-accion {
+    border: none;
+    border-radius: 7px;
+    padding: 8px 13px;
+    background: #BC4F4F;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-accion:hover {
+    opacity: 0.9;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+
+    .lista-espera-container {
+        padding: 20px 15px;
+    }
+
+    .lista-espera-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .lista-espera-header h1 {
+        font-size: 25px;
+    }
+
+    .btn-actualizar-lista {
+        width: 100%;
+    }
+
+    .lista-espera-resumen {
+        flex-direction: column;
+    }
+
+    .resumen-card {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .profesion-header {
+        padding: 15px;
+    }
+
+    .tabla-lista-espera {
+        min-width: 900px;
+    }
+
+    .lista-espera-header-acciones {
+    width: 100%;
+    flex-direction: column;
+}
+
+.btn-administrar-profesiones,
+.btn-actualizar-lista {
+    width: 100%;
+}
+}
+
+/* =========================
+   MODAL PASAR A ATENCIÓN
+========================= */
+
+.modal-atencion {
+    width: 90%;
+    max-width: 600px;
+
+    background: #fffaf0;
+
+    border-radius: 14px;
+
+    padding: 25px;
+
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+.atencion-hogar-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 15px;
+
+    margin-bottom: 25px;
+
+    padding: 16px;
+
+    background: #F3CD97;
+
+    border-radius: 10px;
+}
+
+.atencion-hogar-info div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.atencion-hogar-info strong {
+    font-size: 12px;
+    color: #795548;
+}
+
+.atencion-hogar-info span {
+    font-size: 15px;
+    font-weight: 600;
+    color: #5f4545;
+}
+
+.modal-atencion .form-group {
+    margin-bottom: 18px;
+}
+
+.modal-atencion select,
+.modal-atencion textarea {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 11px 12px;
+
+    border: 1px solid #d8b58c;
+
+    border-radius: 8px;
+
+    background: white;
+
+    font-family: inherit;
+
+    color: #5f4545;
+}
+
+.modal-atencion textarea {
+    resize: vertical;
+}
+
+.sin-profesionales {
+    padding: 12px;
+
+    border-radius: 8px;
+
+    background: #FEF2A0;
+
+    color: #795548;
+
+    font-size: 14px;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+
+    .modal-atencion {
+        padding: 20px;
+    }
+
+    .atencion-hogar-info {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+/* =========================
+   ACCIONES LISTA DE ESPERA
+========================= */
+
+.acciones-lista-espera {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-eliminar-lista {
+    width: 36px;
+    height: 36px;
+
+    border: none;
+    border-radius: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    background: #f8d7da;
+    color: #a94442;
+
+    transition: all 0.2s ease;
+}
+
+.btn-eliminar-lista:hover {
+    background: #BC4F4F;
+    color: white;
+
+    transform: translateY(-1px);
+}
+
+/* =========================
+   ACCIONES DEL ENCABEZADO
+========================= */
+
+.lista-espera-header-acciones {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-administrar-profesiones {
+    border: none;
+    border-radius: 8px;
+
+    padding: 11px 18px;
+
+    background: #E98B50;
+    color: white;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.btn-administrar-profesiones:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* =========================
+   MODAL ADMINISTRAR PROFESIONES
+========================= */
+
+.modal-profesiones {
+    width: 90%;
+    max-width: 550px;
+
+    background: #fffaf0;
+
+    border-radius: 14px;
+
+    padding: 25px;
+
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-profesiones .form-group {
+    margin-bottom: 18px;
+}
+
+.modal-profesiones label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-weight: 600;
+
+    color: #795548;
+}
+
+.modal-profesiones input {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 11px 12px;
+
+    border: 1px solid #d8b58c;
+
+    border-radius: 8px;
+
+    background: white;
+
+    font-family: inherit;
+
+    color: #5f4545;
+}
+
+.modal-profesiones input:focus {
+    outline: none;
+
+    border-color: #E98B50;
+}
+
+.profesiones-existentes {
+    margin-top: 25px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid #ead9c2;
+}
+
+.profesiones-existentes h3 {
+    margin: 0 0 12px;
+
+    color: #795548;
+
+    font-size: 17px;
+}
+
+.lista-profesiones-modal {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    max-height: 200px;
+
+    overflow-y: auto;
+}
+
+.profesion-modal-item {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 10px 12px;
+
+    background: #F3CD97;
+
+    border-radius: 7px;
+
+    color: #5f4545;
+
+    font-weight: 600;
+}
+
+.btn-eliminar-profesion {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.btn-eliminar-profesion:hover {
+    background: rgba(180, 50, 50, 0.12);
+    transform: scale(1.05);
+}

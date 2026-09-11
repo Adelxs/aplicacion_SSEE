@@ -24,6 +24,9 @@ function ListaEspera() {
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [modoFormulario, setModoFormulario] = useState("crear");
 
+    const [filtroProfesional, setFiltroProfesional] = useState("");
+    const [filtroUnidadVecinal, setFiltroUnidadVecinal] = useState("");
+
     const [idEditando, setIdEditando] = useState(null);
 
     const [filtroIdHogar, setFiltroIdHogar] = useState("");
@@ -999,6 +1002,14 @@ function ListaEspera() {
 
     };
 
+    const unidadesVecinales = [
+    ...new Set(
+        listaEspera
+            .map((entrada) => entrada.unidad_vecinal)
+            .filter(Boolean)
+    )
+].sort();
+
     // =========================================
 // FILTRADO
 // =========================================
@@ -1009,15 +1020,29 @@ const listaEsperaFiltrada = listaEspera.filter((entrada) => {
         entrada.id_hogar ?? ""
     )
         .toLowerCase()
-        .includes(filtroIdHogar.toLowerCase());
+        .includes(
+            filtroIdHogar.toLowerCase()
+        );
 
     const coincideEstado = filtroEstado
         ? entrada.estado === filtroEstado
         : true;
 
+    const coincideProfesional = filtroProfesional
+        ? String(entrada.profesional_id) ===
+          String(filtroProfesional)
+        : true;
+
+    const coincideUnidadVecinal = filtroUnidadVecinal
+        ? entrada.unidad_vecinal ===
+          filtroUnidadVecinal
+        : true;
+
     return (
         coincideIdHogar &&
-        coincideEstado
+        coincideEstado &&
+        coincideProfesional &&
+        coincideUnidadVecinal
     );
 
 });
@@ -1046,6 +1071,16 @@ const manejarFiltroIdHogar = (e) => {
 
 const manejarFiltroEstado = (e) => {
     setFiltroEstado(e.target.value);
+    setPaginaActual(1);
+};
+
+const manejarFiltroProfesional = (e) => {
+    setFiltroProfesional(e.target.value);
+    setPaginaActual(1);
+};
+
+const manejarFiltroUnidadVecinal = (e) => {
+    setFiltroUnidadVecinal(e.target.value);
     setPaginaActual(1);
 };
 
@@ -1110,8 +1145,8 @@ const irAPagina = (numero) => {
 <div className="intervenciones-header">
 
     <div>
-        <h1>Lista de espera</h1>
-        <p>Casos registrados en lista de espera</p>
+        <h1>Atenciones Actuales</h1>
+        <p>Casos registrados en Atenciones Actuales</p>
     </div>
 
     {/* ================================= */}
@@ -1120,25 +1155,96 @@ const irAPagina = (numero) => {
 
     <div className="intervenciones-filtros">
 
-        <input
-            type="text"
-            placeholder="Buscar por ID Hogar..."
-            value={filtroIdHogar}
-            onChange={manejarFiltroIdHogar}
-        />
+    {/* ID HOGAR */}
 
-        <select
-            value={filtroEstado}
-            onChange={manejarFiltroEstado}
-        >
-            <option value="">Todos los estados</option>
-            <option value="Pendiente">Pendiente</option>
-            <option value="En espera">En espera</option>
-            <option value="Atendido">Atendido</option>
-            <option value="Cancelado">Cancelado</option>
-        </select>
+    <input
+        type="text"
+        placeholder="Buscar por ID Hogar..."
+        value={filtroIdHogar}
+        onChange={manejarFiltroIdHogar}
+    />
 
-    </div>
+
+    {/* PROFESIONAL */}
+
+    <select
+        value={filtroProfesional}
+        onChange={manejarFiltroProfesional}
+    >
+
+        <option value="">
+            Todos los profesionales
+        </option>
+
+        {profesionales.map((profesional) => (
+
+            <option
+                key={profesional.id}
+                value={profesional.id}
+            >
+                {profesional.nombre}
+            </option>
+
+        ))}
+
+    </select>
+
+
+    {/* UNIDAD VECINAL */}
+
+    <select
+        value={filtroUnidadVecinal}
+        onChange={manejarFiltroUnidadVecinal}
+    >
+
+        <option value="">
+            Todas las unidades vecinales
+        </option>
+
+        {unidadesVecinales.map((unidad) => (
+
+            <option
+                key={unidad}
+                value={unidad}
+            >
+                {unidad}
+            </option>
+
+        ))}
+
+    </select>
+
+
+    {/* ESTADO */}
+
+    <select
+        value={filtroEstado}
+        onChange={manejarFiltroEstado}
+    >
+
+        <option value="">
+            Todos los estados
+        </option>
+
+        <option value="Pendiente">
+            Pendiente
+        </option>
+
+        <option value="En espera">
+            En espera
+        </option>
+
+        <option value="Atendido">
+            Atendido
+        </option>
+
+        <option value="Cancelado">
+            Cancelado
+        </option>
+
+    </select>
+
+</div>
 
     {usuario?.rol === "administrador" && (
         <button

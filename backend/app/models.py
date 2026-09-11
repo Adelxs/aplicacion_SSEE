@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Text, ForeignKey, Boolean, Table
+from sqlalchemy import Column, Integer, String, Date, Text, ForeignKey, Boolean, Table, UniqueConstraint
 from app.database import Base
 from sqlalchemy.orm import relationship
 
@@ -136,7 +136,7 @@ class Intervencion(Base):
     hogar = relationship("Hogar", back_populates="intervenciones")
     profesional = relationship("Profesional", back_populates="intervenciones")
     
-class ListaEspera(Base):
+class ListaEspera(Base):  ####Atenciones Actuales########
     __tablename__ = "lista_espera"
 
     id = Column(Integer, primary_key=True)
@@ -237,3 +237,52 @@ class Usuario(Base):
             "Profesional",
             back_populates="usuario"
         )
+        
+class ProfesionListaEspera(Base):
+    __tablename__ = "profesiones_lista_espera"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    nombre = Column(
+        String(100),
+        unique=True,
+        nullable=False
+    )
+    
+class HogarProfesionListaEspera(Base):
+    __tablename__ = "hogares_profesiones_lista_espera"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    hogar_id = Column(
+        Integer,
+        ForeignKey("hogares.id"),
+        nullable=False
+    )
+
+    profesion_id = Column(
+        Integer,
+        ForeignKey("profesiones_lista_espera.id"),
+        nullable=False
+    )
+
+    fecha_ingreso = Column(
+        Date,
+        nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "hogar_id",
+            "profesion_id",
+            name="uq_hogar_profesion_lista_espera"
+        ),
+    )

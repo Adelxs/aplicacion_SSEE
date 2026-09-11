@@ -694,3 +694,556 @@
         flex-direction: column;
     }
 }
+
+/* ========================================================= */
+/* MODAL - HISTORIAL DEL HOGAR */
+/* ========================================================= */
+
+.modal-historial {
+    width: 90%;
+    max-width: 1100px;
+    max-height: 90vh;
+    overflow-y: auto;
+
+    background: #ffffff;
+    border-radius: 16px;
+
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+
+    padding: 0;
+
+    animation: aparecerHistorial 0.2s ease-out;
+}
+
+
+/* ========================================================= */
+/* HEADER */
+/* ========================================================= */
+
+.modal-historial .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 22px 28px;
+
+    background: linear-gradient(
+        135deg,
+        #BC4F4F,
+        #BC4F4F
+    );
+
+    color: white;
+
+    border-radius: 16px 16px 0 0;
+}
+
+.modal-historial .modal-header h2 {
+    margin: 0;
+    color:#fef3c7;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.modal-historial .modal-header p {
+    margin: 5px 0 0;
+
+    font-size: 14px;
+
+    opacity: 0.85;
+}
+
+
+/* ========================================================= */
+/* BOTÓN CERRAR */
+/* ========================================================= */
+
+.modal-historial .modal-close {
+    width: 38px;
+    height: 38px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, 0.15);
+
+    color: white;
+
+    font-size: 27px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+.modal-historial .modal-close:hover {
+    background: rgba(255, 255, 255, 0.30);
+
+    transform: rotate(90deg);
+}
+
+
+/* ========================================================= */
+/* INFORMACIÓN DEL HOGAR */
+/* ========================================================= */
+
+.ficha-hogar {
+    margin: 24px 28px;
+
+    padding: 20px;
+
+    background: #7c6a22;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+}
+
+.ficha-hogar h3 {
+    margin: 0 0 18px;
+
+    color: #BC4F4F;
+
+    font-size: 18px;
+}
+
+
+/* GRID DE INFORMACIÓN */
+
+.ficha-hogar-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 16px;
+}
+
+.ficha-hogar-grid > div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+
+    padding: 12px 14px;
+
+    background: #fef3c7;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 8px;
+}
+
+.ficha-hogar-grid strong {
+    font-size: 12px;
+
+    color: #64748b;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.4px;
+}
+
+.ficha-hogar-grid span {
+    color: #1e293b;
+
+    font-size: 15px;
+
+    font-weight: 500;
+}
+
+
+/* ========================================================= */
+/* HISTORIAL */
+/* ========================================================= */
+
+.historial-intervenciones {
+    padding: 0 28px 28px;
+}
+
+.historial-intervenciones h3 {
+    margin: 10px 0 24px;
+
+    color: #BC4F4F;
+
+    font-size: 20px;
+}
+
+
+/* ========================================================= */
+/* LISTA */
+/* ========================================================= */
+
+.historial-lista {
+    position: relative;
+
+    padding-left: 35px;
+}
+
+
+/* LÍNEA DE TIEMPO */
+
+.historial-lista::before {
+    content: "";
+
+    position: absolute;
+
+    top: 5px;
+    bottom: 5px;
+
+    left: 9px;
+
+    width: 3px;
+
+    background: #fef3c7;
+
+    border-radius: 10px;
+}
+
+
+/* ========================================================= */
+/* TARJETA DE INTERVENCIÓN */
+/* ========================================================= */
+
+.intervencion-card {
+    position: relative;
+
+    display: flex;
+
+    gap: 18px;
+
+    margin-bottom: 22px;
+
+    padding: 18px;
+
+    background: #f5e5a8;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05);
+
+    transition: all 0.2s ease;
+}
+
+.intervencion-card:hover {
+    transform: translateY(-2px);
+
+    box-shadow: 0 7px 18px rgba(15, 23, 42, 0.10);
+
+    border-color: #BC4F4F;
+}
+
+
+/* PUNTO DE LA LÍNEA */
+
+.intervencion-card::before {
+    content: "";
+
+    position: absolute;
+
+    left: -32px;
+    top: 22px;
+
+    width: 14px;
+    height: 14px;
+
+    background: #BC4F4F;
+
+    border: 3px solid white;
+
+    border-radius: 50%;
+
+    box-shadow: 0 0 0 2px #93c5fd;
+}
+
+
+/* ========================================================= */
+/* FECHA */
+/* ========================================================= */
+
+.intervencion-fecha {
+    min-width: 105px;
+
+    padding-top: 3px;
+
+    color: #BC4F4F;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    text-align: center;
+}
+
+
+/* ========================================================= */
+/* CONTENIDO */
+/* ========================================================= */
+
+.intervencion-card-contenido {
+    flex: 1;
+
+    min-width: 0;
+}
+
+.intervencion-card-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 12px;
+}
+
+.intervencion-card-header h4 {
+    margin: 0;
+
+    color: #BC4F4F;
+
+    font-size: 17px;
+}
+
+
+/* ========================================================= */
+/* ESTADO */
+/* ========================================================= */
+
+.intervencion-card-header span {
+    display: inline-flex;
+
+    align-items: center;
+
+    padding: 5px 11px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+/* Estados */
+
+.estado-completada,
+.estado-realizada,
+.estado-finalizada {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.estado-pendiente,
+.estado-programada {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.estado-cancelada {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+
+/* ========================================================= */
+/* INFORMACIÓN DE LA INTERVENCIÓN */
+/* ========================================================= */
+
+.intervencion-card-contenido > p {
+    margin: 7px 0;
+
+    color: #BC4F4F;
+
+    font-size: 14px;
+}
+
+.intervencion-card-contenido strong {
+    color: #BC4F4F;
+}
+
+
+/* ========================================================= */
+/* OBSERVACIONES */
+/* ========================================================= */
+
+.intervencion-observaciones {
+    margin-top: 14px;
+
+    padding: 13px 15px;
+
+    background: #fef3c7;
+
+    border-left: 4px solid #BC4F4F;
+
+    border-radius: 6px;
+}
+
+.intervencion-observaciones strong {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #BC4F4F;
+
+    font-size: 13px;
+}
+
+.intervencion-observaciones p {
+    margin: 0;
+
+    color: #BC4F4F;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+}
+
+
+/* ========================================================= */
+/* CARGANDO */
+/* ========================================================= */
+
+.historial-cargando {
+    padding: 60px 20px;
+
+    text-align: center;
+
+    color: #BC4F4F;
+
+    font-size: 16px;
+}
+
+
+/* ========================================================= */
+/* SIN HISTORIAL */
+/* ========================================================= */
+
+.sin-historial {
+    padding: 40px 20px;
+
+    background: #fef3c7;
+
+    border: 1px dashed #cbd5e1;
+
+    border-radius: 10px;
+
+    color: #BC4F4F;
+
+    text-align: center;
+}
+
+
+/* ========================================================= */
+/* ANIMACIÓN */
+/* ========================================================= */
+
+@keyframes aparecerHistorial {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* ========================================================= */
+/* RESPONSIVE */
+/* ========================================================= */
+
+@media (max-width: 800px) {
+
+    .modal-historial {
+        width: 95%;
+    }
+
+    .ficha-hogar-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .intervencion-card {
+        flex-direction: column;
+    }
+
+    .intervencion-fecha {
+        text-align: left;
+    }
+
+}
+
+
+@media (max-width: 550px) {
+
+    .modal-historial .modal-header {
+        padding: 18px;
+    }
+
+    .modal-historial .modal-header h2 {
+        font-size: 20px;
+    }
+
+    .ficha-hogar {
+        margin: 18px;
+    }
+
+    .ficha-hogar-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .historial-intervenciones {
+        padding: 0 18px 20px;
+    }
+
+    .historial-lista {
+        padding-left: 25px;
+    }
+
+    .intervencion-card {
+        padding: 15px;
+    }
+
+    .intervencion-card::before {
+        left: -24px;
+    }
+
+    .historial-lista::before {
+        left: 8px;
+    }
+
+    .intervencion-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+}
+
+/* =========================
+   LISTAR / VER HISTORIAL
+========================= */
+
+.btn-historial {
+    background: #e5e7eb;
+    color: #5f4545;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 6px;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btn-historial:hover {
+    background: #d1d5db;
+    transform: translateY(-1px);
+}

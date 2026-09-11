@@ -14,9 +14,17 @@ function Hogares() {
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [modoFormulario, setModoFormulario] = useState("crear");
 
+    const [mostrarListaEspera, setMostrarListaEspera] = useState(false);
+    const [hogarSeleccionado, setHogarSeleccionado] = useState(null);
+
+    const [profesiones, setProfesiones] = useState([]);
+    const [profesionSeleccionada, setProfesionSeleccionada] = useState("");
+    const [cargandoProfesiones, setCargandoProfesiones] = useState(false);
+
     const [busqueda, setBusqueda] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
     const elementosPorPagina = 10;
+
 
     const [formulario, setFormulario] = useState({
         id_hogar: "",
@@ -132,6 +140,136 @@ function Hogares() {
         }
 
     };
+
+    // =========================
+// OBTENER PROFESIONES
+// =========================
+
+const obtenerProfesionesListaEspera = async () => {
+
+    try {
+
+        setCargandoProfesiones(true);
+
+        const response = await api.get(
+            "/profesiones-lista-espera"
+        );
+
+        setProfesiones(response.data);
+
+    } catch (error) {
+
+        console.error(
+            "Error al obtener profesiones:",
+            error
+        );
+
+        alert(
+            error.response?.data?.detail ||
+            "No se pudieron cargar las profesiones"
+        );
+
+    } finally {
+
+        setCargandoProfesiones(false);
+
+    }
+
+};
+
+// =========================
+// ABRIR LISTA DE ESPERA
+// =========================
+
+const abrirListaEspera = async (hogar) => {
+
+    if (usuario?.rol !== "administrador") {
+        return;
+    }
+
+    setHogarSeleccionado(hogar);
+    setProfesionSeleccionada("");
+    setMostrarListaEspera(true);
+
+    await obtenerProfesionesListaEspera();
+
+};
+
+// =========================
+// CERRAR LISTA DE ESPERA
+// =========================
+
+const cerrarListaEspera = () => {
+
+    setMostrarListaEspera(false);
+    setHogarSeleccionado(null);
+    setProfesionSeleccionada("");
+
+};
+
+// =========================
+// AGREGAR A LISTA DE ESPERA
+// =========================
+
+const agregarAListaEspera = async (e) => {
+
+    e.preventDefault();
+
+    if (usuario?.rol !== "administrador") {
+        return;
+    }
+
+    if (!hogarSeleccionado) {
+        return;
+    }
+
+    if (!profesionSeleccionada) {
+
+        alert(
+            "Debe seleccionar una profesión"
+        );
+
+        return;
+    }
+
+    try {
+
+        await api.post(
+            "/lista-espera-profesiones",
+            {
+                hogar_id: hogarSeleccionado.id,
+                profesion_id: Number(
+                    profesionSeleccionada
+                )
+            }
+        );
+
+        alert(
+            "Hogar agregado a la lista de espera correctamente"
+        );
+
+        cerrarListaEspera();
+
+    } catch (error) {
+
+        console.error(
+            "Error al agregar hogar a lista de espera:",
+            error
+        );
+
+        console.error(
+            "Respuesta API:",
+            error.response?.data
+        );
+
+        alert(
+            error.response?.data?.detail ||
+            "No se pudo agregar el hogar a la lista de espera"
+        );
+
+    }
+
+};
 
 
     // =========================
@@ -1012,6 +1150,141 @@ const irAPagina = (numero) => {
 
             )}
 
+            {/* ========================= */}
+{/* MODAL LISTA DE ESPERA */}
+{/* ========================= */}
+
+{mostrarListaEspera && hogarSeleccionado && (
+
+    <div className="modal-overlay">
+
+        <div className="hogar-modal lista-espera-modal">
+
+            <div className="modal-header">
+
+                <div>
+
+                    <h2>
+                        Agregar a lista de espera
+                    </h2>
+
+                    <p>
+                        Seleccione la profesión para este hogar
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    className="modal-close"
+                    onClick={cerrarListaEspera}
+                >
+                    ✕
+                </button>
+
+            </div>
+
+
+            <div className="lista-espera-hogar-info">
+
+                <div>
+                    <strong>ID Hogar</strong>
+                    <span>
+                        {hogarSeleccionado.id_hogar}
+                    </span>
+                </div>
+
+                <div>
+                    <strong>Cuidador principal</strong>
+                    <span>
+                        {hogarSeleccionado.cuidador_principal}
+                    </span>
+                </div>
+
+            </div>
+
+
+            <form onSubmit={agregarAListaEspera}>
+
+                <div className="form-group">
+
+                    <label>
+                        Profesión
+                    </label>
+
+                    {cargandoProfesiones ? (
+
+                        <p>
+                            Cargando profesiones...
+                        </p>
+
+                    ) : (
+
+                        <select
+                            value={profesionSeleccionada}
+                            onChange={(e) =>
+                                setProfesionSeleccionada(
+                                    e.target.value
+                                )
+                            }
+                            required
+                        >
+
+                            <option value="">
+                                Seleccione una profesión
+                            </option>
+
+                            {profesiones.map(
+                                (profesion) => (
+
+                                    <option
+                                        key={profesion.id}
+                                        value={profesion.id}
+                                    >
+                                        {profesion.nombre}
+                                    </option>
+
+                                )
+                            )}
+
+                        </select>
+
+                    )}
+
+                </div>
+
+
+                <div className="form-actions">
+
+                    <button
+                        type="button"
+                        className="btn-cancelar"
+                        onClick={cerrarListaEspera}
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        className="btn-guardar"
+                        disabled={
+                            cargandoProfesiones ||
+                            !profesionSeleccionada
+                        }
+                    >
+                        Agregar a lista de espera
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+)}
+
 
             {/* ========================= */}
             {/* TABLA */}
@@ -1191,6 +1464,16 @@ const irAPagina = (numero) => {
 
                                                 ✏️
 
+                                            </button>
+
+                                            <button
+                                                className="btn-lista-espera"
+                                                onClick={() =>
+                                                    abrirListaEspera(hogar)
+                                                }
+                                                title="Agregar a lista de espera"
+                                            >
+                                                ⏳
                                             </button>
 
 

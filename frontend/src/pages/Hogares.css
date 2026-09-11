@@ -669,3 +669,104 @@
         gap: 10px;
     }
 }
+
+/* =========================
+   LISTA DE ESPERA
+========================= */
+
+.btn-lista-espera {
+    width: 36px;
+    height: 36px;
+
+    border: none;
+    border-radius: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    background: #FEF2A0;
+    color: #795548;
+
+    transition: all 0.2s ease;
+}
+
+.btn-lista-espera:hover {
+    background: #E98B50;
+    color: white;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================
+   INFORMACIÓN DEL HOGAR
+========================= */
+
+.lista-espera-hogar-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 15px;
+
+    margin-bottom: 25px;
+
+    padding: 16px;
+
+    background: #F3CD97;
+
+    border-radius: 10px;
+}
+
+.lista-espera-hogar-info div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.lista-espera-hogar-info strong {
+    font-size: 12px;
+    color: #795548;
+}
+
+.lista-espera-hogar-info span {
+    font-size: 15px;
+    font-weight: 600;
+    color: #5f4545;
+}
+
+
+/* =========================
+   MODAL LISTA DE ESPERA
+========================= */
+
+.lista-espera-modal {
+    max-width: 550px;
+}
+
+.lista-espera-modal .form-group {
+    margin-top: 10px;
+}
+
+.lista-espera-modal select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+
+    .lista-espera-hogar-info {
+        grid-template-columns: 1fr;
+    }
+
+}

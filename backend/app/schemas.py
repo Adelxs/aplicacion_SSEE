@@ -110,6 +110,7 @@ class IntervencionUpdate(BaseModel):
     estado: str | None = None
     observaciones: str | None = None
     
+###################################################### Atenciones Actuales #################################################
 class ListaEsperaCreate(BaseModel):
     
     id_hogar: int
@@ -191,6 +192,8 @@ class ListaEsperaUpdate(BaseModel):
 
 class ListaEsperaDetalle(ListaEsperaResponse):
     pass
+
+######################################################################## usuario #################################################
     
 class UsuarioCreate(BaseModel):
     username: str
@@ -257,3 +260,51 @@ class IntervencionesLoteResponse(BaseModel):
     omitidos: int
     intervenciones_creadas: list[IntervencionResponse]
     detalles_omitidos: list[IntervencionOmitida]
+    
+############################################################ nueva lista de espera ########################################################
+    
+class ProfesionListaEsperaCreate(BaseModel):
+    nombre: str
+
+
+class ProfesionListaEsperaResponse(BaseModel):
+    id: int
+    nombre: str
+
+    class Config:
+        from_attributes = True
+        
+class HogarProfesionListaEsperaCreate(BaseModel):
+    hogar_id: int
+    profesion_id: int
+
+
+class HogarProfesionListaEsperaResponse(BaseModel):
+    id: int
+    hogar_id: int
+    profesion_id: int
+    fecha_ingreso: date
+
+    class Config:
+        from_attributes = True
+        
+class HogarProfesionListaEsperaDetalle(BaseModel):
+    id: int
+    hogar_id: int
+    id_hogar: int
+    cuidador_principal: str
+    psdf: str
+    direccion: str
+    unidad_vecinal: str | None
+    telefono: str | None
+    profesion_id: int
+    profesion: str
+    fecha_ingreso: date
+
+    class Config:
+        from_attributes = True
+        
+class MoverAtencionDesdeListaEspera(BaseModel):
+    profesional_id: int
+    dia: str | None = None
+    observaciones: str | None = None

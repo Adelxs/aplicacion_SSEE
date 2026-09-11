@@ -511,26 +511,37 @@
 
 .intervenciones-filtros {
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
-    gap: 12px;
+    align-items: center;
+    gap: 15px;
+    margin: 25px auto;
+    flex-wrap: wrap;
 }
 
 .intervenciones-filtros input,
 .intervenciones-filtros select {
-    padding: 10px 14px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
     font-size: 14px;
-    outline: none;
-    min-width: 180px;
-    transition: border 0.2s ease;
+    box-sizing: border-box;
+}
+
+.intervenciones-filtros input {
+    width: 220px;
+}
+
+.intervenciones-filtros select {
+    width: 210px;
+    background-color: white;
+    cursor: pointer;
 }
 
 .intervenciones-filtros input:focus,
 .intervenciones-filtros select:focus {
-    border-color: #E98B50;
-    box-shadow: 0 0 0 2px rgba(233, 139, 80, 0.15);
+    outline: none;
+    border-color: #007bff;
 }
 
 /* =========================

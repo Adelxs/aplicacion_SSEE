@@ -11,6 +11,7 @@ import Intervenciones from "./pages/Intervenciones";
 import ListaEspera from "./pages/ListaEspera";
 import Asistente from "./pages/Asistente";
 import Login from "./pages/Login";
+import NuevaListaEspera from "./pages/NuevaListaEspera";
 
 import "./App.css";
 
@@ -93,6 +94,17 @@ function App() {
                             <Route
                                 path="/lista-espera"
                                 element={<ListaEspera />}
+                            />
+
+                            <Route
+                                path="/lista-espera-profesiones"
+                                element={
+                                    <ProtectedRoute
+                                        roles={["administrador"]}
+                                    >
+                                        <NuevaListaEspera />
+                                    </ProtectedRoute>
+                                }
                             />
 
                             <Route

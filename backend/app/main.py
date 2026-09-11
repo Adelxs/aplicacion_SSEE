@@ -18,7 +18,8 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List
 from math import ceil
 import subprocess
-from datetime import datetime
+from datetime import datetime, date
+from sqlalchemy import func
 
 from fastapi.responses import FileResponse
 
@@ -1139,7 +1140,67 @@ def eliminar_intervencion(
         "mensaje": "Intervención eliminada correctamente"
     }
     
-################################################################# Lista de espera ############################################################
+@app.get("/hogares/{hogar_id}/intervenciones")
+def obtener_intervenciones_hogar(
+    hogar_id: int,
+    db: Session = Depends(get_db),
+    usuario=Depends(obtener_usuario_actual)
+):
+
+    # ==========================================
+    # VERIFICAR PERMISOS
+    # ==========================================
+
+    if usuario.rol not in ["administrador", "profesional"]:
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permisos para consultar intervenciones"
+        )
+
+    # ==========================================
+    # BUSCAR HOGAR
+    # ==========================================
+
+    hogar = db.query(
+        models.Hogar
+    ).filter(
+        models.Hogar.id_hogar == hogar_id
+    ).first()
+
+    if hogar is None:
+        raise HTTPException(
+            status_code=404,
+            detail="El hogar no existe"
+        )
+
+    # ==========================================
+    # OBTENER INTERVENCIONES
+    # ==========================================
+
+    query = db.query(
+        models.Intervencion
+    ).filter(
+        models.Intervencion.hogar_id == hogar.id
+    )
+
+    # ==========================================
+    # ORDEN CRONOLÓGICO
+    # ==========================================
+
+    fecha_historial = func.coalesce(
+        models.Intervencion.fecha_realizada,
+        models.Intervencion.fecha_programada
+    )
+
+    intervenciones = query.order_by(
+        fecha_historial.is_(None),
+        fecha_historial.asc(),
+        models.Intervencion.numero_intervencion.asc()
+    ).all()
+
+    return intervenciones
+    
+################################################################# Atenciones actuales ############################################################
     
 @app.post(
     "/lista-espera",
@@ -1853,3 +1914,496 @@ def crear_backup(
             status_code=500,
             detail=f"Error al crear el backup: {e.stderr}"
         )
+        
+################################################### nueva lista de espera ###################################################
+
+# ============================================================
+# OBTENER NUEVA LISTA DE ESPERA COMPLETA
+# ============================================================
+
+@app.get(
+    "/profesiones-lista-espera",
+    response_model=list[schemas.ProfesionListaEsperaResponse]
+)
+def obtener_profesiones_lista_espera(
+    db: Session = Depends(get_db),
+    usuario = Depends(requiere_admin)
+):
+    profesiones = db.query(
+        models.ProfesionListaEspera
+    ).order_by(
+        models.ProfesionListaEspera.nombre.asc()
+    ).all()
+
+    return profesiones
+
+@app.get(
+    "/lista-espera-profesiones",
+    response_model=list[schemas.HogarProfesionListaEsperaDetalle]
+)
+def obtener_lista_espera_profesiones(
+    db: Session = Depends(get_db),
+    usuario = Depends(obtener_usuario_actual)
+):
+
+    if usuario.rol != "administrador":
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permisos para consultar la lista de espera"
+        )
+
+    lista = db.query(
+        models.HogarProfesionListaEspera.id,
+        models.HogarProfesionListaEspera.hogar_id,
+        models.Hogar.id_hogar,
+        models.Hogar.cuidador_principal,
+        models.Hogar.psdf,
+        models.Hogar.direccion,
+        models.Hogar.unidad_vecinal,
+        models.Hogar.telefono,
+        models.HogarProfesionListaEspera.profesion_id,
+        models.ProfesionListaEspera.nombre.label("profesion"),
+        models.HogarProfesionListaEspera.fecha_ingreso
+    ).join(
+        models.Hogar,
+        models.Hogar.id == models.HogarProfesionListaEspera.hogar_id
+    ).join(
+        models.ProfesionListaEspera,
+        models.ProfesionListaEspera.id
+        == models.HogarProfesionListaEspera.profesion_id
+    ).order_by(
+        models.ProfesionListaEspera.nombre.asc(),
+        models.HogarProfesionListaEspera.fecha_ingreso.asc()
+    ).all()
+
+    return [
+        {
+            "id": entrada.id,
+            "hogar_id": entrada.hogar_id,
+            "id_hogar": entrada.id_hogar,
+            "cuidador_principal": entrada.cuidador_principal,
+            "psdf": entrada.psdf,
+            "direccion": entrada.direccion,
+            "unidad_vecinal": entrada.unidad_vecinal,
+            "telefono": entrada.telefono,
+            "profesion_id": entrada.profesion_id,
+            "profesion": entrada.profesion,
+            "fecha_ingreso": entrada.fecha_ingreso
+        }
+        for entrada in lista
+    ]
+    
+    # ============================================================
+# PROFESIONALES DISPONIBLES PARA UNA PROFESIÓN
+# ============================================================
+
+@app.get(
+    "/profesiones-lista-espera/{profesion_id}/profesionales"
+)
+def obtener_profesionales_por_profesion(
+    profesion_id: int,
+    db: Session = Depends(get_db),
+    usuario = Depends(requiere_admin)
+):
+
+    # =========================================
+    # BUSCAR PROFESIÓN
+    # =========================================
+
+    profesion = db.query(
+        models.ProfesionListaEspera
+    ).filter(
+        models.ProfesionListaEspera.id == profesion_id
+    ).first()
+
+    if profesion is None:
+        raise HTTPException(
+            status_code=404,
+            detail="La profesión no existe"
+        )
+
+    # =========================================
+    # BUSCAR PROFESIONALES ACTIVOS
+    # =========================================
+
+    profesionales = db.query(
+        models.Profesional
+    ).filter(
+        models.Profesional.disciplina == profesion.nombre,
+        models.Profesional.activo == True
+    ).order_by(
+        models.Profesional.nombre.asc()
+    ).all()
+
+    return [
+        {
+            "id": profesional.id,
+            "nombre": profesional.nombre,
+            "disciplina": profesional.disciplina
+        }
+        for profesional in profesionales
+    ]
+    
+# ============================================================
+# MOVER HOGAR DE NUEVA LISTA DE ESPERA
+# A ATENCIONES ACTUALES
+# ============================================================
+
+@app.post(
+    "/lista-espera-profesiones/{id}/pasar-a-atencion",
+    response_model=schemas.ListaEsperaResponse
+)
+def pasar_lista_espera_a_atencion(
+    id: int,
+    datos: schemas.MoverAtencionDesdeListaEspera,
+    db: Session = Depends(get_db),
+    usuario = Depends(requiere_admin)
+):
+
+    # =========================================
+    # BUSCAR ENTRADA DE LISTA DE ESPERA
+    # =========================================
+
+    entrada = db.query(
+        models.HogarProfesionListaEspera
+    ).filter(
+        models.HogarProfesionListaEspera.id == id
+    ).first()
+
+    if entrada is None:
+        raise HTTPException(
+            status_code=404,
+            detail="La entrada de lista de espera no existe"
+        )
+
+    # =========================================
+    # BUSCAR HOGAR
+    # =========================================
+
+    hogar = db.query(
+        models.Hogar
+    ).filter(
+        models.Hogar.id == entrada.hogar_id
+    ).first()
+
+    if hogar is None:
+        raise HTTPException(
+            status_code=404,
+            detail="El hogar asociado no existe"
+        )
+
+    # =========================================
+    # BUSCAR PROFESIONAL
+    # =========================================
+
+    profesional = db.query(
+        models.Profesional
+    ).filter(
+        models.Profesional.id == datos.profesional_id
+    ).first()
+
+    if profesional is None:
+        raise HTTPException(
+            status_code=404,
+            detail="El profesional no existe"
+        )
+
+    # =========================================
+    # VERIFICAR PROFESIONAL ACTIVO
+    # =========================================
+
+    if not profesional.activo:
+        raise HTTPException(
+            status_code=400,
+            detail="No se puede asignar un profesional inactivo"
+        )
+
+    # =========================================
+    # BUSCAR PROFESIÓN
+    # =========================================
+
+    profesion = db.query(
+        models.ProfesionListaEspera
+    ).filter(
+        models.ProfesionListaEspera.id
+        == entrada.profesion_id
+    ).first()
+
+    if profesion is None:
+        raise HTTPException(
+            status_code=404,
+            detail="La profesión no existe"
+        )
+
+    # =========================================
+    # VERIFICAR QUE EL PROFESIONAL
+    # PERTENEZCA A LA PROFESIÓN
+    # =========================================
+
+    if profesional.disciplina.strip().lower() != profesion.nombre.strip().lower():
+
+        raise HTTPException(
+            status_code=400,
+            detail="El profesional no pertenece a la profesión seleccionada"
+        )
+
+    # =========================================
+    # CREAR ATENCIÓN ACTUAL
+    # =========================================
+
+    nueva_atencion = models.ListaEspera(
+
+        id_hogar=hogar.id_hogar,
+
+        cuidador_principal=hogar.cuidador_principal,
+
+        psdf=hogar.psdf,
+
+        direccion=hogar.direccion,
+
+        unidad_vecinal=hogar.unidad_vecinal,
+
+        telefono=hogar.telefono,
+
+        profesional_id=datos.profesional_id,
+
+        dia=datos.dia,
+
+        estado="Pendiente",
+
+        fecha_solicitud=date.today(),
+
+        observaciones=datos.observaciones
+    )
+
+    db.add(nueva_atencion)
+
+    # =========================================
+    # ELIMINAR DE NUEVA LISTA DE ESPERA
+    # =========================================
+
+    db.delete(entrada)
+
+    # =========================================
+    # GUARDAR TODO
+    # =========================================
+
+    db.commit()
+
+    db.refresh(nueva_atencion)
+
+    return nueva_atencion
+
+@app.post(
+    "/profesiones-lista-espera",
+    response_model=schemas.ProfesionListaEsperaResponse
+)
+def crear_profesion_lista_espera(
+    datos: schemas.ProfesionListaEsperaCreate,
+    db: Session = Depends(get_db),
+    usuario = Depends(requiere_admin)
+):
+
+    nombre = datos.nombre.strip()
+
+    if not nombre:
+        raise HTTPException(
+            status_code=400,
+            detail="El nombre de la profesión no puede estar vacío"
+        )
+
+    profesion_existente = db.query(
+        models.ProfesionListaEspera
+    ).filter(
+        models.ProfesionListaEspera.nombre == nombre
+    ).first()
+
+    if profesion_existente is not None:
+        raise HTTPException(
+            status_code=400,
+            detail="La profesión ya existe"
+        )
+
+    nueva_profesion = models.ProfesionListaEspera(
+        nombre=nombre
+    )
+
+    db.add(nueva_profesion)
+    db.commit()
+    db.refresh(nueva_profesion)
+
+    return nueva_profesion
+
+@app.put(
+    "/profesiones-lista-espera/{id}",
+    response_model=schemas.ProfesionListaEsperaResponse
+)
+def actualizar_profesion_lista_espera(
+    id: int,
+    datos: schemas.ProfesionListaEsperaCreate,
+    db: Session = Depends(get_db),
+    usuario = Depends(requiere_admin)
+):
+
+    profesion = db.query(
+        models.ProfesionListaEspera
+    ).filter(
+        models.ProfesionListaEspera.id == id
+    ).first()
+
+    if profesion is None:
+        raise HTTPException(
+            status_code=404,
+            detail="La profesión no existe"
+        )
+
+    nombre = datos.nombre.strip()
+
+    if not nombre:
+        raise HTTPException(
+            status_code=400,
+            detail="El nombre de la profesión no puede estar vacío"
+        )
+
+    otra_profesion = db.query(
+        models.ProfesionListaEspera
+    ).filter(
+        models.ProfesionListaEspera.nombre == nombre,
+        models.ProfesionListaEspera.id != id
+    ).first()
+
+    if otra_profesion is not None:
+        raise HTTPException(
+            status_code=400,
+            detail="Ya existe otra profesión con ese nombre"
+        )
+
+    profesion.nombre = nombre
+
+    db.commit()
+    db.refresh(profesion)
+
+    return profesion
+
+@app.delete("/profesiones-lista-espera/{id}")
+def eliminar_profesion_lista_espera(
+    id: int,
+    db: Session = Depends(get_db),
+    usuario = Depends(requiere_admin)
+):
+
+    profesion = db.query(
+        models.ProfesionListaEspera
+    ).filter(
+        models.ProfesionListaEspera.id == id
+    ).first()
+
+    if profesion is None:
+        raise HTTPException(
+            status_code=404,
+            detail="La profesión no existe"
+        )
+
+    asociacion = db.query(
+        models.HogarProfesionListaEspera
+    ).filter(
+        models.HogarProfesionListaEspera.profesion_id == id
+    ).first()
+
+    if asociacion is not None:
+        raise HTTPException(
+            status_code=400,
+            detail="No se puede eliminar la profesión porque tiene hogares en la lista de espera"
+        )
+
+    db.delete(profesion)
+    db.commit()
+
+    return {
+        "mensaje": "Profesión eliminada correctamente"
+    }
+    
+@app.post(
+    "/lista-espera-profesiones",
+    response_model=schemas.HogarProfesionListaEsperaResponse
+)
+def agregar_hogar_lista_espera_profesion(
+    datos: schemas.HogarProfesionListaEsperaCreate,
+    db: Session = Depends(get_db),
+    usuario = Depends(requiere_admin)
+):
+
+    hogar = db.query(
+        models.Hogar
+    ).filter(
+        models.Hogar.id == datos.hogar_id
+    ).first()
+
+    if hogar is None:
+        raise HTTPException(
+            status_code=404,
+            detail="El hogar no existe"
+        )
+
+    profesion = db.query(
+        models.ProfesionListaEspera
+    ).filter(
+        models.ProfesionListaEspera.id == datos.profesion_id
+    ).first()
+
+    if profesion is None:
+        raise HTTPException(
+            status_code=404,
+            detail="La profesión no existe"
+        )
+
+    asociacion_existente = db.query(
+        models.HogarProfesionListaEspera
+    ).filter(
+        models.HogarProfesionListaEspera.hogar_id == datos.hogar_id,
+        models.HogarProfesionListaEspera.profesion_id == datos.profesion_id
+    ).first()
+
+    if asociacion_existente is not None:
+        raise HTTPException(
+            status_code=400,
+            detail="El hogar ya se encuentra en la lista de espera para esta profesión"
+        )
+
+    nueva_asociacion = models.HogarProfesionListaEspera(
+        hogar_id=datos.hogar_id,
+        profesion_id=datos.profesion_id,
+        fecha_ingreso=date.today()
+    )
+
+    db.add(nueva_asociacion)
+    db.commit()
+    db.refresh(nueva_asociacion)
+
+    return nueva_asociacion
+
+@app.delete("/lista-espera-profesiones/{id}")
+def eliminar_hogar_lista_espera_profesion(
+    id: int,
+    db: Session = Depends(get_db),
+    usuario = Depends(requiere_admin)
+):
+
+    asociacion = db.query(
+        models.HogarProfesionListaEspera
+    ).filter(
+        models.HogarProfesionListaEspera.id == id
+    ).first()
+
+    if asociacion is None:
+        raise HTTPException(
+            status_code=404,
+            detail="La entrada de lista de espera no existe"
+        )
+
+    db.delete(asociacion)
+    db.commit()
+
+    return {
+        "mensaje": "Hogar eliminado de la lista de espera correctamente"
+    }

@@ -144,6 +144,14 @@ function Sidebar() {
                                 Atenciones Actuales
                             </NavLink>
 
+                            <NavLink
+                                to="/lista-espera-profesiones"
+                                className="sidebar-link"
+                                onClick={cerrarMenu}
+                            >
+                                Lista de espera
+                            </NavLink>
+
                         </>
                     )}
 
@@ -178,6 +186,7 @@ function Sidebar() {
                             >
                                 Lista de espera
                             </NavLink>
+                            
 
 
                             <NavLink
