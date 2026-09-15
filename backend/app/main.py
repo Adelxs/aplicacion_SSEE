@@ -5,7 +5,7 @@ from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status
 
 from fastapi import FastAPI, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.database import Base, engine, get_db
 from app import models, schemas
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +20,19 @@ from math import ceil
 import subprocess
 from datetime import datetime, date
 from sqlalchemy import func
+
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle
+)
+from fastapi.responses import StreamingResponse
 
 from fastapi.responses import FileResponse
 
@@ -496,6 +509,7 @@ def obtener_mis_hogares(
     return db.query(
         models.Hogar
     ).all()
+    
 
 @app.post("/profesionales/me/hogares/{id_hogar}")
 def agregar_hogar_a_mis_hogares(
@@ -836,6 +850,15 @@ def crear_intervencion(
     # ==========================================
     # CREAR INTERVENCIÓN
     # ==========================================
+    
+    if (
+    intervencion.fecha_realizada is not None
+    and intervencion.fecha_realizada > date.today()
+    ):
+      raise HTTPException(
+        status_code=400,
+        detail="La fecha realizada no puede ser posterior a la fecha actual"
+    )
 
     nueva_intervencion = models.Intervencion(
 
@@ -877,12 +900,18 @@ def obtener_intervenciones(
 
         intervenciones = db.query(
             models.Intervencion
+        ).options(
+            joinedload(models.Intervencion.hogar),
+            joinedload(models.Intervencion.profesional)
         ).all()
 
     else:
 
         intervenciones = db.query(
             models.Intervencion
+        ).options(
+            joinedload(models.Intervencion.hogar),
+            joinedload(models.Intervencion.profesional)
         ).filter(
             models.Intervencion.profesional_id
             == usuario.profesional_id
@@ -1001,6 +1030,21 @@ def actualizar_intervencion(
     datos_actualizados = datos.model_dump(
         exclude_unset=True
     )
+    
+    # ==========================================
+    # VALIDAR FECHA REALIZADA
+    # ==========================================
+
+    if (
+    "fecha_realizada" in datos_actualizados
+    and datos_actualizados["fecha_realizada"] is not None
+    and datos_actualizados["fecha_realizada"] > date.today()
+    ):
+
+      raise HTTPException(
+        status_code=400,
+        detail="La fecha realizada no puede ser posterior a la fecha actual"
+      )
 
 
     # ==========================================
@@ -1179,6 +1223,9 @@ def obtener_intervenciones_hogar(
 
     query = db.query(
         models.Intervencion
+    ).options(
+        joinedload(models.Intervencion.hogar),
+        joinedload(models.Intervencion.profesional)
     ).filter(
         models.Intervencion.hogar_id == hogar.id
     )
@@ -1194,8 +1241,8 @@ def obtener_intervenciones_hogar(
 
     intervenciones = query.order_by(
         fecha_historial.is_(None),
-        fecha_historial.asc(),
-        models.Intervencion.numero_intervencion.asc()
+        fecha_historial.desc(),
+        models.Intervencion.numero_intervencion.desc()
     ).all()
 
     return intervenciones
@@ -1490,11 +1537,98 @@ def eliminar_lista_espera(
             detail="Entrada de lista de espera no encontrada"
         )
 
+    hogar = db.query(
+        models.Hogar
+    ).filter(
+        models.Hogar.id_hogar == entrada.id_hogar
+    ).first()
+
+    if hogar is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Hogar asociado no encontrado"
+        )
+
+    tiene_intervenciones = db.query(
+        models.Intervencion
+    ).filter(
+        models.Intervencion.hogar_id == hogar.id
+    ).first()
+
+    if tiene_intervenciones is not None:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Este hogar tiene intervenciones registradas. "
+                "Debe utilizar el proceso de dar de baja."
+            )
+        )
+
     db.delete(entrada)
     db.commit()
 
     return {
         "mensaje": "Entrada de lista de espera eliminada correctamente"
+    }
+    
+@app.delete("/lista-espera/{id}/dar-de-baja")
+def dar_de_baja_lista_espera(
+    id: int,
+    db: Session = Depends(get_db),
+    usuario = Depends(requiere_admin)
+):
+
+    entrada = db.query(
+        models.ListaEspera
+    ).filter(
+        models.ListaEspera.id == id
+    ).first()
+
+    if entrada is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Entrada de lista de espera no encontrada"
+        )
+
+    hogar = db.query(
+        models.Hogar
+    ).filter(
+        models.Hogar.id_hogar == entrada.id_hogar
+    ).first()
+
+    if hogar is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Hogar asociado no encontrado"
+        )
+
+    intervenciones = db.query(
+        models.Intervencion
+    ).filter(
+        models.Intervencion.hogar_id == hogar.id
+    ).all()
+
+    try:
+
+        for intervencion in intervenciones:
+            db.delete(intervencion)
+
+        db.delete(entrada)
+
+        db.commit()
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail="No se pudo completar la baja del hogar"
+        )
+
+    return {
+        "mensaje": "Hogar dado de baja correctamente",
+        "id_hogar": entrada.id_hogar,
+        "intervenciones_eliminadas": len(intervenciones)
     }
 ################################################################ Dashboard ##################################################
     
@@ -2407,3 +2541,432 @@ def eliminar_hogar_lista_espera_profesion(
     return {
         "mensaje": "Hogar eliminado de la lista de espera correctamente"
     }
+    
+################################################################### Lista Espera Frecuencia ####################################################
+    
+@app.put(
+    "/lista-espera/{id}/frecuencia",
+    response_model=schemas.ListaEsperaDetalle
+)
+def actualizar_frecuencia_lista_espera(
+    id: int,
+    datos: schemas.ListaEsperaFrecuenciaUpdate,
+    db: Session = Depends(get_db),
+    usuario=Depends(obtener_usuario_actual)
+):
+    if usuario.rol != "profesional":
+        raise HTTPException(
+            status_code=403,
+            detail="Solo los profesionales pueden modificar la frecuencia"
+        )
+
+    entrada = db.query(
+        models.ListaEspera
+    ).filter(
+        models.ListaEspera.id == id
+    ).first()
+
+    if entrada is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Entrada de lista de espera no encontrada"
+        )
+
+    if entrada.profesional_id != usuario.profesional_id:
+        raise HTTPException(
+            status_code=403,
+            detail="No puedes modificar una atención que no te corresponde"
+        )
+
+    frecuencias_validas = [
+        "Semanal",
+        "Quincenal",
+        "Mensual"
+    ]
+
+    if datos.frecuencia not in frecuencias_validas:
+        raise HTTPException(
+            status_code=400,
+            detail="Frecuencia no válida"
+        )
+
+    entrada.frecuencia = datos.frecuencia
+
+    db.commit()
+    db.refresh(entrada)
+
+    return entrada
+
+@app.get(
+    "/estadisticas/hogares-atendidos",
+    response_model=list[schemas.HogaresAtendidosProfesional]
+)
+def obtener_hogares_atendidos(
+    mes: int,
+    anio: int,
+    db: Session = Depends(get_db),
+    usuario=Depends(obtener_usuario_actual)
+):
+
+    # ==========================================
+    # SOLO ADMINISTRADOR
+    # ==========================================
+
+    if usuario.rol != "administrador":
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permisos para consultar estas estadísticas"
+        )
+
+    # ==========================================
+    # VALIDAR MES
+    # ==========================================
+
+    if mes < 1 or mes > 12:
+        raise HTTPException(
+            status_code=400,
+            detail="El mes debe estar entre 1 y 12"
+        )
+
+    # ==========================================
+    # CALCULAR RANGO DEL MES
+    # ==========================================
+
+    fecha_inicio = date(
+        anio,
+        mes,
+        1
+    )
+
+    if mes == 12:
+        fecha_fin = date(
+            anio + 1,
+            1,
+            1
+        )
+    else:
+        fecha_fin = date(
+            anio,
+            mes + 1,
+            1
+        )
+
+    # ==========================================
+    # CONSULTAR PROFESIONALES
+    # ==========================================
+
+    resultados = (
+        db.query(
+            models.Profesional.id.label(
+                "profesional_id"
+            ),
+
+            models.Profesional.nombre.label(
+                "profesional"
+            ),
+
+            models.Profesional.disciplina.label(
+                "disciplina"
+            ),
+
+            func.count(
+                func.distinct(
+                    models.Intervencion.hogar_id
+                )
+            ).label(
+                "hogares_atendidos"
+            )
+        )
+
+        .outerjoin(
+            models.Intervencion,
+            (
+                models.Intervencion.profesional_id
+                ==
+                models.Profesional.id
+            )
+            &
+            (
+                models.Intervencion.fecha_realizada
+                >= fecha_inicio
+            )
+            &
+            (
+                models.Intervencion.fecha_realizada
+                < fecha_fin
+            )
+        )
+
+        .filter(
+            models.Profesional.activo == True
+        )
+
+        .group_by(
+            models.Profesional.id,
+            models.Profesional.nombre,
+            models.Profesional.disciplina
+        )
+
+        .order_by(
+            models.Profesional.nombre
+        )
+
+        .all()
+    )
+
+    return resultados
+
+################################################################ PDF intervenciones ##########################################################
+
+@app.get("/hogares/{id_hogar}/intervenciones/pdf")
+def descargar_historial_intervenciones_pdf(
+    id_hogar: int,
+    db: Session = Depends(get_db),
+    usuario=Depends(obtener_usuario_actual)
+):
+    if usuario.rol != "administrador":
+        raise HTTPException(
+            status_code=403,
+            detail="Solo los administradores pueden descargar historiales"
+        )
+
+    hogar = db.query(
+        models.Hogar
+    ).filter(
+        models.Hogar.id_hogar == id_hogar
+    ).first()
+
+    if hogar is None:
+        raise HTTPException(
+            status_code=404,
+            detail="El hogar no existe"
+        )
+
+    intervenciones = (
+        db.query(models.Intervencion)
+        .filter(
+            models.Intervencion.hogar_id == hogar.id
+        )
+        .options(
+            joinedload(models.Intervencion.profesional)
+        )
+        .order_by(
+            func.coalesce(
+                models.Intervencion.fecha_realizada,
+                models.Intervencion.fecha_programada
+            ).desc(),
+            models.Intervencion.numero_intervencion.desc()
+        )
+        .all()
+    )
+
+    if not intervenciones:
+        raise HTTPException(
+            status_code=404,
+            detail="El hogar no tiene intervenciones registradas"
+        )
+
+    buffer = BytesIO()
+
+    documento = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=40,
+        leftMargin=40,
+        topMargin=40,
+        bottomMargin=40
+    )
+
+    estilos = getSampleStyleSheet()
+
+    elementos = []
+
+    elementos.append(
+        Paragraph(
+            "HISTORIAL DE INTERVENCIONES",
+            estilos["Title"]
+        )
+    )
+
+    elementos.append(Spacer(1, 20))
+
+    elementos.append(
+        Paragraph(
+            f"<b>ID Hogar:</b> {hogar.id_hogar}",
+            estilos["Normal"]
+        )
+    )
+
+    elementos.append(
+        Paragraph(
+            f"<b>Cuidador principal:</b> {hogar.cuidador_principal}",
+            estilos["Normal"]
+        )
+    )
+
+    elementos.append(
+        Paragraph(
+            f"<b>PSDF:</b> {hogar.psdf}",
+            estilos["Normal"]
+        )
+    )
+
+    elementos.append(
+        Paragraph(
+            f"<b>Dirección:</b> {hogar.direccion}",
+            estilos["Normal"]
+        )
+    )
+
+    elementos.append(
+        Paragraph(
+            f"<b>Unidad vecinal:</b> {hogar.unidad_vecinal or '-'}",
+            estilos["Normal"]
+        )
+    )
+
+    elementos.append(
+        Paragraph(
+            f"<b>Teléfono:</b> {hogar.telefono or '-'}",
+            estilos["Normal"]
+        )
+    )
+
+    elementos.append(Spacer(1, 20))
+
+    datos_tabla = [
+        [
+            "N°",
+            "Profesional",
+            "Disciplina",
+            "Tipo",
+            "Fecha programada",
+            "Fecha realizada",
+            "Estado"
+        ]
+    ]
+
+    for intervencion in intervenciones:
+
+        datos_tabla.append(
+            [
+                intervencion.numero_intervencion or "-",
+
+                intervencion.profesional.nombre
+                if intervencion.profesional
+                else "-",
+
+                intervencion.profesional.disciplina
+                if intervencion.profesional
+                else "-",
+
+                intervencion.tipo,
+
+                intervencion.fecha_programada.strftime("%d/%m/%Y")
+                if intervencion.fecha_programada
+                else "-",
+
+                intervencion.fecha_realizada.strftime("%d/%m/%Y")
+                if intervencion.fecha_realizada
+                else "-",
+
+                intervencion.estado
+            ]
+        )
+
+    tabla = Table(
+        datos_tabla,
+        repeatRows=1,
+        colWidths=[
+            30,
+            85,
+            80,
+            65,
+            75,
+            75,
+            60
+        ]
+    )
+
+    tabla.setStyle(
+        TableStyle(
+            [
+                (
+                    "BACKGROUND",
+                    (0, 0),
+                    (-1, 0),
+                    colors.lightgrey
+                ),
+                (
+                    "TEXTCOLOR",
+                    (0, 0),
+                    (-1, 0),
+                    colors.black
+                ),
+                (
+                    "GRID",
+                    (0, 0),
+                    (-1, -1),
+                    0.5,
+                    colors.grey
+                ),
+                (
+                    "FONTNAME",
+                    (0, 0),
+                    (-1, 0),
+                    "Helvetica-Bold"
+                ),
+                (
+                    "VALIGN",
+                    (0, 0),
+                    (-1, -1),
+                    "TOP"
+                ),
+                (
+                    "FONTSIZE",
+                    (0, 0),
+                    (-1, -1),
+                    7
+                ),
+                (
+                    "BOTTOMPADDING",
+                    (0, 0),
+                    (-1, 0),
+                    8
+                )
+            ]
+        )
+    )
+
+    elementos.append(tabla)
+
+    elementos.append(Spacer(1, 20))
+
+    elementos.append(
+        Paragraph(
+            f"<b>Total de intervenciones:</b> {len(intervenciones)}",
+            estilos["Normal"]
+        )
+    )
+
+    fecha_generacion = date.today().strftime("%d/%m/%Y")
+
+    elementos.append(
+        Paragraph(
+            f"<b>Fecha de generación:</b> {fecha_generacion}",
+            estilos["Normal"]
+        )
+    )
+
+    documento.build(elementos)
+
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition":
+                f'attachment; filename="Historial_Hogar_{id_hogar}.pdf"'
+        }
+    )

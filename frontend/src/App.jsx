@@ -12,6 +12,7 @@ import ListaEspera from "./pages/ListaEspera";
 import Asistente from "./pages/Asistente";
 import Login from "./pages/Login";
 import NuevaListaEspera from "./pages/NuevaListaEspera";
+import HogaresAtendidos from "./pages/HogaresAtendidos";
 
 import "./App.css";
 
@@ -110,6 +111,11 @@ function App() {
                             <Route
                                 path="/asistente"
                                 element={<Asistente />}
+                            />
+
+                            <Route
+                                path="/hogares-atendidos"
+                                element={<HogaresAtendidos />}
                             />
 
                         </Route>

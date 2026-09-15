@@ -348,6 +348,7 @@
     color: #a94442;
 
     transition: all 0.2s ease;
+    margin-top: 10px;
 }
 
 .btn-eliminar-lista:hover {

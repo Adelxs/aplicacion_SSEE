@@ -128,12 +128,16 @@ class ListaEsperaCreate(BaseModel):
     profesional_id: int
 
     dia: str | None = None
+    
+    frecuencia: str | None = None
 
     estado: str = "Pendiente"
 
     fecha_solicitud: date
 
     observaciones: str | None = None
+    
+    
 
 class ListaEsperaResponse(BaseModel):
 
@@ -154,12 +158,16 @@ class ListaEsperaResponse(BaseModel):
     profesional_id: int | None
 
     dia: str | None
+    
+    frecuencia: str | None = None
 
     estado: str
 
     fecha_solicitud: date
 
     observaciones: str | None
+    
+
 
     class Config:
         from_attributes = True
@@ -182,6 +190,8 @@ class ListaEsperaUpdate(BaseModel):
     profesional_id: int | None = None
 
     dia: str | None = None
+    
+    frecuencia: str | None = None
 
     estado: str | None = None
 
@@ -308,3 +318,12 @@ class MoverAtencionDesdeListaEspera(BaseModel):
     profesional_id: int
     dia: str | None = None
     observaciones: str | None = None
+    
+class ListaEsperaFrecuenciaUpdate(BaseModel):
+    frecuencia: str
+
+class HogaresAtendidosProfesional(BaseModel):
+    profesional_id: int
+    profesional: str
+    disciplina: str
+    hogares_atendidos: int

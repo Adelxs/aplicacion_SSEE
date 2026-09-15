@@ -10,6 +10,7 @@ function Intervenciones() {
     const [historialHogar, setHistorialHogar] = useState([]);
     const [hogarHistorial, setHogarHistorial] = useState(null);
     const [cargandoHistorial, setCargandoHistorial] = useState(false);
+    const [filtroProfesional, setFiltroProfesional] = useState("");
 
     // Hogares disponibles para el formulario
     const [hogares, setHogares] = useState([]);
@@ -750,6 +751,10 @@ const intervencionesFiltradas = intervenciones.filter((intervencion) => {
         .toLowerCase()
         .includes(filtroIdHogar.toLowerCase());
 
+    const coincideProfesional = filtroProfesional
+    ? String(intervencion.profesional?.id) === String(filtroProfesional)
+    : true;
+
     const coincideEstado = filtroEstado
         ? intervencion.estado === filtroEstado
         : true;
@@ -766,12 +771,14 @@ const intervencionesFiltradas = intervenciones.filter((intervencion) => {
 
     return (
         coincideIdHogar &&
+        coincideProfesional &&
         coincideEstado &&
         coincideUnidadVecinal &&
         coincideObservaciones
     );
 
 });
+
 
 // =========================================================
 // PAGINACIÓN
@@ -792,6 +799,11 @@ const intervencionesPagina = intervencionesFiltradas.slice(
 
 const manejarFiltroIdHogar = (e) => {
     setFiltroIdHogar(e.target.value);
+    setPaginaActual(1);
+};
+
+const manejarFiltroProfesional = (e) => {
+    setFiltroProfesional(e.target.value);
     setPaginaActual(1);
 };
 
@@ -884,22 +896,43 @@ const irAPagina = (numero) => {
         />
 
         <select
-    value={filtroUnidadVecinal}
-    onChange={manejarFiltroUnidadVecinal}
+            value={filtroUnidadVecinal}
+            onChange={manejarFiltroUnidadVecinal}
+        >
+
+            <option value="">
+                Todas las unidades vecinales
+            </option>
+
+
+            {unidadesVecinales.map((unidad) => (
+                <option
+                    key={unidad}
+                    value={unidad}
+                >
+                    {unidad}
+                </option>
+            ))}
+        </select>
+
+{usuario?.rol === "administrador" && (
+<select
+    value={filtroProfesional}
+    onChange={manejarFiltroProfesional}
 >
     <option value="">
-        Todas las unidades vecinales
+        Todos los profesionales
     </option>
 
-    {unidadesVecinales.map((unidad) => (
+    {profesionales.map((profesional) => (
         <option
-            key={unidad}
-            value={unidad}
+            key={profesional.id}
+            value={profesional.id}
         >
-            {unidad}
+            {profesional.nombre}
         </option>
     ))}
-</select>
+</select> )}
 
         <select
             value={filtroEstado}

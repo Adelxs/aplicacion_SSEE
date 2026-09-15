@@ -623,3 +623,75 @@
         flex-direction: column;
     }
 }
+
+.btn-frecuencia {
+    border: none;
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: #e5e7eb;
+    color: #5f4545;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-frecuencia:hover {
+    background: #d1d5db;
+    transform: translateY(-1px);
+}
+
+.modal-frecuencia {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-frecuencia h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.modal-frecuencia .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.modal-frecuencia select {
+    height: 40px;
+    padding: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+}
+
+.modal-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.modal-acciones button {
+    border: none;
+    padding: 9px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.modal-acciones button:first-child {
+    background: #e5e7eb;
+    color: #444;
+}
+
+.modal-acciones button:last-child {
+    background: #007bff;
+    color: white;
+}

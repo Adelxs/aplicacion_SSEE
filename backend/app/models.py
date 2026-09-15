@@ -182,6 +182,11 @@ class ListaEspera(Base):  ####Atenciones Actuales########
         String(20),
         nullable=True
     )
+    
+    frecuencia = Column(
+        String(20),
+        nullable=True
+    )
 
     estado = Column(
         String(50),
@@ -198,6 +203,8 @@ class ListaEspera(Base):  ####Atenciones Actuales########
         String(500),
         nullable=True
     )
+    
+    
     
 class Usuario(Base):
         __tablename__ = "usuarios"

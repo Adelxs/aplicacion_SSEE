@@ -21,6 +21,12 @@ function ListaEspera() {
     // Hogares del profesional
     const [hogaresProfesional, setHogaresProfesional] = useState([]);
 
+    const [mostrarModalBaja, setMostrarModalBaja] = useState(false);
+    const [entradaBaja, setEntradaBaja] = useState(null);
+    const [tieneIntervenciones, setTieneIntervenciones] = useState(false);
+    const [historialDescargado, setHistorialDescargado] = useState(false);
+    const [cargandoBaja, setCargandoBaja] = useState(false);
+
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [modoFormulario, setModoFormulario] = useState("crear");
 
@@ -29,11 +35,95 @@ function ListaEspera() {
 
     const [idEditando, setIdEditando] = useState(null);
 
+    const [mostrarModalFrecuencia, setMostrarModalFrecuencia] = useState(false);
+
+    const [entradaFrecuencia, setEntradaFrecuencia] = useState(null);
+
+    const [frecuenciaSeleccionada, setFrecuenciaSeleccionada] = useState("");
+
     const [filtroIdHogar, setFiltroIdHogar] = useState("");
     const [filtroEstado, setFiltroEstado] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
     const elementosPorPagina = 10;
 
+    // =========================================
+    // Frecuencia profesional
+    // =========================================
+    const frecuencias = [
+    "Semanal",
+    "Quincenal",
+    "Mensual"
+    ];
+
+    const abrirModalFrecuencia = (entrada) => {
+    setEntradaFrecuencia(entrada);
+
+    setFrecuenciaSeleccionada(
+        entrada.frecuencia || ""
+    );
+
+    setMostrarModalFrecuencia(true);
+};
+
+
+const cerrarModalFrecuencia = () => {
+    setMostrarModalFrecuencia(false);
+
+    setEntradaFrecuencia(null);
+
+    setFrecuenciaSeleccionada("");
+};
+
+const guardarFrecuencia = async () => {
+    if (!entradaFrecuencia) {
+        return;
+    }
+
+    if (!frecuenciaSeleccionada) {
+        alert("Seleccione una frecuencia");
+        return;
+    }
+
+    try {
+
+        const response = await api.put(
+            `/lista-espera/${entradaFrecuencia.id}/frecuencia`,
+            {
+                frecuencia: frecuenciaSeleccionada
+            }
+        );
+
+        setListaEspera((listaActual) =>
+            listaActual.map((entrada) =>
+                entrada.id === entradaFrecuencia.id
+                    ? {
+                        ...entrada,
+                        frecuencia:
+                            response.data.frecuencia
+                    }
+                    : entrada
+            )
+        );
+
+        alert(
+            "Frecuencia actualizada correctamente"
+        );
+
+        cerrarModalFrecuencia();
+
+    } catch (error) {
+
+        console.error(
+            "Error actualizando frecuencia:",
+            error
+        );
+
+        alert(
+            error.response?.data?.detail ||
+            "No se pudo actualizar la frecuencia"
+        );
+    }
+};
 
     // =========================================
     // FORMULARIO INICIAL
@@ -332,6 +422,75 @@ function ListaEspera() {
         cargarDatos();
 
     }, []);
+
+    // =========================================
+    // Descargar historial PDF
+    // =========================================
+
+
+    const descargarHistorialPDF = async (
+    idHogar,
+    esBaja = false
+) => {
+
+    try {
+
+        const respuesta = await api.get(
+            `/hogares/${idHogar}/intervenciones/pdf`,
+            {
+                responseType: "blob"
+            }
+        );
+
+        const url = window.URL.createObjectURL(
+            new Blob(
+                [respuesta.data],
+                {
+                    type: "application/pdf"
+                }
+            )
+        );
+
+        const enlace = document.createElement("a");
+
+        enlace.href = url;
+
+        enlace.download =
+            `Historial_Hogar_${idHogar}.pdf`;
+
+        document.body.appendChild(enlace);
+
+        enlace.click();
+
+        enlace.remove();
+
+        window.URL.revokeObjectURL(url);
+
+
+        // =====================================
+        // SI ES PARTE DEL PROCESO DE BAJA
+        // =====================================
+
+        if (esBaja) {
+
+            setHistorialDescargado(true);
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error al descargar historial:",
+            error
+        );
+
+        alert(
+            error.response?.data?.detail ||
+            "No se pudo descargar el historial"
+        );
+
+    }
+};
 
 
     // =========================================
@@ -930,37 +1089,77 @@ function ListaEspera() {
     // ELIMINAR
     // =========================================
 
-    const eliminarEntrada = async (id) => {
+   const eliminarEntrada = async (id) => {
+
+    if (
+        usuario?.rol !== "administrador"
+    ) {
+
+        alert(
+            "No tienes permisos para realizar esta acción"
+        );
+
+        return;
+
+    }
+
+
+    const entrada = listaEspera.find(
+        (item) => item.id === id
+    );
+
+
+    if (!entrada) {
+
+        alert(
+            "No se encontró la entrada"
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        setCargandoBaja(true);
+
+
+        // =====================================
+        // BUSCAR INTERVENCIONES DEL HOGAR
+        // =====================================
+
+        const respuesta =
+            await api.get(
+                `/hogares/${entrada.id_hogar}/intervenciones`
+            );
+
+
+        const intervenciones =
+            respuesta.data;
+
+
+        // =====================================
+        // SI NO TIENE INTERVENCIONES
+        // =====================================
 
         if (
-            usuario?.rol !== "administrador"
+            !intervenciones ||
+            intervenciones.length === 0
         ) {
 
-            alert(
-                "No tienes permisos para realizar esta acción"
-            );
-
-            return;
-
-        }
+            const confirmar =
+                window.confirm(
+                    "¿Está seguro de eliminar esta entrada de Atenciones Actuales?"
+                );
 
 
-        const confirmar =
-            window.confirm(
+            if (!confirmar) {
 
-                "¿Está seguro de eliminar esta entrada de la lista de espera?"
+                return;
 
-            );
+            }
 
-
-        if (!confirmar) {
-
-            return;
-
-        }
-
-
-        try {
 
             await api.delete(
                 `/lista-espera/${id}`
@@ -968,14 +1167,11 @@ function ListaEspera() {
 
 
             setListaEspera(
-
-                listaEspera.filter(
-
-                    entrada =>
-                        entrada.id !== id
-
-                )
-
+                (listaActual) =>
+                    listaActual.filter(
+                        (item) =>
+                            item.id !== id
+                    )
             );
 
 
@@ -983,25 +1179,44 @@ function ListaEspera() {
                 "Entrada eliminada correctamente"
             );
 
-        } catch (error) {
 
-            console.error(
-                "ERROR AL ELIMINAR:",
-                error
-            );
-
-            alert(
-
-                error.response?.data?.detail ||
-
-                "No se pudo eliminar la entrada"
-
-            );
+            return;
 
         }
 
-    };
 
+        // =====================================
+        // TIENE INTERVENCIONES
+        // =====================================
+
+        setEntradaBaja(entrada);
+
+        setTieneIntervenciones(true);
+
+        setHistorialDescargado(false);
+
+        setMostrarModalBaja(true);
+
+    } catch (error) {
+
+        console.error(
+            "ERROR AL PREPARAR BAJA:",
+            error
+        );
+
+
+        alert(
+            error.response?.data?.detail ||
+            "No se pudo comprobar el historial del hogar"
+        );
+
+    } finally {
+
+        setCargandoBaja(false);
+
+    }
+
+};
     const unidadesVecinales = [
     ...new Set(
         listaEspera
@@ -1167,6 +1382,7 @@ const irAPagina = (numero) => {
 
     {/* PROFESIONAL */}
 
+{usuario?.rol === "administrador" && (
     <select
         value={filtroProfesional}
         onChange={manejarFiltroProfesional}
@@ -1187,7 +1403,7 @@ const irAPagina = (numero) => {
 
         ))}
 
-    </select>
+    </select>)}
 
 
     {/* UNIDAD VECINAL */}
@@ -1759,13 +1975,20 @@ const irAPagina = (numero) => {
                                 Teléfono
                             </th>
 
+                            {usuario?.rol === "administrador" && (
+
                             <th>
                                 Profesional
-                            </th>
+                            </th> )}
 
                             <th>
                                 Día
                             </th>
+
+                            {usuario?.rol === "profesional" && (
+                            <th>
+                                Frecuencia
+                            </th> )}
 
                             <th>
                                 Estado
@@ -1786,6 +2009,7 @@ const irAPagina = (numero) => {
                                 </th>
 
                             )}
+
 
                         </tr>
 
@@ -1865,7 +2089,7 @@ const irAPagina = (numero) => {
 
                                         </td>
 
-
+                                       {usuario?.rol === "administrador" && (
                                         <td>
 
                                             {
@@ -1878,7 +2102,7 @@ const irAPagina = (numero) => {
 
                                             }
 
-                                        </td>
+                                        </td>)}
 
 
                                         <td>
@@ -1889,6 +2113,22 @@ const irAPagina = (numero) => {
                                             }
 
                                         </td>
+
+                                        {usuario?.rol === "profesional" && (
+                                            <td>
+
+                                                <button
+                                                    type="button"
+                                                    className="btn-frecuencia"
+                                                    onClick={() =>
+                                                        abrirModalFrecuencia(entrada)
+                                                    }
+                                                >
+                                                    {entrada.frecuencia || "Definir"}
+                                                </button>
+
+                                            </td>
+                                        )}
 
 
                                         <td>
@@ -1971,6 +2211,14 @@ const irAPagina = (numero) => {
 
                                                 </button>
 
+                                                <button
+                                                    onClick={() =>
+                                                        descargarHistorialPDF(entrada.id_hogar)
+                                                    }
+                                                >
+                                                    📄 Historial
+                                                </button>
+
                                             </td>
 
                                         )}
@@ -2019,6 +2267,237 @@ const irAPagina = (numero) => {
         >
             Siguiente ›
         </button>
+
+    </div>
+)}
+
+{mostrarModalBaja && entradaBaja && (
+    <div className="modal-overlay">
+
+        <div className="modal-frecuencia">
+
+            <h2>
+                ⚠️ Dar de baja hogar
+            </h2>
+
+
+            <p>
+                El hogar{" "}
+                <strong>
+                    {entradaBaja.id_hogar}
+                </strong>{" "}
+                tiene intervenciones registradas.
+            </p>
+
+
+            <p>
+                Antes de darlo de baja debes
+                descargar su historial de
+                intervenciones.
+            </p>
+
+
+            <div
+                style={{
+                    marginTop: "20px",
+                    marginBottom: "20px"
+                }}
+            >
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        descargarHistorialPDF(
+                            entradaBaja.id_hogar,
+                            true
+                        )
+                    }
+                >
+                    📄 Descargar historial
+                </button>
+
+            </div>
+
+
+            {historialDescargado && (
+                <p
+                    style={{
+                        color: "green",
+                        fontWeight: "bold"
+                    }}
+                >
+                    ✓ Historial descargado correctamente
+                </p>
+            )}
+
+
+            <div className="modal-acciones">
+
+                <button
+                    type="button"
+                    onClick={() => {
+
+                        setMostrarModalBaja(false);
+                        setEntradaBaja(null);
+                        setTieneIntervenciones(false);
+                        setHistorialDescargado(false);
+
+                    }}
+                >
+                    Cancelar
+                </button>
+
+
+                <button
+                    type="button"
+                    disabled={!historialDescargado}
+                    onClick={async () => {
+
+                        if (!historialDescargado) {
+                            return;
+                        }
+
+
+                        const confirmar =
+                            window.confirm(
+                                `¿Está seguro de dar de baja el hogar ${entradaBaja.id_hogar}? Se eliminarán sus intervenciones del sistema.`
+                            );
+
+
+                        if (!confirmar) {
+                            return;
+                        }
+
+
+                        try {
+
+                            await api.delete( 
+                              `/lista-espera/${entradaBaja.id}/dar-de-baja` 
+                            ); 
+
+
+                            setListaEspera(
+                                (listaActual) =>
+                                    listaActual.filter(
+                                        (entrada) =>
+                                            entrada.id !==
+                                            entradaBaja.id
+                                    )
+                            );
+
+
+                            setMostrarModalBaja(false);
+
+                            setEntradaBaja(null);
+
+                            setTieneIntervenciones(false);
+
+                            setHistorialDescargado(false);
+
+
+                            alert(
+                                "Hogar dado de baja correctamente"
+                            );
+
+
+                        } catch (error) {
+
+                            console.error(
+                                "ERROR AL DAR DE BAJA:",
+                                error
+                            );
+
+
+                            alert(
+                                error.response?.data?.detail ||
+                                "No se pudo dar de baja el hogar"
+                            );
+
+                        }
+
+                    }}
+                >
+                    🗑️ Dar de baja
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+)}
+
+{mostrarModalFrecuencia && (
+    <div className="modal-overlay">
+
+        <div className="modal-frecuencia">
+
+            <h2>
+                Frecuencia de atención
+            </h2>
+
+            <p>
+                Hogar:{" "}
+                <strong>
+                    {entradaFrecuencia?.id_hogar}
+                </strong>
+            </p>
+
+            <div className="form-group">
+
+                <label>
+                    Frecuencia
+                </label>
+
+                <select
+                    value={frecuenciaSeleccionada}
+                    onChange={(e) =>
+                        setFrecuenciaSeleccionada(
+                            e.target.value
+                        )
+                    }
+                >
+
+                    <option value="">
+                        Seleccionar frecuencia
+                    </option>
+
+                    {frecuencias.map(
+                        (frecuencia) => (
+
+                            <option
+                                key={frecuencia}
+                                value={frecuencia}
+                            >
+                                {frecuencia}
+                            </option>
+
+                        )
+                    )}
+
+                </select>
+
+            </div>
+
+            <div className="modal-acciones">
+
+                <button
+                    type="button"
+                    onClick={cerrarModalFrecuencia}
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    onClick={guardarFrecuencia}
+                >
+                    Guardar
+                </button>
+
+            </div>
+
+        </div>
 
     </div>
 )}

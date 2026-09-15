@@ -152,6 +152,15 @@ function Sidebar() {
                                 Lista de espera
                             </NavLink>
 
+                             {usuario?.rol === "administrador" && (
+                            <NavLink
+                                to="/hogares-atendidos"
+                                className="sidebar-link"
+                            >
+                                Hogares atendidos
+                            </NavLink>
+                        )}
+
                         </>
                     )}
 
@@ -184,7 +193,7 @@ function Sidebar() {
                                 className="sidebar-link"
                                 onClick={cerrarMenu}
                             >
-                                Lista de espera
+                                Atenciones Actuales
                             </NavLink>
                             
 
@@ -196,6 +205,8 @@ function Sidebar() {
                             >
                                 Intervenciones
                             </NavLink>
+
+                           
 
                         </>
                     )}

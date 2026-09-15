@@ -1,0 +1,121 @@
+.hogares-atendidos-container {
+    width: 100%;
+    padding: 25px;
+    box-sizing: border-box;
+}
+
+.hogares-atendidos-container h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #5f4545;
+}
+
+
+/* ============================== */
+/* FILTROS */
+/* ============================== */
+
+.estadisticas-filtros {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 15px;
+    margin: 25px auto;
+    flex-wrap: wrap;
+}
+
+.estadisticas-filtros div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.estadisticas-filtros label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #5f4545;
+}
+
+.estadisticas-filtros select {
+    width: 180px;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 14px;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.estadisticas-filtros select:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+
+/* ============================== */
+/* TABLA */
+/* ============================== */
+
+.tabla-estadisticas {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 25px;
+}
+
+.tabla-estadisticas table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.tabla-estadisticas th,
+.tabla-estadisticas td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    font-size: 14px;
+}
+
+.tabla-estadisticas th {
+    background-color: #f3f4f6;
+    color: #5f4545;
+    font-weight: 700;
+}
+
+.tabla-estadisticas tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.cantidad-hogares {
+    font-weight: 700;
+    text-align: center !important;
+}
+
+
+/* ============================== */
+/* ESTADOS */
+/* ============================== */
+
+.estadisticas-cargando {
+    text-align: center;
+    margin-top: 30px;
+    color: #666;
+}
+
+.estadisticas-error {
+    width: fit-content;
+    max-width: 90%;
+    margin: 20px auto;
+    padding: 12px 18px;
+    border-radius: 8px;
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.sin-datos {
+    text-align: center !important;
+    padding: 25px !important;
+    color: #666;
+}
