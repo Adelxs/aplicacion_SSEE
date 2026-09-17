@@ -50,3 +50,19 @@ Thumbs.db
 # =========================
 
 *.log
+
+# Entorno Python
+backend/venv/
+__pycache__/
+*.pyc
+
+# Variables de entorno
+.env
+*.env
+
+# Respaldos y dumps de bases de datos
+*.sql
+*.dump
+
+# Archivos temporales
+*.log

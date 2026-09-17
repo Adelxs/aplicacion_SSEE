@@ -6,7 +6,7 @@ import re
 # CONFIGURACIÓN
 # ============================================================
 
-ARCHIVO_ENTRADA = Path("backup_20260907_131837.sql")
+ARCHIVO_ENTRADA = Path("backup_20260915_152632.sql")
 ARCHIVO_SALIDA = Path("migracion_mysql.sql")
 
 
@@ -14,14 +14,16 @@ ARCHIVO_SALIDA = Path("migracion_mysql.sql")
 # CONVERSIÓN DE TIPOS
 # ============================================================
 
-def convertir_tipo(tipo):
+def convertir_tipo(tipo, nombre_columna=None):
     tipo = tipo.strip()
 
     # VARCHAR(n)
     match = re.match(r"character varying\((\d+)\)", tipo)
 
     if match:
-        return f"VARCHAR({match.group(1)})"
+     if nombre_columna and nombre_columna.lower() == "telefono":
+        return "VARCHAR(255)"
+     return f"VARCHAR({match.group(1)})"
 
     tipos = {
         "integer": "INT",
@@ -237,7 +239,7 @@ def main():
 
                 definicion = definicion.strip()
 
-                tipo = convertir_tipo(definicion)
+                tipo = convertir_tipo(definicion, nombre_columna)
 
                 # ID principal autoincremental
                 if (

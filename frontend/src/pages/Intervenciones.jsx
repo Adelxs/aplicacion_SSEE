@@ -942,6 +942,7 @@ const irAPagina = (numero) => {
             <option value="pendiente">Pendiente</option>
             <option value="realizada">Realizada</option>
             <option value="cancelada">Cancelada</option>
+            <option value="Completada">Completada</option>
         </select>
 
         <input
