@@ -1247,3 +1247,7 @@
     background: #d1d5db;
     transform: translateY(-1px);
 }
+
+.buscador-hogar select {
+    margin-top: 8px;
+}

@@ -62,12 +62,14 @@
     width: 100%;
     overflow-x: auto;
     margin-top: 25px;
+    background: #fdf3b2;
+    border-radius: 8px;
 }
 
 .tabla-estadisticas table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
+    
 }
 
 .tabla-estadisticas th,
@@ -79,7 +81,7 @@
 }
 
 .tabla-estadisticas th {
-    background-color: #f3f4f6;
+    
     color: #5f4545;
     font-weight: 700;
 }
@@ -91,6 +93,10 @@
 .cantidad-hogares {
     font-weight: 700;
     text-align: center !important;
+}
+
+.tabla-estadisticas tr {
+    color: #795548;
 }
 
 
@@ -118,4 +124,8 @@
     text-align: center !important;
     padding: 25px !important;
     color: #666;
+}
+
+.encabezado-tabla {
+    background: #E98B50;
 }

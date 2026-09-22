@@ -38,6 +38,7 @@ function Intervenciones() {
     const [filtroObservaciones, setFiltroObservaciones] = useState("");
     const [filtroUnidadVecinal, setFiltroUnidadVecinal] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
+    const [busquedaHogar, setBusquedaHogar] = useState("");
     const elementosPorPagina = 10;
 
 
@@ -70,6 +71,60 @@ function Intervenciones() {
     const [formulario, setFormulario] = useState(
         formularioInicial
     );
+
+    // =========================================================
+// HOGARES FILTRADOS PARA EL MODAL
+// =========================================================
+
+const hogaresFiltrados = hogares.filter((hogar) => {
+
+    const texto = busquedaHogar
+        .toLowerCase()
+        .trim();
+
+    if (!texto) {
+        return true;
+    }
+
+    return (
+        String(hogar.id_hogar)
+            .toLowerCase()
+            .includes(texto) ||
+
+        String(hogar.cuidador_principal ?? "")
+            .toLowerCase()
+            .includes(texto)
+    );
+
+});
+
+
+// =========================================================
+// HOGARES ASIGNADOS FILTRADOS PARA EL PROFESIONAL
+// =========================================================
+
+const hogaresAsignadosFiltrados =
+    hogaresAsignados.filter((entrada) => {
+
+        const texto = busquedaHogar
+            .toLowerCase()
+            .trim();
+
+        if (!texto) {
+            return true;
+        }
+
+        return (
+            String(entrada.id_hogar)
+                .toLowerCase()
+                .includes(texto) ||
+
+            String(entrada.cuidador_principal ?? "")
+                .toLowerCase()
+                .includes(texto)
+        );
+
+    });
 
 
     // =========================================================
@@ -1057,60 +1112,48 @@ const irAPagina = (numero) => {
                                      * en su ListaEspera.
                                      */
 
-                                    <select
+                                    <div className="buscador-hogar">
 
-                                        name="hogar_id"
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar por ID o cuidador..."
+                                            value={busquedaHogar}
+                                            onChange={(e) =>
+                                                setBusquedaHogar(e.target.value)
+                                            }
+                                        />
 
-                                        value={
-                                            formulario.hogar_id
-                                        }
+                                        <select
+                                            name="hogar_id"
+                                            value={formulario.hogar_id}
+                                            onChange={manejarCambio}
+                                            required
+                                        >
 
-                                        onChange={
-                                            manejarCambio
-                                        }
+                                            <option value="">
+                                                Seleccionar hogar asignado
+                                            </option>
 
-                                        required
+                                            {hogaresAsignadosFiltrados.map(
+                                                (entrada) => (
 
-                                    >
+                                                    <option
+                                                        key={entrada.id}
+                                                        value={entrada.id_hogar}
+                                                    >
 
-                                        <option value="">
+                                                        {entrada.id_hogar}
+                                                        {" - "}
+                                                        {entrada.cuidador_principal}
 
-                                            Seleccionar hogar asignado
+                                                    </option>
 
-                                        </option>
+                                                )
+                                            )}
 
+                                        </select>
 
-                                        {hogaresAsignados.map(
-
-                                            (entrada) => (
-
-                                                <option
-
-                                                    key={
-                                                        entrada.id
-                                                    }
-
-                                                    value={
-                                                        entrada.id_hogar
-                                                    }
-
-                                                >
-
-                                                    {entrada.id_hogar}
-
-                                                    {" - "}
-
-                                                    {
-                                                        entrada.cuidador_principal
-                                                    }
-
-                                                </option>
-
-                                            )
-
-                                        )}
-
-                                    </select>
+                                    </div>
 
                                 ) : (
 
@@ -1122,60 +1165,48 @@ const irAPagina = (numero) => {
                                      * Puede seleccionar cualquier hogar.
                                      */
 
-                                    <select
+                                    <div className="buscador-hogar">
 
-                                        name="hogar_id"
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar por ID o cuidador..."
+                                            value={busquedaHogar}
+                                            onChange={(e) =>
+                                                setBusquedaHogar(e.target.value)
+                                            }
+                                        />
 
-                                        value={
-                                            formulario.hogar_id
-                                        }
+                                        <select
+                                            name="hogar_id"
+                                            value={formulario.hogar_id}
+                                            onChange={manejarCambio}
+                                            required
+                                        >
 
-                                        onChange={
-                                            manejarCambio
-                                        }
+                                            <option value="">
+                                                Seleccionar hogar
+                                            </option>
 
-                                        required
+                                            {hogaresFiltrados.map(
+                                                (hogar) => (
 
-                                    >
+                                                    <option
+                                                        key={hogar.id_hogar}
+                                                        value={hogar.id_hogar}
+                                                    >
 
-                                        <option value="">
+                                                        {hogar.id_hogar}
+                                                        {" - "}
+                                                        {hogar.cuidador_principal}
 
-                                            Seleccionar hogar
+                                                    </option>
 
-                                        </option>
+                                                )
+                                            )}
 
+                                        </select>
 
-                                        {hogares.map(
-
-                                            (hogar) => (
-
-                                                <option
-
-                                                    key={
-                                                        hogar.id_hogar
-                                                    }
-
-                                                    value={
-                                                        hogar.id_hogar
-                                                    }
-
-                                                >
-
-                                                    {hogar.id_hogar}
-
-                                                    {" - "}
-
-                                                    {
-                                                        hogar.cuidador_principal
-                                                    }
-
-                                                </option>
-
-                                            )
-
-                                        )}
-
-                                    </select>
+                                    </div>
 
                                 )}
 

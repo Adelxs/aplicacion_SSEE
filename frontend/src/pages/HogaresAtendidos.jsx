@@ -206,7 +206,7 @@ function HogaresAtendidos() {
 
                         <thead>
 
-                            <tr>
+                            <tr className="encabezado-tabla">
 
                                 <th>
                                     Profesional

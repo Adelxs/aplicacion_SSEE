@@ -44,6 +44,8 @@ function ListaEspera() {
     const [filtroIdHogar, setFiltroIdHogar] = useState("");
     const [filtroEstado, setFiltroEstado] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
+    const [busquedaHogar, setBusquedaHogar] = useState("");
+
     const elementosPorPagina = 10;
 
     // =========================================
@@ -1225,6 +1227,32 @@ const guardarFrecuencia = async () => {
     )
 ].sort();
 
+// =========================================
+// HOGARES FILTRADOS PARA EL MODAL
+// =========================================
+
+const hogaresFiltrados = hogares.filter((hogar) => {
+
+    const texto = busquedaHogar
+        .toLowerCase()
+        .trim();
+
+    if (!texto) {
+        return true;
+    }
+
+    return (
+        String(hogar.id_hogar)
+            .toLowerCase()
+            .includes(texto) ||
+
+        String(hogar.cuidador_principal ?? "")
+            .toLowerCase()
+            .includes(texto)
+    );
+
+});
+
     // =========================================
 // FILTRADO
 // =========================================
@@ -1550,52 +1578,44 @@ const irAPagina = (numero) => {
                             {/* HOGAR */}
                             {/* ========================= */}
 
-                            <label>
+                           <label>
+    Hogar
 
-                                Hogar
+    {/* BUSCADOR */}
+    <input
+        type="text"
+        placeholder="Buscar por ID o cuidador..."
+        value={busquedaHogar}
+        onChange={(e) =>
+            setBusquedaHogar(e.target.value)
+        }
+    />
 
-                                <select
-                                    name="id_hogar"
-                                    value={
-                                        formulario.id_hogar
-                                    }
-                                    onChange={
-                                        manejarCambioHogar
-                                    }
-                                    required
-                                >
+    {/* RESULTADOS */}
+    <select
+        name="id_hogar"
+        value={formulario.id_hogar}
+        onChange={manejarCambioHogar}
+        required
+    >
+        <option value="">
+            Seleccione un hogar
+        </option>
 
-                                    <option value="">
-                                        Seleccione un hogar
-                                    </option>
-
-
-                                    {hogares.map(
-                                        hogar => (
-
-                                            <option
-                                                key={
-                                                    hogar.id_hogar
-                                                }
-                                                value={
-                                                    hogar.id_hogar
-                                                }
-                                            >
-
-                                                {hogar.id_hogar}
-                                                {" - "}
-                                                {
-                                                    hogar.cuidador_principal
-                                                }
-
-                                            </option>
-
-                                        )
-                                    )}
-
-                                </select>
-
-                            </label>
+        {hogaresFiltrados.map(
+            (hogar) => (
+                <option
+                    key={hogar.id_hogar}
+                    value={hogar.id_hogar}
+                >
+                    {hogar.id_hogar}
+                    {" - "}
+                    {hogar.cuidador_principal}
+                </option>
+            )
+        )}
+    </select>
+</label>
 
 
                             {/* ========================= */}
@@ -1771,7 +1791,7 @@ const irAPagina = (numero) => {
                             {/* DÍA */}
                             {/* ========================= */}
 
-                            <label>
+                            {/*<label>
 
                                 Día
 
@@ -1811,7 +1831,7 @@ const irAPagina = (numero) => {
 
                                 </select>
 
-                            </label>
+                            </label> */}
 
 
                             {/* ========================= */}
@@ -1857,7 +1877,7 @@ const irAPagina = (numero) => {
                             {/* FECHA */}
                             {/* ========================= */}
 
-                            <label>
+                            {/*<label>
 
                                 Fecha solicitud
 
@@ -1873,7 +1893,7 @@ const irAPagina = (numero) => {
                                     required
                                 />
 
-                            </label>
+                            </label>*/}
 
 
                             {/* ========================= */}
@@ -1981,9 +2001,9 @@ const irAPagina = (numero) => {
                                 Profesional
                             </th> )}
 
-                            <th>
+                           {/* <th>
                                 Día
-                            </th>
+                            </th> */}
 
                             {usuario?.rol === "profesional" && (
                             <th>
@@ -1994,9 +2014,9 @@ const irAPagina = (numero) => {
                                 Estado
                             </th>
 
-                            <th>
+                            {/*<th>
                                 Fecha solicitud
-                            </th>
+                            </th>*/}
 
                             <th>
                                 Observaciones
@@ -2105,14 +2125,14 @@ const irAPagina = (numero) => {
                                         </td>)}
 
 
-                                        <td>
+                                       {/* <td>
 
                                             {
                                                 entrada.dia
                                                 ?? "-"
                                             }
 
-                                        </td>
+                                        </td>*/}
 
                                         {usuario?.rol === "profesional" && (
                                             <td>
@@ -2144,7 +2164,7 @@ const irAPagina = (numero) => {
                                         {/* FECHA */}
                                         {/* ========================= */}
 
-                                        <td>
+                                       {/* <td>
 
                                             {
                                                 entrada.fecha_solicitud
@@ -2156,7 +2176,7 @@ const irAPagina = (numero) => {
                                                     : "-"
                                             }
 
-                                        </td>
+                                        </td>*/}
 
 
                                         {/* ========================= */}
@@ -2212,6 +2232,7 @@ const irAPagina = (numero) => {
                                                 </button>
 
                                                 <button
+                                                    class="btn-historial"
                                                     onClick={() =>
                                                         descargarHistorialPDF(entrada.id_hogar)
                                                     }
@@ -2305,6 +2326,7 @@ const irAPagina = (numero) => {
             >
 
                 <button
+                    class="historial-btn"
                     type="button"
                     onClick={() =>
                         descargarHistorialPDF(

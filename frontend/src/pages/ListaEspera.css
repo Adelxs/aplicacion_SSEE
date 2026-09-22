@@ -692,6 +692,18 @@
 }
 
 .modal-acciones button:last-child {
-    background: #007bff;
+    background: #e9483ce8;
     color: white;
+}
+
+.historial-btn {
+    height: 35px;
+    border-radius: 8px;
+    border: none;
+    background-color: rgb(248, 192, 87);
+    color: white;
+}
+
+.btn-historial {
+    height: 38px;
 }
