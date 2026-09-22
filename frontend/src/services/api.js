@@ -58,17 +58,24 @@ api.interceptors.response.use(
             error.response?.data
         );
 
-     //   if (
-        //    error.response?.status === 401
-       // ) {
+        // Token inválido o expirado
+        if (
+            error.response?.status === 401 &&
+            error.config?.url !== "/login"
+        ) {
 
-          //  localStorage.removeItem(
-             //   "access_token"
-           // );
+            localStorage.removeItem(
+                "access_token"
+            );
 
-           // window.location.href = "/";
+            sessionStorage.setItem(
+                "sesion_expirada",
+                "true"
+            );
 
-       // }
+            window.location.href = "/";
+
+        }
 
         return Promise.reject(error);
     }

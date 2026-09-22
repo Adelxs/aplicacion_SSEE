@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
@@ -12,6 +12,24 @@ function Login() {
     const [password, setPassword] = useState("");
 
     const [error, setError] = useState("");
+
+    useEffect(() => {
+
+    const sesionExpirada =
+        sessionStorage.getItem("sesion_expirada");
+
+    if (sesionExpirada === "true") {
+
+        setError(
+            "Tu sesión ha expirado. Por favor, inicia sesión nuevamente."
+        );
+
+        sessionStorage.removeItem(
+            "sesion_expirada"
+        );
+    }
+
+}, []);
 
     const manejarLogin = async (e) => {
 
