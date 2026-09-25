@@ -38,8 +38,26 @@ function Intervenciones() {
     const [filtroObservaciones, setFiltroObservaciones] = useState("");
     const [filtroUnidadVecinal, setFiltroUnidadVecinal] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
+    const [ordenFecha, setOrdenFecha] = useState({
+    campo: "fecha_programada",
+    direccion: "asc"
+    });
     const [busquedaHogar, setBusquedaHogar] = useState("");
     const elementosPorPagina = 10;
+
+
+    const cambiarOrdenFecha = () => {
+
+    setOrdenFecha((ordenActual) => ({
+        campo: "fecha_realizada",
+        direccion:
+            ordenActual.direccion === "asc"
+                ? "desc"
+                : "asc"
+    }));
+
+    setPaginaActual(1);
+};
 
 
     // =========================================================
@@ -834,6 +852,31 @@ const intervencionesFiltradas = intervenciones.filter((intervencion) => {
 
 });
 
+const intervencionesOrdenadas = [...intervencionesFiltradas].sort(
+    (a, b) => {
+
+        const fechaA =
+            a.fecha_realizada
+                ? new Date(a.fecha_realizada)
+                : null;
+
+        const fechaB =
+            b.fecha_realizada
+                ? new Date(b.fecha_realizada)
+                : null;
+
+        if (!fechaA && !fechaB) return 0;
+
+        if (!fechaA) return 1;
+
+        if (!fechaB) return -1;
+
+        return ordenFecha.direccion === "asc"
+            ? fechaA - fechaB
+            : fechaB - fechaA;
+    }
+);
+
 
 // =========================================================
 // PAGINACIÓN
@@ -847,7 +890,7 @@ const totalPaginas = Math.max(
 const indiceInicio = (paginaActual - 1) * elementosPorPagina;
 const indiceFin = indiceInicio + elementosPorPagina;
 
-const intervencionesPagina = intervencionesFiltradas.slice(
+const intervencionesPagina = intervencionesOrdenadas.slice(
     indiceInicio,
     indiceFin
 );
@@ -915,6 +958,17 @@ const irAPagina = (numero) => {
         );
 
     }
+
+    const formatearFecha = (fecha) => {
+
+    if (!fecha) {
+        return "-";
+    }
+
+    const [anio, mes, dia] = fecha.split("-");
+
+    return `${dia}/${mes}/${anio}`;
+};
 
 
     // =========================================================
@@ -1116,7 +1170,7 @@ const irAPagina = (numero) => {
 
                                         <input
                                             type="text"
-                                            placeholder="Buscar por ID o cuidador..."
+                                            placeholder="Buscar por ID..."
                                             value={busquedaHogar}
                                             onChange={(e) =>
                                                 setBusquedaHogar(e.target.value)
@@ -1169,7 +1223,7 @@ const irAPagina = (numero) => {
 
                                         <input
                                             type="text"
-                                            placeholder="Buscar por ID o cuidador..."
+                                            placeholder="Buscar por ID..."
                                             value={busquedaHogar}
                                             onChange={(e) =>
                                                 setBusquedaHogar(e.target.value)
@@ -1735,11 +1789,17 @@ const irAPagina = (numero) => {
 
                                             {/* FECHA */}
 
-                                            <div className="intervencion-fecha">
+                                           <div className="intervencion-fecha">
 
                                                 {intervencion.fecha_realizada
-                                                    || intervencion.fecha_programada
-                                                    || "Sin fecha"}
+                                                    ? formatearFecha(
+                                                        intervencion.fecha_realizada
+                                                    )
+                                                    : intervencion.fecha_programada
+                                                        ? formatearFecha(
+                                                            intervencion.fecha_programada
+                                                        )
+                                                        : "Sin fecha"}
 
                                             </div>
 
@@ -1789,7 +1849,7 @@ const irAPagina = (numero) => {
                                                 </p>
 
 
-                                                {intervencion.fecha_programada && (
+                                               {intervencion.fecha_programada && (
 
                                                     <p>
                                                         <strong>
@@ -1798,7 +1858,9 @@ const irAPagina = (numero) => {
 
                                                         {" "}
 
-                                                        {intervencion.fecha_programada}
+                                                        {formatearFecha(
+                                                            intervencion.fecha_programada
+                                                        )}
                                                     </p>
 
                                                 )}
@@ -1813,7 +1875,9 @@ const irAPagina = (numero) => {
 
                                                         {" "}
 
-                                                        {intervencion.fecha_realizada}
+                                                        {formatearFecha(
+                                                            intervencion.fecha_realizada
+                                                        )}
                                                     </p>
 
                                                 )}
@@ -1882,12 +1946,26 @@ const irAPagina = (numero) => {
                             </th>
 
                             <th>
-                                Fecha programada
+                                
+                                    Fecha programada
+                                    
                             </th>
 
-                            <th>
-                                Fecha realizada
-                            </th>
+                            
+                                <th>
+                                    <button
+                                        type="button"
+                                        onClick={cambiarOrdenFecha}
+                                        className="btn-orden-fecha"
+                                        title="Ordenar por fecha realizada"
+                                    >
+                                        Fecha realizada{" "}
+                                        {ordenFecha.direccion === "asc"
+                                            ? "↑"
+                                            : "↓"}
+                                    </button>
+                                </th>
+                            
 
                             <th>
                                 Estado
@@ -1950,22 +2028,22 @@ const irAPagina = (numero) => {
 
 
                                     <td>
-
                                         {
-                                            intervencion.fecha_programada
+                                            formatearFecha(
+                                                intervencion.fecha_programada
+                                            )
                                         }
-
                                     </td>
 
 
                                     <td>
-
                                         {
-                                            intervencion
-                                                .fecha_realizada
-                                                ?? "Pendiente"
+                                            intervencion.fecha_realizada
+                                                ? formatearFecha(
+                                                    intervencion.fecha_realizada
+                                                )
+                                                : "Pendiente"
                                         }
-
                                     </td>
 
 

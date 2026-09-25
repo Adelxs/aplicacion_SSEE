@@ -215,7 +215,7 @@ function Dashboard() {
                     <div>
 
                         <p>
-                            Lista de espera
+                            Atenciones Actuales
                         </p>
 
                         <h2>

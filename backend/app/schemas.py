@@ -326,4 +326,4 @@ class HogaresAtendidosProfesional(BaseModel):
     profesional_id: int
     profesional: str
     disciplina: str
-    hogares_atendidos: int
+    intervenciones_realizadas: int

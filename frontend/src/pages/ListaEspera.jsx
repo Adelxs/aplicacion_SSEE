@@ -1342,7 +1342,8 @@ const irAPagina = (numero) => {
         return (
 
             <h2>
-                Cargando lista de espera...
+                Cargando Atenciones Actuales...
+
             </h2>
 
         );
@@ -1584,7 +1585,7 @@ const irAPagina = (numero) => {
     {/* BUSCADOR */}
     <input
         type="text"
-        placeholder="Buscar por ID o cuidador..."
+        placeholder="Buscar por ID..."
         value={busquedaHogar}
         onChange={(e) =>
             setBusquedaHogar(e.target.value)

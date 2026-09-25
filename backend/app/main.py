@@ -126,6 +126,7 @@ Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def inicio():
+    
     return {
         "mensaje": "API SSEE funcionando"
     }
@@ -2670,11 +2671,9 @@ def obtener_hogares_atendidos(
             ),
 
             func.count(
-                func.distinct(
-                    models.Intervencion.hogar_id
-                )
+                models.Intervencion.id
             ).label(
-                "hogares_atendidos"
+                "intervenciones_realizadas"
             )
         )
 

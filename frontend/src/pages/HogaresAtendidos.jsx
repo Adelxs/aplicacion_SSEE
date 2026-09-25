@@ -217,7 +217,7 @@ function HogaresAtendidos() {
                                 </th>
 
                                 <th>
-                                    Hogares atendidos
+                                    Intervenciones realizadas
                                 </th>
 
                             </tr>
@@ -267,7 +267,7 @@ function HogaresAtendidos() {
                                             <td className="cantidad-hogares">
 
                                                 {
-                                                    profesional.hogares_atendidos
+                                                    profesional.intervenciones_realizadas
                                                 }
 
                                             </td>

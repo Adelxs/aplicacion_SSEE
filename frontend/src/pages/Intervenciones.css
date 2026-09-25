@@ -1251,3 +1251,14 @@
 .buscador-hogar select {
     margin-top: 8px;
 }
+
+.btn-orden-fecha {
+    background-color: transparent;
+    border: none;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: #FEF2A0;
+    text-transform: uppercase;
+    letter-spacing: 0.4px
+}
