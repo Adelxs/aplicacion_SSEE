@@ -88,6 +88,12 @@ function HogaresAtendidos() {
 
     }, [mes, anio]);
 
+    const totalMes = estadisticas.reduce(
+    (total, profesional) =>
+        total + profesional.intervenciones_realizadas,
+    0
+);
+
 
     return (
 
@@ -278,6 +284,14 @@ function HogaresAtendidos() {
                                 )
 
                             )}
+
+                            <tr className="fila-total">
+
+                                <td colSpan="3">
+                                    TOTAL DEL MES = {totalMes} Realizadas
+                                </td>
+
+                            </tr>
 
                         </tbody>
 

@@ -129,3 +129,23 @@
 .encabezado-tabla {
     background: #E98B50;
 }
+
+/* ========================================= */
+/* TOTAL DEL MES */
+/* ========================================= */
+
+.fila-total {
+    font-weight: 700;
+    border-top: 2px solid #ccc;
+}
+
+.fila-total td {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    text-align: left;
+    font-size: 1rem;
+}
+
+.fila-total td {
+    letter-spacing: 0.2px;
+}
