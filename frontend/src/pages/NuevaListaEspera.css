@@ -159,6 +159,7 @@
     color: white;
     cursor: pointer;
     font-weight: bold;
+
 }
 
 .btn-accion:hover {
@@ -503,4 +504,158 @@
 .btn-eliminar-profesion:hover {
     background: rgba(180, 50, 50, 0.12);
     transform: scale(1.05);
+}
+
+/* =========================
+   CONTROLES DE PROFESIÓN
+========================= */
+
+.profesion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.profesion-header > div:first-child {
+    flex-shrink: 0;
+}
+
+.profesion-controles {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 12px;
+    flex: 1;
+}
+
+.filtros-profesion {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.filtro-profesion {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.filtro-profesion label {
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.filtro-profesion input {
+    width: 150px;
+    box-sizing: border-box;
+
+    padding: 8px 10px;
+
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 7px;
+
+    background: rgba(255, 255, 255, 0.95);
+    color: #5f4545;
+
+    font-family: inherit;
+    font-size: 13px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.filtro-profesion input::placeholder {
+    color: #9a8580;
+}
+
+.filtro-profesion input:focus {
+    border-color: white;
+
+    box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+.btn-toggle-profesion {
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 7px;
+
+    padding: 9px 13px;
+
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-toggle-profesion:hover {
+    background: rgba(255, 255, 255, 0.22);
+
+    transform: translateY(-1px);
+}
+
+.btn-toggle-profesion:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 900px) {
+
+    .profesion-header {
+        align-items: stretch;
+    }
+
+    .profesion-controles {
+        width: 100%;
+        align-items: flex-end;
+        justify-content: flex-start;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .profesion-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .profesion-controles {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .filtros-profesion {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .filtro-profesion {
+        width: 100%;
+    }
+
+    .filtro-profesion input {
+        width: 100%;
+    }
+
+    .btn-toggle-profesion {
+        width: 100%;
+    }
+
 }

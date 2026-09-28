@@ -26,6 +26,9 @@ function NuevaListaEspera() {
     const [nuevaProfesion, setNuevaProfesion] = useState("");
     const [agregandoProfesion, setAgregandoProfesion] = useState(false);
 
+    const [busquedasHogar, setBusquedasHogar] = useState({});
+    const [profesionesDesplegadas, setProfesionesDesplegadas] = useState({});
+
     
 
     const cargarDatos = async () => {
@@ -284,9 +287,75 @@ const pasarAAtencion = async (e) => {
     }
 };
 
+const actualizarBusqueda = (
+    profesionId,
+    campo,
+    valor
+) => {
+
+    setBusquedasHogar((actual) => ({
+
+        ...actual,
+
+        [profesionId]: {
+
+            ...actual[profesionId],
+
+            [campo]: valor
+
+        }
+
+    }));
+
+};
+
+const alternarProfesion = (profesionId) => {
+
+    setProfesionesDesplegadas((actual) => ({
+
+        ...actual,
+
+        [profesionId]:
+            actual[profesionId] === false
+                ? true
+                : false
+
+    }));
+
+};
+
     useEffect(() => {
         cargarDatos();
     }, []);
+
+    useEffect(() => {
+
+    Object.entries(busquedasHogar).forEach(
+        ([profesionId, busqueda]) => {
+
+            const idBuscado =
+                busqueda.id?.trim() || "";
+
+            const cuidadorBuscado =
+                busqueda.cuidador?.trim() || "";
+
+            const hayBusqueda =
+                idBuscado !== "" ||
+                cuidadorBuscado !== "";
+
+            if (hayBusqueda) {
+
+                setProfesionesDesplegadas((actual) => ({
+                    ...actual,
+                    [profesionId]: true
+                }));
+
+            }
+
+        }
+    );
+
+}, [busquedasHogar]);
 
     /*
      * Agrupamos las entradas por profesión.
@@ -300,16 +369,52 @@ const pasarAAtencion = async (e) => {
      */
     const listaPorProfesion = profesiones.map((profesion) => {
 
-        const hogares = listaEspera.filter(
-            (entrada) =>
-                entrada.profesion_id === profesion.id
-        );
+    const hogares = listaEspera.filter(
+        (entrada) =>
+            entrada.profesion_id === profesion.id
+    );
 
-        return {
-            ...profesion,
-            hogares
-        };
-    });
+    const busqueda =
+        busquedasHogar[profesion.id] || {};
+
+    const idBuscado =
+        busqueda.id?.trim().toLowerCase() || "";
+
+    const cuidadorBuscado =
+        busqueda.cuidador?.trim().toLowerCase() || "";
+
+    const hogaresFiltrados = hogares.filter(
+        (hogar) => {
+
+            const coincideId =
+                !idBuscado ||
+                String(hogar.id_hogar)
+                    .toLowerCase()
+                    .includes(idBuscado);
+
+            const coincideCuidador =
+                !cuidadorBuscado ||
+                String(
+                    hogar.cuidador_principal ?? ""
+                )
+                    .toLowerCase()
+                    .includes(cuidadorBuscado);
+
+            return (
+                coincideId &&
+                coincideCuidador
+            );
+
+        }
+    );
+
+    return {
+        ...profesion,
+        hogares,
+        hogaresFiltrados
+    };
+
+});
 
     if (cargando) {
         return (
@@ -389,130 +494,204 @@ const pasarAAtencion = async (e) => {
                 {listaPorProfesion.map((profesion) => (
 
                     <section
-                        key={profesion.id}
-                        className="profesion-seccion"
-                    >
+    key={profesion.id}
+    className="profesion-seccion"
+>
 
-                        <div className="profesion-header">
+    <div className="profesion-header">
 
-                            <div>
-                                <h2>
-                                    {profesion.nombre}
-                                </h2>
+        <div>
+            <h2>
+                {profesion.nombre}
+            </h2>
 
-                                <span className="profesion-contador">
-                                    {profesion.hogares.length}{" "}
-                                    {profesion.hogares.length === 1
-                                        ? "hogar"
-                                        : "hogares"}
-                                </span>
-                            </div>
+            <span className="profesion-contador">
+                {profesion.hogares.length}{" "}
+                {profesion.hogares.length === 1
+                    ? "hogar"
+                    : "hogares"}
+            </span>
+        </div>
 
-                        </div>
+        <div className="profesion-controles">
 
-                        {profesion.hogares.length === 0 ? (
+            <div className="filtros-profesion">
 
-                            <div className="profesion-vacia">
-                                No hay hogares esperando atención
-                                para esta profesión.
-                            </div>
+                <div className="filtro-profesion">
 
-                        ) : (
+                    <label>
+                        ID hogar
+                    </label>
 
-                            <div className="tabla-contenedor">
+                    <input
+                        type="text"
+                        placeholder="Ej: 1234"
+                        value={
+                            busquedasHogar[profesion.id]?.id || ""
+                        }
+                        onChange={(e) =>
+                            actualizarBusqueda(
+                                profesion.id,
+                                "id",
+                                e.target.value
+                            )
+                        }
+                    />
 
-                                <table className="tabla-lista-espera">
+                </div>
 
-                                    <thead>
-                                        <tr>
-                                            <th>ID Hogar</th>
-                                            <th>Cuidador principal</th>
-                                            <th>PSDF</th>
-                                            <th>Dirección</th>
-                                            <th>Unidad vecinal</th>
-                                            <th>Teléfono</th>
-                                            <th>Fecha ingreso</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </thead>
+                <div className="filtro-profesion">
 
-                                    <tbody>
+                    <label>
+                        Cuidador
+                    </label>
 
-                                        {profesion.hogares.map(
-                                            (hogar) => (
+                    <input
+                        type="text"
+                        placeholder="Ej: María González"
+                        value={
+                            busquedasHogar[profesion.id]?.cuidador || ""
+                        }
+                        onChange={(e) =>
+                            actualizarBusqueda(
+                                profesion.id,
+                                "cuidador",
+                                e.target.value
+                            )
+                        }
+                    />
 
-                                                <tr key={hogar.id}>
+                </div>
 
-                                                    <td>
-                                                        {hogar.id_hogar}
-                                                    </td>
+            </div>
 
-                                                    <td>
-                                                        {
-                                                            hogar.cuidador_principal
-                                                        }
-                                                    </td>
+            <button
+                type="button"
+                className="btn-toggle-profesion"
+                onClick={() =>
+                    alternarProfesion(profesion.id)
+                }
+            >
+                {profesionesDesplegadas[profesion.id] === false
+                    ? "▶ Mostrar hogares"
+                    : "▼ Ocultar hogares"}
+            </button>
 
-                                                    <td>
-                                                        {hogar.psdf}
-                                                    </td>
+        </div>
 
-                                                    <td>
-                                                        {hogar.direccion}
-                                                    </td>
+    </div>
 
-                                                    <td>
-                                                        {
-                                                            hogar.unidad_vecinal ||
-                                                            "—"
-                                                        }
-                                                    </td>
 
-                                                    <td>
-                                                        {
-                                                            hogar.telefono ||
-                                                            "—"
-                                                        }
-                                                    </td>
+    {profesionesDesplegadas[profesion.id] !== false && (
 
-                                                    <td>
-                                                        {
-                                                            hogar.fecha_ingreso
-                                                        }
-                                                    </td>
+        <>
 
-                                                    <td>
-                                                        <button
-                                                            className="btn-accion"
-                                                            onClick={() => abrirModalAtencion(hogar)}
-                                                        >
-                                                            Pasar a atención
-                                                        </button>
+            {profesion.hogaresFiltrados.length === 0 ? (
 
-                                                        <button
-                                                            className="btn-eliminar-lista"
-                                                            onClick={() => eliminarDeListaEspera(hogar)}
-                                                            title="Eliminar de lista de espera"
-                                                        >
-                                                            🗑️
-                                                        </button>
-                                                    </td>
+                <div className="profesion-vacia">
 
-                                                </tr>
+                    {profesion.hogares.length === 0
+                        ? "No hay hogares esperando atención para esta profesión."
+                        : "No se encontraron hogares con los filtros ingresados."
+                    }
 
-                                            )
-                                        )}
+                </div>
 
-                                    </tbody>
+            ) : (
 
-                                </table>
+                <div className="tabla-contenedor">
 
-                            </div>
+                    <table className="tabla-lista-espera">
 
-                        )}
+                        <thead>
+                            <tr>
+                                <th>ID Hogar</th>
+                                <th>Cuidador principal</th>
+                                <th>PSDF</th>
+                                <th>Dirección</th>
+                                <th>Unidad vecinal</th>
+                                <th>Teléfono</th>
+                                <th>Fecha ingreso</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
 
-                    </section>
+                        <tbody>
 
+                            {profesion.hogaresFiltrados.map(
+                                (hogar) => (
+
+                                    <tr key={hogar.id}>
+
+                                        <td>
+                                            {hogar.id_hogar}
+                                        </td>
+
+                                        <td>
+                                            {hogar.cuidador_principal}
+                                        </td>
+
+                                        <td>
+                                            {hogar.psdf}
+                                        </td>
+
+                                        <td>
+                                            {hogar.direccion}
+                                        </td>
+
+                                        <td>
+                                            {hogar.unidad_vecinal || "—"}
+                                        </td>
+
+                                        <td>
+                                            {hogar.telefono || "—"}
+                                        </td>
+
+                                        <td>
+                                            {hogar.fecha_ingreso}
+                                        </td>
+
+                                        <td>
+
+                                            <button
+                                                className="btn-accion"
+                                                onClick={() =>
+                                                    abrirModalAtencion(hogar)
+                                                }
+                                            >
+                                                Pasar a atención
+                                            </button>
+
+                                            <button
+                                                className="btn-eliminar-lista"
+                                                onClick={() =>
+                                                    eliminarDeListaEspera(hogar)
+                                                }
+                                                title="Eliminar de lista de espera"
+                                            >
+                                                🗑️
+                                            </button>
+
+                                        </td>
+
+                                    </tr>
+
+                                )
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            )}
+
+        </>
+
+    )}
+
+</section>
                 ))}
 
             </div>
