@@ -36,6 +36,7 @@ from fastapi.responses import StreamingResponse
 
 from fastapi.responses import FileResponse
 
+ENV = os.getenv("ENV", "production")
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="login"
@@ -109,7 +110,10 @@ def requiere_profesional(
 app = FastAPI(
     title="Aplicación SSEE",
     description="Sistema de gestión de Servicios de Apoyo",
-    version="0.1.0"
+    version="0.1.0",
+    docs_url="/docs" if ENV == "development" else None,
+    redoc_url="/redoc" if ENV == "development" else None,
+    openapi_url="/openapi.json" if ENV == "development" else None,
 )
 
 app.add_middleware(
