@@ -204,6 +204,12 @@ class ListaEspera(Base):  ####Atenciones Actuales########
         nullable=True
     )
     
+    activo = Column(
+        Boolean,
+        nullable=False,
+        default=True
+    )
+    
     
     
 class Usuario(Base):

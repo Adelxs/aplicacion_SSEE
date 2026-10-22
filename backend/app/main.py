@@ -111,9 +111,9 @@ app = FastAPI(
     title="Aplicación SSEE",
     description="Sistema de gestión de Servicios de Apoyo",
     version="0.1.0",
-    docs_url="/docs" if ENV == "development" else None,
-    redoc_url="/redoc" if ENV == "development" else None,
-    openapi_url="/openapi.json" if ENV == "development" else None,
+    ##docs_url="/docs" if ENV == "development" else None,
+    ##redoc_url="/redoc" if ENV == "development" else None,
+    ##openapi_url="/openapi.json" if ENV == "development" else None,
 )
 
 app.add_middleware(
@@ -1635,6 +1635,46 @@ def dar_de_baja_lista_espera(
         "id_hogar": entrada.id_hogar,
         "intervenciones_eliminadas": len(intervenciones)
     }
+    
+@app.put(
+    "/lista-espera/{id}/activo",
+    response_model=schemas.ListaEsperaDetalle
+)
+def cambiar_activo_lista_espera(
+    id: int,
+    db: Session = Depends(get_db),
+    usuario = Depends(obtener_usuario_actual)
+):
+    entrada = db.query(
+        models.ListaEspera
+    ).filter(
+        models.ListaEspera.id == id
+    ).first()
+
+    if entrada is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Entrada de lista de espera no encontrada"
+        )
+
+    if usuario.rol != "profesional":
+        raise HTTPException(
+            status_code=403,
+            detail="Solo los profesionales pueden modificar el estado activo"
+        )
+
+    if entrada.profesional_id != usuario.profesional_id:
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permisos para modificar esta atención"
+        )
+
+    entrada.activo = not entrada.activo
+
+    db.commit()
+    db.refresh(entrada)
+
+    return entrada
 ################################################################ Dashboard ##################################################
     
 @app.get("/dashboard/resumen")
@@ -2293,25 +2333,15 @@ def pasar_lista_espera_a_atencion(
     nueva_atencion = models.ListaEspera(
 
         id_hogar=hogar.id_hogar,
-
         cuidador_principal=hogar.cuidador_principal,
-
         psdf=hogar.psdf,
-
         direccion=hogar.direccion,
-
         unidad_vecinal=hogar.unidad_vecinal,
-
         telefono=hogar.telefono,
-
         profesional_id=datos.profesional_id,
-
         dia=datos.dia,
-
         estado="Pendiente",
-
         fecha_solicitud=date.today(),
-
         observaciones=datos.observaciones
     )
 

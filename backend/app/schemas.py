@@ -57,19 +57,12 @@ class ProfesionalResumen(BaseModel):
 class IntervencionCreate(BaseModel):
 
     hogar_id: int
-
     profesional_id: int | None = None
-
     tipo: str
-
     numero_intervencion: int | None = None
-
     fecha_programada: date | None = None
-
     fecha_realizada: date | None = None
-
     estado: str
-
     observaciones: str | None = None
     
 class IntervencionResponse(BaseModel):
@@ -114,58 +107,34 @@ class IntervencionUpdate(BaseModel):
 class ListaEsperaCreate(BaseModel):
     
     id_hogar: int
-
     cuidador_principal: str
-
     psdf: str
-
     direccion: str
-
     unidad_vecinal: str | None = None
-
     telefono: str | None = None
-
     profesional_id: int
-
     dia: str | None = None
-    
     frecuencia: str | None = None
-
     estado: str = "Pendiente"
-
     fecha_solicitud: date
-
     observaciones: str | None = None
-    
-    
 
 class ListaEsperaResponse(BaseModel):
 
     id: int
-
     id_hogar: int
-
     cuidador_principal: str
-
     psdf: str
-
     direccion: str
-
     unidad_vecinal: str | None
-
     telefono: str | None
-
     profesional_id: int | None
-
     dia: str | None
-    
     frecuencia: str | None = None
-
     estado: str
-
     fecha_solicitud: date
-
     observaciones: str | None
+    activo: bool
     
 
 
@@ -176,27 +145,16 @@ class ListaEsperaResponse(BaseModel):
 class ListaEsperaUpdate(BaseModel):
 
     id_hogar: int | None = None
-
     cuidador_principal: str | None = None
-
     psdf: str | None = None
-
     direccion: str | None = None
-
     unidad_vecinal: str | None = None
-
     telefono: str | None = None
-
     profesional_id: int | None = None
-
     dia: str | None = None
-    
     frecuencia: str | None = None
-
     estado: str | None = None
-
     fecha_solicitud: date | None = None
-
     observaciones: str | None = None
 
 

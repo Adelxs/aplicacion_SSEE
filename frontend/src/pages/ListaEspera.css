@@ -707,3 +707,32 @@
 .btn-historial {
     height: 38px;
 }
+
+.select-estado-activo {
+    padding: 6px 10px;
+    border: 1px solid #4caf50;
+    border-radius: 6px;
+    background-color: #f1f8f1;
+    color: #2e7d32;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.select-estado-inactivo {
+    padding: 6px 10px;
+    border: 1px solid #d9534f;
+    border-radius: 6px;
+    background-color: #fff5f5;
+    color: #c62828;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.select-estado-activo:focus,
+.select-estado-inactivo:focus {
+    outline: none;
+}

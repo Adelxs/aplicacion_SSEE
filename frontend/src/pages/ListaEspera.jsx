@@ -127,6 +127,38 @@ const guardarFrecuencia = async () => {
     }
 };
 
+const cambiarEstadoActivo = async (
+    entrada,
+    activo
+) => {
+    try {
+        const response = await api.put(
+            `/lista-espera/${entrada.id}/activo`
+        );
+
+        setListaEspera((listaActual) =>
+            listaActual.map((item) =>
+                item.id === entrada.id
+                    ? {
+                        ...item,
+                        activo: response.data.activo
+                    }
+                    : item
+            )
+        );
+    } catch (error) {
+        console.error(
+            "Error actualizando estado activo:",
+            error
+        );
+
+        alert(
+            error.response?.data?.detail ||
+            "No se pudo actualizar el estado de la atención"
+        );
+    }
+};
+
     // =========================================
     // FORMULARIO INICIAL
     // =========================================
@@ -134,25 +166,15 @@ const guardarFrecuencia = async () => {
     const formularioInicial = {
 
         id_hogar: "",
-
         cuidador_principal: "",
-
         psdf: "",
-
         direccion: "",
-
         unidad_vecinal: "",
-
         telefono: "",
-
         profesional_id: "",
-
         dia: "",
-
         estado: "Pendiente",
-
         fecha_solicitud: "",
-
         observaciones: ""
 
     };
@@ -161,7 +183,6 @@ const guardarFrecuencia = async () => {
     const [formulario, setFormulario] = useState(
         formularioInicial
     );
-
 
     // =========================================
     // OBTENER USUARIO
@@ -191,7 +212,6 @@ const guardarFrecuencia = async () => {
         }
 
     };
-
 
     // =========================================
     // OBTENER HOGARES
@@ -356,7 +376,6 @@ const guardarFrecuencia = async () => {
 
     };
 
-
     // =========================================
     // CARGA INICIAL
     // =========================================
@@ -372,9 +391,7 @@ const guardarFrecuencia = async () => {
                 const usuarioActual =
                     await obtenerUsuario();
 
-
                 await obtenerListaEspera();
-
 
                 // ==============================
                 // ADMINISTRADOR
@@ -389,7 +406,6 @@ const guardarFrecuencia = async () => {
                     await obtenerProfesionales();
 
                 }
-
 
                 // ==============================
                 // PROFESIONAL
@@ -420,7 +436,6 @@ const guardarFrecuencia = async () => {
 
         };
 
-
         cargarDatos();
 
     }, []);
@@ -428,7 +443,6 @@ const guardarFrecuencia = async () => {
     // =========================================
     // Descargar historial PDF
     // =========================================
-
 
     const descargarHistorialPDF = async (
     idHogar,
@@ -468,7 +482,6 @@ const guardarFrecuencia = async () => {
 
         window.URL.revokeObjectURL(url);
 
-
         // =====================================
         // SI ES PARTE DEL PROCESO DE BAJA
         // =====================================
@@ -494,7 +507,6 @@ const guardarFrecuencia = async () => {
     }
 };
 
-
     // =========================================
     // CAMBIOS DEL FORMULARIO
     // =========================================
@@ -516,7 +528,6 @@ const guardarFrecuencia = async () => {
 
     };
 
-
     // =========================================
     // CAMBIAR HOGAR
     // =========================================
@@ -533,21 +544,13 @@ const guardarFrecuencia = async () => {
                 ...formulario,
 
                 id_hogar: "",
-
                 cuidador_principal: "",
-
                 psdf: "",
-
                 direccion: "",
-
                 unidad_vecinal: "",
-
                 telefono: ""
-
             });
-
             return;
-
         }
 
 
@@ -555,7 +558,6 @@ const guardarFrecuencia = async () => {
             usuario?.rol === "administrador"
                 ? hogares
                 : hogaresProfesional;
-
 
         const hogarSeleccionado =
             listaHogares.find(
@@ -568,9 +570,7 @@ const guardarFrecuencia = async () => {
 
 
         if (!hogarSeleccionado) {
-
             return;
-
         }
 
 
@@ -580,22 +580,16 @@ const guardarFrecuencia = async () => {
 
             id_hogar:
                 hogarSeleccionado.id_hogar,
-
             cuidador_principal:
                 hogarSeleccionado.cuidador_principal ?? "",
-
             psdf:
                 hogarSeleccionado.psdf ?? "",
-
             direccion:
                 hogarSeleccionado.direccion ?? "",
-
             unidad_vecinal:
                 hogarSeleccionado.unidad_vecinal ?? "",
-
             telefono:
                 hogarSeleccionado.telefono ?? ""
-
         });
 
     };
@@ -643,9 +637,7 @@ const guardarFrecuencia = async () => {
         if (
             usuario?.rol !== "administrador"
         ) {
-
             return;
-
         }
 
 
@@ -653,7 +645,6 @@ const guardarFrecuencia = async () => {
         await obtenerHogares();
 
         await obtenerProfesionales();
-
 
         setModoFormulario(
             "crear"
@@ -676,16 +667,13 @@ const guardarFrecuencia = async () => {
 
             fecha_solicitud:
                 hoy
-
         });
-
 
         setMostrarFormulario(
             true
         );
 
     };
-
 
     // =========================================
     // EDITAR ENTRADA
@@ -696,11 +684,8 @@ const guardarFrecuencia = async () => {
         if (
             usuario?.rol !== "administrador"
         ) {
-
             return;
-
         }
-
 
         // Nos aseguramos de tener
         // los datos actualizados
@@ -708,61 +693,45 @@ const guardarFrecuencia = async () => {
 
         await obtenerProfesionales();
 
-
         setModoFormulario(
             "editar"
         );
-
 
         setIdEditando(
             entrada.id
         );
 
-
         setFormulario({
 
             id_hogar:
                 entrada.id_hogar ?? "",
-
             cuidador_principal:
                 entrada.cuidador_principal ?? "",
-
             psdf:
                 entrada.psdf ?? "",
-
             direccion:
                 entrada.direccion ?? "",
-
             unidad_vecinal:
                 entrada.unidad_vecinal ?? "",
-
             telefono:
                 entrada.telefono ?? "",
-
             profesional_id:
                 entrada.profesional_id ?? "",
-
             dia:
                 entrada.dia ?? "",
-
             estado:
                 entrada.estado ?? "Pendiente",
-
             fecha_solicitud:
                 entrada.fecha_solicitud ?? "",
-
             observaciones:
                 entrada.observaciones ?? ""
-
         });
-
 
         setMostrarFormulario(
             true
         );
 
     };
-
 
     // =========================================
     // CERRAR FORMULARIO
@@ -786,7 +755,6 @@ const guardarFrecuencia = async () => {
 
     };
 
-
     // =========================================
     // GUARDAR ENTRADA
     // =========================================
@@ -794,7 +762,6 @@ const guardarFrecuencia = async () => {
     const guardarEntrada = async (e) => {
 
         e.preventDefault();
-
 
         if (
             usuario?.rol !== "administrador"
@@ -808,7 +775,6 @@ const guardarFrecuencia = async () => {
 
         }
 
-
         // =================================
         // VALIDACIONES
         // =================================
@@ -818,22 +784,16 @@ const guardarFrecuencia = async () => {
             alert(
                 "Debe seleccionar un hogar"
             );
-
             return;
-
         }
-
 
         if (!formulario.profesional_id) {
 
             alert(
                 "Debe seleccionar un profesional"
             );
-
             return;
-
         }
-
 
         if (!formulario.fecha_solicitud) {
 
@@ -845,7 +805,6 @@ const guardarFrecuencia = async () => {
 
         }
 
-
         // =================================
         // DATOS PARA CREAR
         // =================================
@@ -856,51 +815,38 @@ const guardarFrecuencia = async () => {
                 Number(
                     formulario.id_hogar
                 ),
-
             cuidador_principal:
                 formulario.cuidador_principal,
-
             psdf:
                 formulario.psdf,
-
             direccion:
                 formulario.direccion,
-
             unidad_vecinal:
                 formulario.unidad_vecinal ||
                 null,
-
             telefono:
                 formulario.telefono ||
                 null,
-
             profesional_id:
                 Number(
                     formulario.profesional_id
                 ),
-
             dia:
                 formulario.dia ||
                 null,
-
             estado:
                 formulario.estado,
-
             fecha_solicitud:
                 formulario.fecha_solicitud,
-
             observaciones:
                 formulario.observaciones ||
                 null
-
         };
-
 
         console.log(
             "DATOS QUE SE ENVIAN:",
             datosEnviar
         );
-
 
         try {
 
@@ -921,19 +867,16 @@ const guardarFrecuencia = async () => {
 
                     );
 
-
                 console.log(
                     "RESPUESTA POST:",
                     response.data
                 );
-
 
                 alert(
                     "Entrada agregada correctamente"
                 );
 
             }
-
 
             // =================================
             // EDITAR
@@ -947,51 +890,38 @@ const guardarFrecuencia = async () => {
                         Number(
                             formulario.id_hogar
                         ),
-
                     cuidador_principal:
                         formulario.cuidador_principal,
-
                     psdf:
                         formulario.psdf,
-
                     direccion:
                         formulario.direccion,
-
                     unidad_vecinal:
                         formulario.unidad_vecinal ||
                         null,
-
                     telefono:
                         formulario.telefono ||
                         null,
-
                     profesional_id:
                         Number(
                             formulario.profesional_id
                         ),
-
                     dia:
                         formulario.dia ||
                         null,
-
                     estado:
                         formulario.estado,
-
                     fecha_solicitud:
                         formulario.fecha_solicitud,
-
                     observaciones:
                         formulario.observaciones ||
                         null
-
                 };
-
 
                 console.log(
                     "DATOS PUT:",
                     datosActualizar
                 );
-
 
                 const response =
                     await api.put(
@@ -1002,12 +932,10 @@ const guardarFrecuencia = async () => {
 
                     );
 
-
                 console.log(
                     "RESPUESTA PUT:",
                     response.data
                 );
-
 
                 alert(
                     "Entrada actualizada correctamente"
@@ -1015,20 +943,17 @@ const guardarFrecuencia = async () => {
 
             }
 
-
             // =================================
             // CERRAR
             // =================================
 
             cerrarFormulario();
 
-
             // =================================
             // RECARGAR
             // =================================
 
             await obtenerListaEspera();
-
 
         } catch (error) {
 
@@ -1047,7 +972,6 @@ const guardarFrecuencia = async () => {
                 error.response?.data
             );
 
-
             const detalle =
                 error.response?.data?.detail;
 
@@ -1064,7 +988,6 @@ const guardarFrecuencia = async () => {
                                 JSON.stringify(item)
                         )
                         .join("\n");
-
 
                 alert(
                     mensajes
@@ -1086,7 +1009,6 @@ const guardarFrecuencia = async () => {
 
     };
 
-
     // =========================================
     // ELIMINAR
     // =========================================
@@ -1105,11 +1027,9 @@ const guardarFrecuencia = async () => {
 
     }
 
-
     const entrada = listaEspera.find(
         (item) => item.id === id
     );
-
 
     if (!entrada) {
 
@@ -1121,11 +1041,9 @@ const guardarFrecuencia = async () => {
 
     }
 
-
     try {
 
         setCargandoBaja(true);
-
 
         // =====================================
         // BUSCAR INTERVENCIONES DEL HOGAR
@@ -1136,10 +1054,8 @@ const guardarFrecuencia = async () => {
                 `/hogares/${entrada.id_hogar}/intervenciones`
             );
 
-
         const intervenciones =
             respuesta.data;
-
 
         // =====================================
         // SI NO TIENE INTERVENCIONES
@@ -1155,18 +1071,15 @@ const guardarFrecuencia = async () => {
                     "¿Está seguro de eliminar esta entrada de Atenciones Actuales?"
                 );
 
-
             if (!confirmar) {
 
                 return;
 
             }
 
-
             await api.delete(
                 `/lista-espera/${id}`
             );
-
 
             setListaEspera(
                 (listaActual) =>
@@ -1176,16 +1089,12 @@ const guardarFrecuencia = async () => {
                     )
             );
 
-
             alert(
                 "Entrada eliminada correctamente"
             );
 
-
             return;
-
         }
-
 
         // =====================================
         // TIENE INTERVENCIONES
@@ -1205,7 +1114,6 @@ const guardarFrecuencia = async () => {
             "ERROR AL PREPARAR BAJA:",
             error
         );
-
 
         alert(
             error.response?.data?.detail ||
@@ -1332,7 +1240,6 @@ const irAPagina = (numero) => {
     setPaginaActual(numero);
 };
 
-
     // =========================================
     // CARGANDO
     // =========================================
@@ -1340,16 +1247,10 @@ const irAPagina = (numero) => {
     if (cargando) {
 
         return (
-
-            <h2>
-                Cargando Atenciones Actuales...
-
-            </h2>
-
+            <h2> Cargando Atenciones Actuales... </h2>
         );
 
     }
-
 
     // =========================================
     // ERROR
@@ -1358,15 +1259,9 @@ const irAPagina = (numero) => {
     if (error) {
 
         return (
-
-            <h2>
-                {error}
-            </h2>
-
+            <h2>{error}</h2>
         );
-
     }
-
 
     // =========================================
     // RENDER
@@ -1375,135 +1270,124 @@ const irAPagina = (numero) => {
     return (
 
         <div className="intervenciones">
-
-
-            {/* ================================= */}
-            {/* HEADER */}
-            {/* ================================= */}
-
-            
-{/* ================================= */}
-{/* HEADER */}
-{/* ================================= */}
-
-<div className="intervenciones-header">
-
-    <div>
-        <h1>Atenciones Actuales</h1>
-        <p>Casos registrados en Atenciones Actuales</p>
-    </div>
-
+        
     {/* ================================= */}
-    {/* FILTROS */}
+    {/* HEADER */}
     {/* ================================= */}
 
-    <div className="intervenciones-filtros">
+    <div className="intervenciones-header">
 
-    {/* ID HOGAR */}
+        <div>
+            <h1>Atenciones Actuales</h1>
+            <p>Casos registrados en Atenciones Actuales</p>
+        </div>
 
-    <input
-        type="text"
-        placeholder="Buscar por ID Hogar..."
-        value={filtroIdHogar}
-        onChange={manejarFiltroIdHogar}
-    />
+        {/* ================================= */}
+        {/* FILTROS */}
+        {/* ================================= */}
 
+        <div className="intervenciones-filtros">
 
-    {/* PROFESIONAL */}
+        {/* ID HOGAR */}
 
-{usuario?.rol === "administrador" && (
-    <select
-        value={filtroProfesional}
-        onChange={manejarFiltroProfesional}
-    >
+        <input
+            type="text"
+            placeholder="Buscar por ID Hogar..."
+            value={filtroIdHogar}
+            onChange={manejarFiltroIdHogar}
+        />
 
-        <option value="">
-            Todos los profesionales
-        </option>
-
-        {profesionales.map((profesional) => (
-
-            <option
-                key={profesional.id}
-                value={profesional.id}
-            >
-                {profesional.nombre}
-            </option>
-
-        ))}
-
-    </select>)}
-
-
-    {/* UNIDAD VECINAL */}
-
-    <select
-        value={filtroUnidadVecinal}
-        onChange={manejarFiltroUnidadVecinal}
-    >
-
-        <option value="">
-            Todas las unidades vecinales
-        </option>
-
-        {unidadesVecinales.map((unidad) => (
-
-            <option
-                key={unidad}
-                value={unidad}
-            >
-                {unidad}
-            </option>
-
-        ))}
-
-    </select>
-
-
-    {/* ESTADO */}
-
-    <select
-        value={filtroEstado}
-        onChange={manejarFiltroEstado}
-    >
-
-        <option value="">
-            Todos los estados
-        </option>
-
-        <option value="Pendiente">
-            Pendiente
-        </option>
-
-        <option value="En espera">
-            En espera
-        </option>
-
-        <option value="Atendido">
-            Atendido
-        </option>
-
-        <option value="Cancelado">
-            Cancelado
-        </option>
-
-    </select>
-
-</div>
+        {/* PROFESIONAL */}
 
     {usuario?.rol === "administrador" && (
-        <button
-            className="btn-nueva-intervencion"
-            onClick={abrirNuevo}
+        <select
+            value={filtroProfesional}
+            onChange={manejarFiltroProfesional}
         >
-            + Nueva entrada
-        </button>
-    )}
 
-</div>
+            <option value="">
+                Todos los profesionales
+            </option>
+
+            {profesionales.map((profesional) => (
+
+                <option
+                    key={profesional.id}
+                    value={profesional.id}
+                >
+                    {profesional.nombre}
+                </option>
+
+            ))}
+
+        </select>)}
+
+        {/* UNIDAD VECINAL */}
+
+        <select
+            value={filtroUnidadVecinal}
+            onChange={manejarFiltroUnidadVecinal}
+        >
+
+            <option value="">
+                Todas las unidades vecinales
+            </option>
+
+            {unidadesVecinales.map((unidad) => (
+
+                <option
+                    key={unidad}
+                    value={unidad}
+                >
+                    {unidad}
+                </option>
+
+            ))}
+
+        </select>
 
 
+        {/* ESTADO */}
 
+        <select
+            value={filtroEstado}
+            onChange={manejarFiltroEstado}
+        >
+
+            <option value="">
+                Todos los estados
+            </option>
+
+            <option value="Pendiente">
+                Pendiente
+            </option>
+
+            <option value="En espera">
+                En espera
+            </option>
+
+            <option value="Atendido">
+                Atendido
+            </option>
+
+            <option value="Cancelado">
+                Cancelado
+            </option>
+
+        </select>
+
+    </div>
+
+            {usuario?.rol === "administrador" && (
+                <button
+                    className="btn-nueva-intervencion"
+                    onClick={abrirNuevo}
+                >
+                    + Nueva entrada
+                </button>
+            )}
+
+        </div>
 
             {/* ================================= */}
             {/* MODAL */}
@@ -1516,42 +1400,20 @@ const irAPagina = (numero) => {
 
                     <div className="modal-intervencion">
 
-
                         {/* ========================= */}
                         {/* HEADER */}
                         {/* ========================= */}
 
                         <div className="modal-header">
-
                             <div>
-
                                 <h2>
-
-                                    {modoFormulario === "crear"
-
-                                        ? "Nueva entrada"
-
-                                        : "Editar entrada"
-
-                                    }
-
+                                    {modoFormulario === "crear"  ? "Nueva entrada": "Editar entrada"}
                                 </h2>
 
-
                                 <p>
-
-                                    {modoFormulario === "crear"
-
-                                        ? "Ingrese los datos de la lista de espera"
-
-                                        : "Modifique los datos de la entrada"
-
-                                    }
-
+                                    {modoFormulario === "crear" ? "Ingrese los datos de la lista de espera" : "Modifique los datos de la entrada"}
                                 </p>
-
                             </div>
-
 
                             <button
                                 type="button"
@@ -1565,58 +1427,54 @@ const irAPagina = (numero) => {
 
                         </div>
 
-
                         {/* ========================= */}
                         {/* FORMULARIO */}
                         {/* ========================= */}
 
-                        <form
-                            onSubmit={guardarEntrada}
-                        >
-
+                        <form onSubmit={guardarEntrada}>
 
                             {/* ========================= */}
                             {/* HOGAR */}
                             {/* ========================= */}
 
                            <label>
-    Hogar
+                                    Hogar
 
-    {/* BUSCADOR */}
-    <input
-        type="text"
-        placeholder="Buscar por ID..."
-        value={busquedaHogar}
-        onChange={(e) =>
-            setBusquedaHogar(e.target.value)
-        }
-    />
+                                    {/* BUSCADOR */}
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar por ID..."
+                                        value={busquedaHogar}
+                                        onChange={(e) =>
+                                            setBusquedaHogar(e.target.value)
+                                        }
+                                    />
 
-    {/* RESULTADOS */}
-    <select
-        name="id_hogar"
-        value={formulario.id_hogar}
-        onChange={manejarCambioHogar}
-        required
-    >
-        <option value="">
-            Seleccione un hogar
-        </option>
+                                    {/* RESULTADOS */}
+                                    <select
+                                        name="id_hogar"
+                                        value={formulario.id_hogar}
+                                        onChange={manejarCambioHogar}
+                                        required
+                                    >
+                                        <option value="">
+                                            Seleccione un hogar
+                                        </option>
 
-        {hogaresFiltrados.map(
-            (hogar) => (
-                <option
-                    key={hogar.id_hogar}
-                    value={hogar.id_hogar}
-                >
-                    {hogar.id_hogar}
-                    {" - "}
-                    {hogar.cuidador_principal}
-                </option>
-            )
-        )}
-    </select>
-</label>
+                                        {hogaresFiltrados.map(
+                                            (hogar) => (
+                                                <option
+                                                    key={hogar.id_hogar}
+                                                    value={hogar.id_hogar}
+                                                >
+                                                    {hogar.id_hogar}
+                                                    {" - "}
+                                                    {hogar.cuidador_principal}
+                                                </option>
+                                            )
+                                        )}
+                                    </select>
+                                </label>
 
 
                             {/* ========================= */}
@@ -1924,32 +1782,17 @@ const irAPagina = (numero) => {
 
                             <div className="form-actions">
 
-                                <button
-                                    type="button"
-                                    onClick={cerrarFormulario}
-                                >
-
+                                <button type="button" onClick={cerrarFormulario}>
                                     Cancelar
-
                                 </button>
 
+                                <button type="submit">
 
-                                <button
-                                    type="submit"
-                                >
-
-                                    {modoFormulario === "crear"
-
-                                        ? "Guardar entrada"
-
-                                        : "Guardar cambios"
-
-                                    }
+                                    {modoFormulario === "crear" ? "Guardar entrada" : "Guardar cambios"}
 
                                 </button>
 
                             </div>
-
 
                         </form>
 
@@ -1971,57 +1814,30 @@ const irAPagina = (numero) => {
                     <thead>
 
                         <tr>
-
-                            <th>
-                                ID Hogar
-                            </th>
-
-                            <th>
-                                Cuidador/a
-                            </th>
-
-                            <th>
-                                PSDF
-                            </th>
-
-                            <th>
-                                Dirección
-                            </th>
-
-                            <th>
-                                Unidad vecinal
-                            </th>
-
-                            <th>
-                                Teléfono
-                            </th>
+                            <th>ID Hogar</th>
+                            <th>Cuidador/a</th>
+                            <th>PSDF</th>
+                            <th>Dirección</th>
+                            <th>Unidad vecinal</th>
+                            <th>Teléfono</th>
 
                             {usuario?.rol === "administrador" && (
 
-                            <th>
-                                Profesional
-                            </th> )}
+                            <th>Profesional</th> )}
 
                            {/* <th>
                                 Día
                             </th> */}
 
-                            {usuario?.rol === "profesional" && (
-                            <th>
-                                Frecuencia
-                            </th> )}
+                            {usuario?.rol === "profesional" && (<th>Frecuencia</th>)}
 
-                            <th>
-                                Estado
-                            </th>
+                            <th>Estado</th>
 
                             {/*<th>
                                 Fecha solicitud
                             </th>*/}
 
-                            <th>
-                                Observaciones
-                            </th>
+                            <th>Observaciones</th>
 
                             {usuario?.rol === "administrador" && (
 
@@ -2053,64 +1869,14 @@ const irAPagina = (numero) => {
             return (
 
                 <tr key={entrada.id}>
-                                        <td>
+                    <td><strong>{entrada.id_hogar}</strong></td>
+                    <td>{entrada.cuidador_principal}</td>
+                    <td>{entrada.psdf}</td>
+                    <td>{entrada.direccion}</td>
+                    <td>{entrada.unidad_vecinal ?? "-"}</td>
+                    <td>{entrada.telefono ?? "-"}</td>
 
-                                            <strong>
-                                                {
-                                                    entrada.id_hogar
-                                                }
-                                            </strong>
-
-                                        </td>
-
-
-                                        <td>
-
-                                            {
-                                                entrada.cuidador_principal
-                                            }
-
-                                        </td>
-
-
-                                        <td>
-
-                                            {
-                                                entrada.psdf
-                                            }
-
-                                        </td>
-
-
-                                        <td>
-
-                                            {
-                                                entrada.direccion
-                                            }
-
-                                        </td>
-
-
-                                        <td>
-
-                                            {
-                                                entrada.unidad_vecinal
-                                                ?? "-"
-                                            }
-
-                                        </td>
-
-
-                                        <td>
-
-                                            {
-                                                entrada.telefono
-                                                ?? "-"
-                                            }
-
-                                        </td>
-
-                                       {usuario?.rol === "administrador" && (
+                                        {usuario?.rol === "administrador" && (
                                         <td>
 
                                             {
@@ -2153,11 +1919,36 @@ const irAPagina = (numero) => {
 
 
                                         <td>
+                                            {usuario?.rol === "profesional" ? (
+                                                <select
+                                                    className={
+                                                        entrada.activo
+                                                            ? "select-estado-activo"
+                                                            : "select-estado-inactivo"
+                                                    }
+                                                    value={
+                                                        entrada.activo
+                                                            ? "Activo"
+                                                            : "Inactivo"
+                                                    }
+                                                    onChange={() => {
+                                                        cambiarEstadoActivo(
+                                                            entrada,
+                                                            !entrada.activo
+                                                        );
+                                                    }}
+                                                >
+                                                    <option value="Activo">
+                                                        Activo
+                                                    </option>
 
-                                            {
+                                                    <option value="Inactivo">
+                                                        Inactivo
+                                                    </option>
+                                                </select>
+                                            ) : (
                                                 entrada.estado
-                                            }
-
+                                            )}
                                         </td>
 
 
