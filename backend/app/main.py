@@ -111,9 +111,9 @@ app = FastAPI(
     title="Aplicación SSEE",
     description="Sistema de gestión de Servicios de Apoyo",
     version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
 app.add_middleware(
